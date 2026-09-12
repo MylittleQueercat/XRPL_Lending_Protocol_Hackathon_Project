@@ -1,6 +1,6 @@
 # Raise — web application
 
-The marketplace interface for Raise, on the XRPL Lending Protocol Hackathon Track 1 network. It is built in the idiom of Ripple's reference lending application — Next.js, Tailwind, Geist, the same tokens — so it reads as part of the same family.
+The marketplace interface for Raise, on the XRPL Lending Protocol Hackathon Track 1 network. Raise has its own visual identity: cream surfaces, sage accents, forest-green text, an original geometric mark, and an editorial serif paired with a clean sans-serif. Built with Next.js and Tailwind.
 
 ## Run
 

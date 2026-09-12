@@ -27,3 +27,4 @@ tmp/
 .next/
 out/
 next-env.d.ts
+.claude/settings.local.json

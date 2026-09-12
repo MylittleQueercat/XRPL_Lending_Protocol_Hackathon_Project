@@ -1,69 +1,70 @@
 @import "tailwindcss";
-
 @custom-variant dark (&:is(.dark *));
 
-/* Tokens mirror Ripple's reference lending application so Raise reads as part of the same family. */
+/* Raise — warm paper, fresh sage and forest ink. */
 :root {
-  --background: hsl(210 20% 98%);
-  --foreground: hsl(222 47% 11%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(222 47% 11%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(222 47% 11%);
-  --primary: hsl(213 100% 40%);
-  --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(210 40% 96%);
-  --secondary-foreground: hsl(222 47% 11%);
-  --muted: hsl(210 40% 96%);
-  --muted-foreground: hsl(215 16% 47%);
-  --accent: hsl(210 40% 96%);
-  --accent-foreground: hsl(222 47% 11%);
-  --destructive: hsl(0 84% 60%);
-  --destructive-foreground: hsl(0 0% 100%);
-  --success: hsl(142 76% 36%);
-  --success-foreground: hsl(0 0% 100%);
-  --warning: hsl(38 92% 50%);
-  --warning-foreground: hsl(0 0% 0%);
-  --border: hsl(214 32% 91%);
-  --input: hsl(214 32% 91%);
-  --ring: hsl(213 100% 40%);
-  --radius: 0.75rem;
+  --background: #f7f5ec;
+  --surface: #efeee3;
+  --foreground: #233d32;
+  --card: #fffef8;
+  --card-foreground: #233d32;
+  --popover: #fffef8;
+  --popover-foreground: #233d32;
+  --primary: #397044;
+  --primary-hover: #2d5936;
+  --primary-foreground: #ffffff;
+  --secondary: #e8ebdf;
+  --secondary-foreground: #233d32;
+  --muted: #eeeee3;
+  --muted-foreground: #647166;
+  --accent: #e0eccf;
+  --accent-foreground: #35533d;
+  --destructive: #ad4141;
+  --destructive-foreground: #ffffff;
+  --success: #397044;
+  --success-foreground: #ffffff;
+  --warning: #986022;
+  --warning-foreground: #352d20;
+  --border: #dcded0;
+  --input: #c8cebd;
+  --ring: #719558;
 }
-
 .dark {
-  --background: hsl(222 47% 6%);
-  --foreground: hsl(210 40% 98%);
-  --card: hsl(222 47% 8%);
-  --card-foreground: hsl(210 40% 98%);
-  --popover: hsl(222 47% 8%);
-  --popover-foreground: hsl(210 40% 98%);
-  --primary: hsl(213 100% 50%);
-  --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(217 33% 17%);
-  --secondary-foreground: hsl(210 40% 98%);
-  --muted: hsl(217 33% 17%);
-  --muted-foreground: hsl(215 20% 65%);
-  --accent: hsl(217 33% 17%);
-  --accent-foreground: hsl(210 40% 98%);
-  --destructive: hsl(0 62% 30%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --success: hsl(142 70% 45%);
-  --success-foreground: hsl(0 0% 100%);
-  --warning: hsl(38 92% 50%);
-  --warning-foreground: hsl(38 92% 80%);
-  --border: hsl(217 33% 17%);
-  --input: hsl(217 33% 17%);
-  --ring: hsl(213 100% 50%);
+  --background: #19271f;
+  --surface: #213127;
+  --foreground: #f1f2e6;
+  --card: #24362b;
+  --card-foreground: #f1f2e6;
+  --popover: #24362b;
+  --popover-foreground: #f1f2e6;
+  --primary: #c5e6a4;
+  --primary-hover: #d4eebc;
+  --primary-foreground: #233d32;
+  --secondary: #334639;
+  --secondary-foreground: #eef2e5;
+  --muted: #2a3b30;
+  --muted-foreground: #b3bfae;
+  --accent: #344c33;
+  --accent-foreground: #d3eabb;
+  --destructive: #f29187;
+  --success: #b8dda0;
+  --success-foreground: #19271f;
+  --warning: #e4bf83;
+  --warning-foreground: #19271f;
+  --border: #3b4d3f;
+  --input: #53664f;
+  --ring: #c5e6a4;
 }
-
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -81,25 +82,54 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
+  --font-sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, monospace;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+  --radius-4xl: 2rem;
+  --container-layout: 1200px;
+  --container-layout-lg: 960px;
+  --container-layout-wide: 1360px;
 }
+@utility headline1 { letter-spacing: -1px; font-size: 64px; font-weight: 500; line-height: 72px; }
+@utility headline2 { letter-spacing: -1px; font-size: 49px; font-weight: 500; line-height: 64px; }
+@utility headline3 { letter-spacing: -1px; font-size: 42px; font-weight: 500; line-height: 56px; }
+@utility headline4 { letter-spacing: -0.5px; font-size: 2.25rem; font-weight: 500; line-height: 48px; }
+@utility headline5 { letter-spacing: -0.5px; font-size: 30px; font-weight: 500; line-height: 40px; }
+@utility heading1 { letter-spacing: 0; font-size: 22px; font-weight: 500; line-height: 2rem; }
+@utility heading2 { letter-spacing: 0; font-size: 19px; font-weight: 500; line-height: 1.75rem; }
+@utility heading3 { letter-spacing: 0; font-size: 1rem; font-weight: 500; line-height: 1.5rem; }
+@utility body1 { letter-spacing: 0; font-size: 22px; font-weight: 400; line-height: 2rem; }
+@utility body2 { letter-spacing: 0; font-size: 19px; font-weight: 400; line-height: 1.75rem; }
+@utility body3 { letter-spacing: 0; font-size: 1rem; font-weight: 400; line-height: 1.5rem; }
+@utility body4 { letter-spacing: 0.5px; font-size: 0.875rem; font-weight: 400; line-height: 1.25rem; }
+@utility button1 { letter-spacing: 0; font-size: 1rem; font-weight: 500; line-height: 1.5rem; }
+
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
-  }
-  code, kbd, pre, .font-mono {
-    font-family: var(--font-mono);
-  }
+  * { @apply border-border outline-ring/50; }
+  html { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+  body { @apply bg-background text-foreground font-sans antialiased; font-weight: 400; font-feature-settings: "calt" 1; }
+  strong, b { font-weight: 600; }
+  ::selection { background: #c5e6a4; color: #233d32; }
+}
+@layer components {
+  .raise-focus:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
+  .hover-arrow { stroke: currentColor; flex-shrink: 0; transition: transform .2s; }
+  a:hover .hover-arrow, button:hover .hover-arrow { transform: translateX(3px); }
+  .eyebrow { font-size: .7rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+  .editorial-title { font-family: var(--font-display); font-weight: 400; letter-spacing: -.055em; line-height: 1.04; }
+  .flow-art { background: #e2ebd6; color: #233d32; position: relative; isolation: isolate; }
+  .flow-art::before { content: ""; position: absolute; inset: 0; z-index: -1; background-image: radial-gradient(#75896b35 1px, transparent 1px); background-size: 20px 20px; mask-image: linear-gradient(black, transparent); }
+  .flow-orbit { position: absolute; width: 330px; height: 330px; border: 1px solid #96ad83; border-radius: 50%; right: -100px; top: 25px; z-index: -1; }
+  .flow-orbit::after { content: ""; position: absolute; inset: 28px; border: 1px solid #96ad83; border-radius: 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
