@@ -11,3 +11,9 @@ node_modules/
 coverage/
 dist/
 *.log
+
+# Personal DevEx capture install: carries individual identities and the event invite code.
+xrpl-devex-hook/
+# Local working material (slide renders, scratch files).
+tmp/
+.grok/

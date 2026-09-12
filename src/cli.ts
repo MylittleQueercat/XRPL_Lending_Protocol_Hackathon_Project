@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { executeCommand, shutdownClient } from './commands.js';
 import { createClient, inspectNetwork } from './network.js';
 import { createRunDirectory, writePrivateJson } from './storage.js';
+import { runVanillaFlow } from './lending.js';
 import { runVaultSmoke } from './vault.js';
 
 const client = createClient();
@@ -14,6 +15,7 @@ try {
       return report;
     },
     smoke: (report) => runVaultSmoke(client, report),
+    vanilla: (report) => runVanillaFlow(client, report),
     output: (value) => console.log(JSON.stringify(value, null, 2)),
   });
 } catch (error) {
