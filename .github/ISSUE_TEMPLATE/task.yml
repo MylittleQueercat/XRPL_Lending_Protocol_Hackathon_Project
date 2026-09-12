@@ -1,0 +1,24 @@
+name: Project task or proposal
+description: Add work or propose an improvement to the shared Raise roadmap.
+title: "[Proposal] "
+labels: [roadmap, "status:backlog"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Problem and desired outcome
+      description: Describe the user need and the result we should be able to demonstrate.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and acceptance criteria
+      value: "- [ ] Observable result\n- [ ] Evidence or validation\n"
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and open questions
+      description: Link related issues and identify any decision or protocol capability to verify.

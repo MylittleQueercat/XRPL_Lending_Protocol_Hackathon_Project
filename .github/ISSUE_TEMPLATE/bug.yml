@@ -1,0 +1,19 @@
+name: Bug or developer friction
+description: Record a reproducible application, documentation or environment problem.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include commands, network, SDK version, expected and actual results. Never include seeds, tokens, invitation codes, or private protocol security findings.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and impact
+      description: Include a public transaction link, sanitized error, impact and suggested improvement if known.
+    validations:
+      required: true
