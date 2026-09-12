@@ -91,6 +91,7 @@ Seeds are stored only in ignored `wallets.json` and are never included here.
 - Before: `{"alice_xrp":931.999676,"bob_xrp":1002.999844,"alice_shares":{"amount":"9000000","ledger_index":"FF502FDAE9F0AFD8076590A5D161BD4B93DF40F62382020C25640D09764795A3"},"bob_shares":{"ledger_index":"F223527BD5E6F3E7BB81405ED5764081AF4E64EEA17512B3DA1A997FE0E2DF15"}}`
 - After: `{"alice_xrp":932.999616,"bob_xrp":1001.999844,"alice_shares":{"amount":"8550000","ledger_index":"FF502FDAE9F0AFD8076590A5D161BD4B93DF40F62382020C25640D09764795A3"},"bob_shares":{"amount":"450000","ledger_index":"F223527BD5E6F3E7BB81405ED5764081AF4E64EEA17512B3DA1A997FE0E2DF15"}}`
 - Both inner legs executed: `true`
+- Fee reconciliation: Alice's XRP delta was `+999940` drops against a `1000000`-drop payment, so the validated outer Batch fee was `60` drops; Bob's delta was exactly `-1000000` drops.
 
 ### Atomic Batch forced failure
 - Transaction type: `Batch`
@@ -101,6 +102,7 @@ Seeds are stored only in ignored `wallets.json` and are never included here.
 - Before: `{"alice_xrp":932.999616,"bob_xrp":1001.999844,"alice_shares":{"amount":"8550000","ledger_index":"FF502FDAE9F0AFD8076590A5D161BD4B93DF40F62382020C25640D09764795A3"},"bob_shares":{"amount":"450000","ledger_index":"F223527BD5E6F3E7BB81405ED5764081AF4E64EEA17512B3DA1A997FE0E2DF15"}}`
 - After: `{"alice_xrp":932.999556,"bob_xrp":1001.999844,"alice_shares":{"amount":"8550000","ledger_index":"FF502FDAE9F0AFD8076590A5D161BD4B93DF40F62382020C25640D09764795A3"},"bob_shares":{"amount":"450000","ledger_index":"F223527BD5E6F3E7BB81405ED5764081AF4E64EEA17512B3DA1A997FE0E2DF15"}}`
 - Payment and share legs unchanged: `true`
+- Fee reconciliation: Alice's XRP decreased by exactly `60` drops while the forced inner legs rolled back; this is the outer Batch fee.
 
 ## Public state evidence
 

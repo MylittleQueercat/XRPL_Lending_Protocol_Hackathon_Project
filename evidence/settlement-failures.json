@@ -1,0 +1,182 @@
+{
+  "status": "verified",
+  "scope": "Settlement guarantees under failure: unpayable buyer, undeliverable shares, and replay of an identical signed Batch.",
+  "completedAt": "2026-09-12T14:22:05.009Z",
+  "network": {
+    "checkedAt": "2026-09-12T14:21:09.201Z",
+    "networkId": 4001,
+    "reachable": true,
+    "http": {
+      "build": "3.4.0-rc1",
+      "ledgerIndex": 67591,
+      "ledgerAgeSeconds": 3
+    },
+    "websocket": {
+      "build": "3.4.0-rc1",
+      "ledgerIndex": 67591,
+      "ledgerAgeSeconds": 2
+    },
+    "vaultReady": true,
+    "vanillaReady": true,
+    "blockers": [],
+    "notes": [
+      "LendingProtocolV1_1 is enabled: open-ended loan origination works, but interest is recognised on payment (cash basis), not at origination. Document yield on that basis."
+    ],
+    "amendments": [
+      {
+        "id": "565B90CA1AB2B9D42208ED10884188C64F9E19083DECB9634AAF06EB03299509",
+        "name": "LendingProtocol",
+        "enabled": true
+      },
+      {
+        "id": "81BD2619B6B3C8625AC5D0BC01DE17F06C3F0AB95C7C87C93715B87A4FD240D8",
+        "name": "SingleAssetVault",
+        "enabled": true
+      },
+      {
+        "id": "A360E2BFD775A5B0DCE1C36C16DF31B72735A57584FD163655D2F9564F8E7AC8",
+        "name": "LendingProtocolV1_1",
+        "enabled": true
+      }
+    ]
+  },
+  "mechanism": "XLS-56 Batch with tfAllOrNothing; buyer authorises the inner payment, seller signs the outer Batch.",
+  "accounts": {
+    "vaultOwner": "rDg5hgJPFT5i44aPsj3H3XnnXK35PDU4EN",
+    "seller": "r9WUsNxZu17gD7CZLdthXwZqpPJkHtr1v5",
+    "buyer": "r6as4NSboPvzut5nrFJA18HWj1JX8is2E",
+    "outsider": "raDTP3FbWExvdJTnbRQ86TwD2pZH9rz2H4"
+  },
+  "ledgerObjects": {
+    "vaultId": "279C933245B0F5FD6AD2EF829F394E41B4CEC5E42DB4B97C58966F5F071F4CBF",
+    "shareMptId": "000000018D77AD701678D5EBA1FF08E868696DE9D2B36DE1"
+  },
+  "scenarios": [
+    {
+      "case": "insufficient buyer balance",
+      "expectation": "neither leg applies",
+      "outcome": {
+        "label": "insufficient-buyer-balance",
+        "submitted": true,
+        "resultCode": "tesSUCCESS",
+        "hash": "8155367EF715682A7152BF3B3774D03BCC7B2421CCB45068CAA155016D037107",
+        "ledgerIndex": 67604,
+        "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/8155367EF715682A7152BF3B3774D03BCC7B2421CCB45068CAA155016D037107"
+      },
+      "before": {
+        "sellerXrp": "979999988",
+        "buyerXrp": "999999988",
+        "sellerShares": "20000000",
+        "buyerShares": "0"
+      },
+      "after": {
+        "sellerXrp": "979999928",
+        "buyerXrp": "999999988",
+        "sellerShares": "20000000",
+        "buyerShares": "0"
+      },
+      "guarantee": {
+        "sharesUnchanged": true,
+        "paymentUnchanged": true,
+        "sellerXrpDeltaDrops": "-60",
+        "buyerXrpDeltaDrops": "0"
+      },
+      "guaranteeHeld": true
+    },
+    {
+      "case": "shares already spent",
+      "expectation": "payment must not apply without delivery",
+      "outcome": {
+        "label": "shares-already-spent",
+        "submitted": true,
+        "resultCode": "tesSUCCESS",
+        "hash": "9565A21235F69AD8B822EB050255D479218D7F2CD33C5892DD14FA7B10F570AF",
+        "ledgerIndex": 67608,
+        "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/9565A21235F69AD8B822EB050255D479218D7F2CD33C5892DD14FA7B10F570AF"
+      },
+      "before": {
+        "sellerXrp": "979999916",
+        "buyerXrp": "999999988",
+        "sellerShares": "19000000",
+        "buyerShares": "0"
+      },
+      "after": {
+        "sellerXrp": "979999856",
+        "buyerXrp": "999999988",
+        "sellerShares": "19000000",
+        "buyerShares": "0"
+      },
+      "guarantee": {
+        "sharesUnchanged": true,
+        "paymentUnchanged": true,
+        "sellerXrpDeltaDrops": "-60",
+        "buyerXrpDeltaDrops": "0"
+      },
+      "guaranteeHeld": true
+    },
+    {
+      "case": "successful sale (reference)",
+      "expectation": "both legs apply once",
+      "outcome": {
+        "label": "successful-sale",
+        "submitted": true,
+        "resultCode": "tesSUCCESS",
+        "hash": "C21A5EA5EA3460915E8CFA5C8F30611EFA36D613995F5DEC2DB606F9563E432A",
+        "ledgerIndex": 67610,
+        "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/C21A5EA5EA3460915E8CFA5C8F30611EFA36D613995F5DEC2DB606F9563E432A"
+      },
+      "before": {
+        "sellerXrp": "979999856",
+        "buyerXrp": "999999988",
+        "sellerShares": "19000000",
+        "buyerShares": "0"
+      },
+      "after": {
+        "sellerXrp": "984999796",
+        "buyerXrp": "994999988",
+        "sellerShares": "18000000",
+        "buyerShares": "1000000"
+      },
+      "sharesDelivered": "1000000",
+      "guaranteeHeld": true
+    },
+    {
+      "case": "duplicate acceptance (replay of the identical signed Batch)",
+      "expectation": "the second submission must not settle again",
+      "outcome": {
+        "label": "replay",
+        "submitted": true,
+        "resultCode": "tefPAST_SEQ"
+      },
+      "before": {
+        "sellerXrp": "984999796",
+        "buyerXrp": "994999988",
+        "sellerShares": "18000000",
+        "buyerShares": "1000000"
+      },
+      "after": {
+        "sellerXrp": "984999796",
+        "buyerXrp": "994999988",
+        "sellerShares": "18000000",
+        "buyerShares": "1000000"
+      },
+      "guarantee": {
+        "sharesUnchanged": true,
+        "paymentUnchanged": true,
+        "sellerXrpDeltaDrops": "0",
+        "buyerXrpDeltaDrops": "0"
+      },
+      "guaranteeHeld": true
+    }
+  ],
+  "notLedgerEnforced": {
+    "offerExpiry": "No ledger primitive. The Batch is only valid while the outer account sequence holds, so a superseded offer cannot settle, but expiry itself must be enforced by the offer model (#16).",
+    "sellerCancellation": "No ledger primitive. Cancellation is an application state change; on-ledger it reduces to the seller consuming or moving the shares, which case 2 covers."
+  },
+  "allGuaranteesHeld": true,
+  "environment": {
+    "node": "24.21.0",
+    "xrpl": "5.2.0-beta.1",
+    "trackTarget": "Track 1"
+  }
+}

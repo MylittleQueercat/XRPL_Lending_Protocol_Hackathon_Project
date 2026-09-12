@@ -1,0 +1,8 @@
+{
+  "name": "xrpl-settlement-evidence",
+  "private": true,
+  "type": "module",
+  "description": "Read-only verifier for Raise Batch settlement evidence",
+  "scripts": { "verify": "node verify.mjs" },
+  "dependencies": { "xrpl": "5.2.0" }
+}

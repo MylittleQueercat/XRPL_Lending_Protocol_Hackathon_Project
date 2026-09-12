@@ -50,6 +50,22 @@ Expose per-inner execution outcomes prominently in SDK results and document a st
 
 Inspect validated metadata and compare both payment and MPT balances before and after each Batch. Include the outer fee in expected account deltas.
 
+## Further cases confirming the same pattern
+
+Verifying the settlement guarantees for issue #15 produced two more instances of an outer `tesSUCCESS` over an inner no-op, reproducible with `npm run settlement` and recorded in [`evidence/settlement-failures.json`](../../evidence/settlement-failures.json):
+
+| Case | Outer result | XRP moved | Shares moved |
+|---|---|---|---|
+| Buyer cannot pay the price | `tesSUCCESS` | none (60-drop outer fee only) | none |
+| Seller no longer holds the shares offered | `tesSUCCESS` | none (60-drop outer fee only) | none |
+| Reference sale, both legs fundable | `tesSUCCESS` | 5 XRP | 1,000,000 units |
+| Identical signed Batch resubmitted | `tefPAST_SEQ` | none | none |
+
+The atomicity guarantee held in every case, including the one where the seller had already moved the shares elsewhere — the buyer was never debited for an undeliverable position. Replay is prevented by the outer account sequence rather than by anything Batch-specific.
+
+The point stands and is now backed by three independent failure shapes: **the outer engine result reports acceptance and fee charging, never inner-leg execution.** Three of the four rows above share the same outer code while differing completely in economic effect. An application reading that code alone cannot tell a completed sale from one that never happened.
+
+
 ## Public or private-security
 
 Public
