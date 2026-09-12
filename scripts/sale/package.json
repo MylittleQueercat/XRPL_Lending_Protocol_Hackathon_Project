@@ -1,0 +1,8 @@
+{
+  "name": "xrpl-sale-evidence",
+  "private": true,
+  "type": "module",
+  "description": "Read-only verifier for the validated Raise sale fixture",
+  "scripts": { "verify": "node verify.mjs" },
+  "dependencies": { "xrpl": "5.2.0" }
+}
