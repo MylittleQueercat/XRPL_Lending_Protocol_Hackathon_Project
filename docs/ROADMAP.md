@@ -1,8 +1,22 @@
 # Shared roadmap
 
-All tasks live in this repository, are intentionally unassigned, and have acceptance criteria and dependencies. There are no duration estimates. Add ideas using [New issue](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/new/choose), or propose changes in an existing issue.
+Tasks live in this repository with acceptance criteria and dependencies. Coordinate ownership; no teammate is assigned implicitly. There are no duration estimates. Add ideas using [New issue](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/new/choose), or propose changes in an existing issue.
 
 Use [Issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues) for current status and [Milestones](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/milestones) for phase progress. Use the [shared Kanban board](https://github.com/users/MylittleQueercat/projects/1) to move and organize cards; this document remains the phase index.
+
+## Current delivery snapshot — September 12, 2026
+
+The foundation, Vanilla lending flow, share transfer/atomic settlement and integrated marketplace are merged. The recorded local API/ledger and two-browser journeys include buyer redemption; root/web checks total 400 passing tests. The hosted release runs on Sunny. See [README](../README.md), [INTEGRATION](INTEGRATION.md) and [DEPLOYMENT](DEPLOYMENT.md) for the evidence boundaries.
+
+| Remaining issue | Work left |
+|---|---|
+| [#45](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/45) | Complete and record hosted deployment acceptance; current results are in the deployment guide. |
+| [#27](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/27) | Presentation, demo narrative and rehearsal. |
+| [#28](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/28) | Final submission completeness and team sign-off. |
+| [#31](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/31) | Independent buyer/seller validation for multiple vaults, bids and RFQs. |
+| [#32](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/32) | External integrator feedback on the embed/notification prototype. |
+
+#29 selected Batch as the Loaded extension. #30 delivered a tested partial-fill domain/store exploration, not partial purchases in the live UI. Do not infer an implemented extension from its exploration ticket being closed. The phase tables below are the issue index, not a claim that all listed work is still pending.
 
 ## 01 — Shared foundation
 
@@ -68,7 +82,7 @@ Use [Issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon
 
 ## Shared board workflow
 
-The [Raise team board](https://github.com/users/MylittleQueercat/projects/1) is linked to this repository and uses it as the default repository for new issues. All 32 existing roadmap issues have been imported without duplicates or assignees.
+The [Raise team board](https://github.com/users/MylittleQueercat/projects/1) is linked to this repository. It tracks the original phases and deployment work; use repository issues for proposals and acceptance evidence.
 
 | Status | Meaning |
 |---|---|
@@ -79,10 +93,8 @@ The [Raise team board](https://github.com/users/MylittleQueercat/projects/1) is 
 | Blocked | Waiting on an external dependency or decision. |
 | Done | Implementation and checks complete, with evidence attached. The associated PR can still await review or merge; inspect its state separately. |
 
-Initial organization: #1 Done; #2 Blocked; #3, #4 and #5 Ready; the remaining 27 tasks Backlog. These are the bootstrap states, not a live status report. Read the board for current progress.
+Repository and Project permissions are separate. Verify both for each new teammate. Existing teammates can create proposals, add issues, update acceptance criteria and move cards. Do not assign another teammate without coordination.
 
-All four current repository collaborators have Project access. New teammates require separate access to the repository and Project. Existing teammates can create proposals, add issues, update acceptance criteria and move cards. Do not assign another teammate without coordination.
-
-For new tasks, create a repository issue with the task template: it adds the `roadmap` and `status:backlog` labels. The enabled auto-add workflow imports new or updated open issues with `roadmap` from this repository into the Project. Existing issues can also be added manually. Review dependencies before setting Ready. Status and the `status:*` labels are not automatically synchronized; keep them consistent when changing readiness. There are no time estimates. The existing Auto-close issue workflow closes an issue when its card is marked Done; use In review while verification is pending. Under the team workflow, completed and checked work moves to Done and its PR is marked ready for review; Done does not imply the code has already merged into main.
+For new tasks, create a repository issue with the task template: it adds the `roadmap` and `status:backlog` labels. The board was configured to auto-add matching open `roadmap` issues; verify membership after creating a ticket. Existing issues can also be added manually. Review dependencies before setting Ready. Status and the `status:*` labels are not automatically synchronized; keep them consistent when changing readiness. There are no time estimates. The board was configured to close an issue when its card is marked Done; use In review while verification is pending. Under the team workflow, completed and checked work moves to Done and its PR is marked ready for review; Done does not imply the code has already merged into main.
 
 Sources: [GitHub Projects](https://docs.github.com/en/issues/planning-and-tracking-with-projects/creating-projects/creating-a-project), [repository linking](https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-your-project/adding-your-project-to-a-repository).

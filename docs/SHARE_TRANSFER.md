@@ -1,5 +1,7 @@
 # Vault-Share Transfer and New-Holder Rights (Issue #12)
 
+> Historical standalone evidence. SDK versions and transaction results below describe the original reproduction project and are intentionally preserved. For the current beta.1 application, shared marketplace and complete browser journey, start with [INTEGRATION.md](INTEGRATION.md).
+
 ## Result
 
 This evidence proves transfer of **vault shares** only. It does not transfer an underlying borrower `Loan` object. A new share holder successfully redeemed the received shares when liquidity was available; a former holder who had transferred the entire bounded holding could not redeem those shares.

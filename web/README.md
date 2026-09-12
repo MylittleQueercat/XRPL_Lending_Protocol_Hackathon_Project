@@ -1,6 +1,8 @@
 # Raise — web application
 
-The marketplace interface for Raise, on the XRPL Lending Protocol Hackathon Track 1 network. Raise has its own visual identity: cream surfaces, sage accents, forest-green text, an original geometric mark, and an editorial serif paired with a clean sans-serif. Built with Next.js and Tailwind.
+The marketplace interface for Raise, on the XRPL Lending Protocol Hackathon Track 1 network. Raise has its own visual identity: cream surfaces, sage accents, forest-green text, an original geometric mark, and Apple/system typography (`-apple-system`, `BlinkMacSystemFont`, system fallbacks), light/dark themes, CSS motion and reduced-motion support. Built with Next.js 16.3.5, React 19.2.8 and Tailwind CSS 4.
+
+The public demo is [raise.vgtray.fr](https://raise.vgtray.fr). See the [deployment record](../docs/DEPLOYMENT.md) for its exact release and acceptance checks; local E2E evidence has a separate scope.
 
 ## Run
 
@@ -27,7 +29,9 @@ Fixed to the Track 1 hackathon devnet — network ID **4001**, `wss://lending-ha
 
 A **local development wallet**: the seed lives in `sessionStorage` only, signing happens in the browser with `xrpl.js`, disconnecting wipes the key. You can create a faucet-funded wallet in one click or import a test seed.
 
-This is the frontend of the wallet boundary decided at the repo root in [`docs/WALLET.md`](../docs/WALLET.md) (`src/wallet.ts`). Why not a browser extension: the flows this product depends on — a `LoanSet` with a borrower counter-signature, and a `tfAllOrNothing` `Batch` where the buyer signs an inner leg — are not supported by Xaman, Crossmark or GemWallet, and none of them speaks to network 4001. See [`devfeedback/findings/008`](../devfeedback/findings/008-no-wallet-can-cosign-batch-or-loanset.md). The signing path is verified with a real validated transaction in [`evidence/web-wallet-signing.json`](../evidence/web-wallet-signing.json); reproduce with `npm run verify:wallet`.
+The browser provider is `src/lib/wallet.tsx`; its signing helpers and shared-market intent signing are separate from the historical root `src/wallet.ts` contract. See [WALLET.md](../docs/WALLET.md). No external connector has been verified in this project for the complete custom-network LoanSet/Batch signing surface. This is a project validation boundary, not a universal claim that named wallet products cannot support it.
+
+The actual browser journey is recorded in [browser-market-e2e.json](../evidence/browser-market-e2e.json). [web-wallet-signing.json](../evidence/web-wallet-signing.json) is a narrower signing check; `npm run verify:wallet` submits a real event-network transaction with explicit storage/Web Lock stand-ins.
 
 For marketplace purchases, the buyer and seller connect their own test wallets in separate browser sessions. The buyer signs the prepared Batch authorization, then the seller reviews and signs the exact outer transaction. Neither party provides a counterparty seed. The operator-only `LoanSet` screen still uses an explicitly labelled borrower test-seed co-signing device; this is a separate development limitation.
 
@@ -37,11 +41,13 @@ Single-account transactions persist public recovery hashes before broadcasting. 
 
 | Route | Ticket | What it does |
 |---|---|---|
+| `/` | — | Application landing page and navigation. |
 | `/position` | #19 | Your vault shares, accounting value against available liquidity, deposit and withdraw. When the vault cannot fund a withdrawal, the rejection is explained and routes you to sell. |
 | `/market`, `/market/[id]` | #20 | Open offers with unit price and discount against accounting value; offer detail with the vault's live state and the seller's live share balance. |
 | `/sell` | #21 | Create, review and cancel offers on your position. |
 | `/buy/[offerId]` | #22 | Purchase confirmation, atomic settlement, and post-trade ownership verified from the validated ledger. |
 | `/operator` | #23 | Vault, broker, cover and two-party loan origination; borrower repayment. |
+| `/embed` | #32 | Validated launch/handoff prototype, not a complete partner SDK. |
 
 ## What the screens refuse to do
 
@@ -59,7 +65,12 @@ src/components/     shell, network badge, wallet button, page header, stat, tx r
 src/lib/network.ts  fixed Track 1 configuration and route contract
 src/lib/ledger.ts   validated-ledger reads and signing helpers (single, LoanSet two-party, sale Batch)
 src/lib/wallet.tsx  local development wallet provider
-src/lib/offers.ts   offer model and lifecycle
+src/lib/offers.ts   offer display/view model; not authoritative persistence
+src/lib/market-client.ts  same-origin marketplace HTTP client
+src/lib/market-signing.ts  wallet action intents and two-party approvals
+src/lib/submission-journal.ts  public transaction recovery journal
+src/lib/server/market*.ts  SQLite runtime and HTTP origin/authentication boundary
+src/app/api/market/  shared snapshot, actions and challenge endpoints
 src/lib/format.ts   exact drop formatting, never rounding ledger values
 tests/              unit tests (vitest)
 verify/             live-network verification, run explicitly

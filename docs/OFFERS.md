@@ -1,6 +1,6 @@
 # Offer model and lifecycle
 
-The offer service stores advertisements for existing XRP vault shares on network **4001**. It does not own those shares, reserve ledger balances, sign transactions or submit a sale. This is the backend foundation for the market and sell screens in tickets #20 and #21.
+The offer service stores advertisements for existing XRP vault shares on network **4001**. It does not own those shares, reserve ledger balances, sign transactions or submit a sale. The market and sell screens are integrated with this service through the shared HTTP coordinator; browser listings are no longer localStorage-only advertisements.
 
 ## Local commands
 
@@ -33,7 +33,7 @@ npm run offers -- cancel --id OFFER_ID --seller SELLER_ADDRESS
 
 `list` returns open, unexpired advertisements. Creating, publishing and cancelling only change the local database. In particular, publishing does not claim that the seller has been checked on the ledger. The shared HTTP API now authenticates wallet control using a short-lived, one-use signed challenge and derives the actor from that proof before calling these methods. These local CLI actor arguments remain an operator-only interface, never an HTTP authentication mechanism.
 
-Before handing an open offer to a future settlement executor:
+The standalone CLI can prepare an offer without executing a sale:
 
 ```sh
 npm run offers -- prepare --id OFFER_ID --buyer BUYER_ADDRESS
@@ -56,9 +56,21 @@ Expiry is refreshed on service reads and transitions. Cancellation or expiry doe
 
 ## Persistence and integration boundary
 
+The standalone CLI defaults to `.local/offers.sqlite` at the repository root.
+The Next.js marketplace defaults to `web/.local/market.sqlite` when started from
+`web/`; `RAISE_MARKET_DB_PATH` overrides that path. These are different stores.
+CLI demo advertisements do not automatically appear in the web market. Use the
+web API and wallet-signed actions for the shared marketplace, and avoid pointing
+operator CLI experiments at a deployed database.
+
+The web database holds offers, one-use challenges and settlement attempts in one
+persistent SQLite file. The container uses `/data/market.sqlite` on a named
+volume; see [DEPLOYMENT.md](DEPLOYMENT.md) for configuration and backup/restore.
+Keep this file and its WAL state out of source control and build contexts.
+
 SQLite stores exact monetary quantities as strings. Each offer has a revision. Conditional updates reject stale writes, including cancellation or another acceptance while a network read is pending. Separate processes using the same file share these checks. No database lock is held while awaiting the network.
 
-The store uses Node's built-in [`node:sqlite` module](https://nodejs.org/download/release/latest-v24.x/docs/api/sqlite.html), so no new npm dependency is required. The supported Node 24.11.1 runtime emits an experimental-feature warning for this API. This embedded database is a local or single-host deployment choice; separate database copies do not share offers or coordinate acceptance. Use shared durable service storage before deploying multiple independent hosts.
+The store uses Node's built-in `node:sqlite` module, so no SQLite npm dependency is required. The recorded Node 24.11.1 runs emitted an experimental-feature warning for this API. This embedded database is a local or single-host deployment choice; separate database copies do not share offers or coordinate acceptance. Use shared durable service storage before deploying multiple independent hosts.
 
 The completion verifier is a trusted in-process integration adapter, not input from a buyer or an unauthenticated endpoint. It must verify actual validated ledger evidence for the recorded attempt, including the correct buyer, seller, share issuance, share quantity and XRP payment. An outer Batch `tesSUCCESS` alone is insufficient. The shared marketplace installs `XrplMarketGateway` as this verifier. It matches the exact outer and two inner transaction hashes, validated ledger, parent Batch relationship and delivered amounts. The standalone CLI intentionally has no completion override. See [integration details](INTEGRATION.md).
 
@@ -72,6 +84,6 @@ Behavior tests exercise input validation, persistence across reopen, expiry, sel
 
 `GET /api/market` returns public offers and attempts. `POST /api/market/challenge` accepts an account and exact action; `POST /api/market` accepts only the resulting challenge ID, public key and signature. Challenges bind domain, origin, network, account, nonce, expiry and action; a nonce is consumed once. The actor must control an enabled master key on the fresh network-4001 ledger. Regular-key and account-multisign authentication are outside this version.
 
-The new coordinator in `src/market-service.ts` adds immutable prepared Batch terms, buyer authorization, seller outer signing, durable single broadcast and exact-hash reconciliation on top of the offer service. `awaiting-buyer → awaiting-seller → submitting/pending → settled` is an attempt lifecycle; it does not add a shortcut back to an open offer. Database revision checks serialize racing actors and survive server restarts.
+The coordinator in `src/market-service.ts` adds immutable prepared Batch terms, buyer authorization, seller outer signing, durable single broadcast and exact-hash reconciliation on top of the offer service. `awaiting-buyer → awaiting-seller → submitting/pending → settled` is an attempt lifecycle; it does not add a shortcut back to an open offer. Database revision checks serialize racing actors and survive server restarts.
 
-Same-origin checks and a 48 KiB request limit apply before processing. Public snapshots omit signed blobs, private wallet data and challenge contents. Transactions/signatures already published to XRPL are public. Failed, expired signed or unresolved attempts remain locked for operator investigation; this version does not offer an automatic retry or cancellation of a signed authorization.
+Same-origin checks and a 48 KiB request limit apply before processing. Public snapshots omit signed blobs, private wallet data and challenge contents. Prepared Batch terms are included only while buyer or seller signatures are awaited; the complete submitted Batch is then omitted and recovery uses its hash. Transactions/signatures already published to XRPL are public. Failed, expired signed or unresolved attempts remain locked for operator investigation; this version does not offer an automatic retry or cancellation of a signed authorization.

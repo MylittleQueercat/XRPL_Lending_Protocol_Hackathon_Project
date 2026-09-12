@@ -1,5 +1,7 @@
 # Raise product scope
 
+Accepted product scope · September 12, 2026. The V1 is implemented as a shared Next.js/SQLite application with full-lot fixed-price offers and separate buyer/seller signatures. See [INTEGRATION.md](INTEGRATION.md) for recorded local E2E and [DEPLOYMENT.md](DEPLOYMENT.md) for hosted checks.
+
 ## 1. Product statement
 
 Raise is a secondary market and secondary-liquidity layer for XRPL lending-vault shares. It lets an investor transfer a vault-share position to another investor at an agreed secondary-market price. Raise does not liquidate, move, or directly resell the underlying borrower loans.
@@ -66,3 +68,5 @@ Loaded is not treated as better than Vanilla. The baseline stays separately runn
 ## 11. Demo story
 
 An SME borrower needs short-term working capital. An investor deposits into an open-ended vault, and the vault funds an SME loan. Later, that investor wants liquidity, but the vault does not have sufficient available liquidity for a full withdrawal. The investor offers vault shares through Raise. A buyer accepts the position at an agreed market price, then the shares and payment settle. The underlying SME loan continues normally, while the buyer now owns the vault-share position.
+
+The recorded E2E continues through borrower repayment and buyer redemption. Public hosting, presentation/submission and external demand validation are separate acceptance work; see the [current roadmap](ROADMAP.md). Partial fills, bids/RFQs and a production embedding SDK are outside the live V1 trading flow.

@@ -1,5 +1,7 @@
 # XLS-66 Loan Broker and Cover Baseline (Issue #6)
 
+> Historical standalone evidence. SDK versions and transaction results below describe the original reproduction project and are intentionally preserved. For the current beta.1 application, shared marketplace and complete browser journey, start with [INTEGRATION.md](INTEGRATION.md).
+
 ## Result
 
 This baseline uses the validated Issue #5 Track 1 XRP vault rather than recreating it. The operator attached a real `LoanBroker`, configured lending and first-loss-cover parameters, and funded the resulting broker pseudo-account. All evidence is public ledger data; no wallet seed is stored here or read by the verifier.

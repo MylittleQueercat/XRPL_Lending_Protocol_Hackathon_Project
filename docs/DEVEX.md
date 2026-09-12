@@ -22,18 +22,11 @@ These states are deliberately distinct:
 
 Local capture is not proof of remote ingestion. When delivery cannot be directly observed, state exactly: **“Local capture verified; remote delivery status not independently observable.”**
 
-## Team status
+## Team status and final submission
 
-All four teammates have independently completed and verified their DevEx setup:
+Issue #3 is closed and the previous team record reported four completed local setups. This repository does not contain private per-participant capture records and cannot independently reverify that each hook is active now. Each teammate should run their own status check before submission. Do not convert that historical setup record into a claim of current remote delivery.
 
-| Teammate | Installed | Local capture/buffer verified | Remote delivery |
-| --- | --- | --- | --- |
-| Teammate 1 | Verified | Verified | Local capture verified; remote delivery status not independently observable. |
-| Teammate 2 | Verified | Verified | Local capture verified; remote delivery status not independently observable. |
-| Teammate 3 | Verified | Verified | Local capture verified; remote delivery status not independently observable. |
-| Teammate 4 | Verified | Verified | Local capture verified; remote delivery status not independently observable. |
-
-This table intentionally contains no personal identities, pseudonyms, or invitation material.
+The curated manual report is [DEVEX_FEEDBACK.md](../DEVEX_FEEDBACK.md), with detailed reproductions under [devfeedback/findings](../devfeedback/findings/). Report preparation (#26) and final submission/sign-off (#28) are distinct. The running web deployment does not install or transmit another participant's DevEx hook.
 
 ## Public evidence and security handling
 

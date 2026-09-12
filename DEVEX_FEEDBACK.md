@@ -12,7 +12,7 @@
 | Runtime | Node.js 24.21.0 |
 | Date | September 12, 2026 |
 
-This report is the **curated selection** from our team evidence pool in [`devfeedback/findings/`](devfeedback/findings/), following the process in [`devfeedback/README.md`](devfeedback/README.md). Every claim is backed by a validated transaction on network 4001, recorded in [`evidence/vanilla-flow.json`](evidence/vanilla-flow.json), [`evidence/vault-smoke.json`](evidence/vault-smoke.json) and [`scripts/raise-feasibility/RESULTS.md`](scripts/raise-feasibility/RESULTS.md). Reproduce the lending set with `npm run vanilla`.
+This report is the **curated selection** from our team evidence pool in [`devfeedback/findings/`](devfeedback/findings/), following the process in [`devfeedback/README.md`](devfeedback/README.md). The findings link their observed transactions, SDK behavior and reproduction records on network 4001, including [`evidence/vanilla-flow.json`](evidence/vanilla-flow.json), [`evidence/vault-smoke.json`](evidence/vault-smoke.json) and [`scripts/raise-feasibility/RESULTS.md`](scripts/raise-feasibility/RESULTS.md). Reproduce the lending set with `npm run vanilla`. Final format, submission form and team sign-off remain tracked in #28. The historical measurements keep their recorded SDK/runtime context; current application and deployment checks are documented separately in the README.
 
 ---
 
@@ -48,7 +48,7 @@ if (tx.GracePeriod != null && tx.GracePeriod < MIN_GRACE_PERIOD) {
 }
 ```
 
-Separately, `temINVALID` on lending transactions should name the offending field. We will open the pull request.
+Separately, `temINVALID` on lending transactions should name the offending field. This is a proposed upstream SDK change; an upstream pull request is not recorded here.
 
 ---
 

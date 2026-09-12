@@ -2,7 +2,7 @@
 
 ## V1 decision and evidence boundary
 
-Keep seller-posted fixed-price, full-lot asks for the local V1. The existing product scope and implemented journey support this choice: an investor advertises an existing position, another investor reviews its exposure and total price, and both approve the exact exchange. A successful test between controlled wallets demonstrates execution, not organic buyer demand.
+Keep seller-posted fixed-price, full-lot asks for the implemented V1. The existing product scope and implemented journey support this choice: an investor advertises an existing position, another investor reviews its exposure and total price, and both approve the exact exchange. A successful test between controlled wallets demonstrates execution, not organic buyer demand.
 
 The originating project brief identifies a seller's need to exit before the vault can supply cash. No independent prospective buyer or seller interviews have been collected for this exploration. No integrator has validated adoption. This document is a technical/product comparison with a provisional decision, not invented customer research. Those external acceptance criteria in #31 and #32 remain outstanding.
 

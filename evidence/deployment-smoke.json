@@ -1,0 +1,69 @@
+{
+  "checkedAt": "2026-09-12T19:19:09.327048+00:00",
+  "origin": "https://raise.vgtray.fr",
+  "dnsMode": "curl --resolve to an authoritative Cloudflare address; SNI and TLS verification enabled (local OS cached NXDOMAIN)",
+  "publicRoutes": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/position",
+      "status": 200
+    },
+    {
+      "path": "/market",
+      "status": 200
+    },
+    {
+      "path": "/sell",
+      "status": 200
+    },
+    {
+      "path": "/operator",
+      "status": 200
+    },
+    {
+      "path": "/api/market",
+      "status": 200
+    },
+    {
+      "path": "/market/unknown",
+      "status": 200
+    },
+    {
+      "path": "/buy/unknown",
+      "status": 200
+    }
+  ],
+  "staticAssetsPassed": 17,
+  "browserSmoke": {
+    "result": "passed",
+    "origin": "https://raise.vgtray.fr",
+    "pages": [
+      "/",
+      "/position",
+      "/market",
+      "/sell",
+      "/operator"
+    ],
+    "networkId": 4001,
+    "serverVersion": "3.4.0-rc1",
+    "faucetBalanceXrp": "1000",
+    "vaultId": "87911A8C93AC413EA8A1035E5D0CD3BB26F60364F623C75BD8BA702B4DA54FF0",
+    "validatedReadLedger": 73549,
+    "consoleWarningsOrErrorsObserved": 0,
+    "httpResourceUrlsObserved": 0
+  },
+  "fullTradingE2E": "existing localhost evidence only",
+  "applicationSourceCommit": "391219d8ecd21a58a41a377ef450749145fa0d97",
+  "tls": {
+    "publicHttpsStatus": 200,
+    "publicHttpRedirectStatus": 301,
+    "originHttpsStatus": 200,
+    "originCertificateIssuer": "Lets Encrypt YR1",
+    "originCertificateExpires": "2026-12-11T18:08:09Z",
+    "verificationDisabled": false
+  },
+  "scope": "Public deployment smoke; no public-domain trading E2E claim. Captured before removal of duplicate Compose labels; final routing verification is recorded in issue #45."
+}
