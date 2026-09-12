@@ -65,5 +65,29 @@
     "originCertificateExpires": "2026-12-11T18:08:09Z",
     "verificationDisabled": false
   },
-  "scope": "Public deployment smoke; no public-domain trading E2E claim. Captured before removal of duplicate Compose labels; final routing verification is recorded in issue #45."
+  "scope": "Public deployment smoke; no public-domain trading E2E claim. Final Domains-only deployment verified separately below.",
+  "finalDeployment": {
+    "checkedAt": "2026-09-12T19:31:49.673651+00:00",
+    "sourceCommit": "7fd07ed9ba05d87457972daff1c80021ed9ad5b3",
+    "imageTag": "raise-web:7fd07ed",
+    "imageId": "sha256:8a944af7524f917eb6796c05168e1ea19c3f5ff93d7149c44ce0ed02f0f9e053",
+    "dokployStatus": "Done",
+    "containerHealth": "healthy",
+    "uid": 1000,
+    "hostPublishedPorts": [],
+    "routingAuthority": "Dokploy Domains",
+    "routerCount": 2,
+    "duplicateComposeRouters": false,
+    "publicRoutesPassed": 8,
+    "staticAssetsPassed": 17,
+    "originHttpsStatus": 200,
+    "tlsVerificationDisabled": false,
+    "volume": "raise-market-data",
+    "sqliteIntegrity": "ok",
+    "databaseInodePreserved": 58992563,
+    "volumeMarkerPreserved": true,
+    "trivyVersion": "0.74.0",
+    "highCriticalVulnerabilities": 0,
+    "scanLimitation": "Alpine 3.24 is absent from the scanner EOL list."
+  }
 }
