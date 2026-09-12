@@ -15,7 +15,8 @@
     "check": "npm run typecheck && npm test",
     "vault:smoke": "tsx src/cli.ts vault-smoke",
     "position": "tsx src/read-cli.ts position",
-    "transaction": "tsx src/read-cli.ts transaction"
+    "transaction": "tsx src/read-cli.ts transaction",
+    "settlement": "tsx src/cli.ts settlement"
   },
   "dependencies": {
     "xrpl": "5.2.0-beta.1"

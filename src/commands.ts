@@ -3,10 +3,11 @@ interface CommandServices {
   inspect: () => Promise<NetworkReport>;
   smoke: (report: NetworkReport) => Promise<unknown>;
   vanilla: (report: NetworkReport) => Promise<unknown>;
+  settlement: (report: NetworkReport) => Promise<unknown>;
   output: (value: unknown) => void;
 }
 export async function executeCommand(command: string, services: CommandServices): Promise<number> {
-  if (!['doctor', 'vanilla', 'vault-smoke'].includes(command)) throw new Error('Usage: doctor | vault-smoke | vanilla');
+  if (!['doctor', 'vanilla', 'vault-smoke', 'settlement'].includes(command)) throw new Error('Usage: doctor | vault-smoke | vanilla | settlement');
   const report = await services.inspect();
   if (command === 'doctor') {
     services.output(report);
@@ -18,6 +19,10 @@ export async function executeCommand(command: string, services: CommandServices)
     return 0;
   }
   if (!report.vaultReady) throw new Error('SingleAssetVault is not enabled; no funding or signing was attempted.');
+  if (command === 'settlement') {
+    services.output(await services.settlement(report));
+    return 0;
+  }
   services.output(await services.smoke(report));
   return 0;
 }

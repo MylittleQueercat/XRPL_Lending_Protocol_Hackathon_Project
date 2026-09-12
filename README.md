@@ -56,6 +56,7 @@ The refreshed Notion copy still listed stable xrpl.js for Track 1 and beta.0 for
 | `npm run check` | Typecheck and offline tests. |
 | `npm run doctor` | Read HTTP/WebSocket server information and amendments; check network, synchronization and ledger freshness. Exit 0 when compatible, 2 when reachable but incompatible, 1 on error. |
 | `npm run vault:smoke` | Create two fresh faucet wallets, create a transferable XRP vault, deposit 10 XRP, withdraw 10 XRP, and verify validated results and balances. Sends test-network transactions. |
+| `npm run settlement` | Verify the settlement guarantees under failure: an unpayable buyer, a seller who no longer holds the offered shares, a reference sale, and a replay of the identical signed `Batch`. Creates four faucet wallets and sends test-network transactions. |
 | `npm run vanilla` | Run the complete Track 1 Vanilla baseline end to end: vault, deposit, broker, cover, origination, guardrail, repayment and redemption. Creates three faucet wallets and sends test-network transactions. Holds the loan open for `RAISE_LOAN_HOLD_SECONDS` (default 120) so interest accrues measurably. |
 | `npm run position -- --vault ID --account ADDRESS` | Read a validated XRP vault position and exact accounting estimates; optional broker/loan and sale-price comparison. |
 | `npm run transaction -- --hash HASH` | Read transaction finality without submitting or resubmitting anything. |
@@ -98,6 +99,23 @@ The [sanitized run report](evidence/vanilla-flow.json) records the full flow on 
 **The ledger caps repayment at what is owed.** We offered 241.570476 XRP against 80.523492 XRP of outstanding value; the borrower was charged 55.000188 XRP, of which the vault received 50.000188 XRP and the broker kept the 5 XRP prepayment fee.
 
 Interest is realised on payment, not at origination, because V1.1 is enabled. Item 8 of the minimum bar, the credible use case, is covered by [`docs/PROJECT_CONCEPT.md`](docs/PROJECT_CONCEPT.md).
+
+### Settlement guarantees under failure
+
+Atomic settlement is what makes a share sale safe, so the failure cases matter more than the happy path. The [sanitized report](evidence/settlement-failures.json) records all four, reproducible with `npm run settlement`.
+
+| Case | Outer result | XRP moved | Shares moved |
+|---|---|---|---|
+| Buyer cannot pay the price | [`tesSUCCESS`](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/8155367EF715682A7152BF3B3774D03BCC7B2421CCB45068CAA155016D037107) | none | none |
+| Seller no longer holds the shares offered | [`tesSUCCESS`](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/9565A21235F69AD8B822EB050255D479218D7F2CD33C5892DD14FA7B10F570AF) | none | none |
+| Reference sale, both legs fundable | [`tesSUCCESS`](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/C21A5EA5EA3460915E8CFA5C8F30611EFA36D613995F5DEC2DB606F9563E432A) | 5 XRP | 1,000,000 units |
+| Identical signed `Batch` resubmitted | `tefPAST_SEQ` | none | none |
+
+**The guarantee held in every case.** In particular the buyer was never debited for shares the seller had already moved away, and the replay changed nothing — the outer account sequence prevents it.
+
+**Three of those four rows share the same outer result while differing completely in economic effect.** An application reading the engine result alone would report two sales that never happened. Raise verifies inner-leg state from validated balances instead, and [`DEVEX_FEEDBACK.md`](DEVEX_FEEDBACK.md) §3 reports this as a documentation gap.
+
+**Expiry and seller cancellation are not ledger concepts.** An offer is an application record, so those cases belong to the offer lifecycle (#16), not to settlement. On-ledger, cancellation reduces to the seller consuming or moving the shares — the second row above. The report states this rather than claiming coverage it does not have.
 
 ### XLS-65 vault smoke — standalone
 
