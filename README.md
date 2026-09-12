@@ -2,7 +2,9 @@
 
 Raise proposes a secondary market where an investor can sell existing vault shares to another investor when the vault has insufficient cash for a withdrawal. The buyer pays the seller and takes over the share exposure; the underlying loans continue. A buyer and an agreed price are required: liquidity and returns are not guaranteed.
 
-**The Track 1 Vanilla baseline is complete and verified on the event ledger.** This repository contains a reproducible TypeScript environment, network checks, the full XLS-65 + XLS-66 lending flow, automated tests, the manual DevEx report and the team roadmap. The secondary marketplace is a subsequent milestone, not an implemented feature.
+**Flavour: Loaded.** The Track 1 Vanilla baseline — XLS-65 and XLS-66 — is complete and verified on the event ledger, and reproducible on its own with `npm run vanilla`. On top of it, Raise settles a share sale with an atomic `Batch`, a ledger primitive beyond that baseline, which is what makes this a Loaded submission rather than a Vanilla one.
+
+This repository contains a reproducible TypeScript environment, network checks, the full lending flow, the settlement guarantees under failure, automated tests, the manual DevEx report and the team roadmap. The marketplace interface is a subsequent milestone, not an implemented feature.
 
 - [Manual developer-feedback report](DEVEX_FEEDBACK.md) — curated from the [team findings pool](devfeedback/findings/)
 - [Project concept — English team discussion document](docs/PROJECT_CONCEPT.md)
@@ -40,7 +42,7 @@ No API key or `.env` file is required. The SDK is pinned to **xrpl.js 5.2.0-beta
 | Target | Value |
 |---|---|
 | Track | 1: open-ended vault, Lending Protocol V1 target |
-| Flavour | Vanilla foundation; no Loaded claim |
+| Flavour | **Loaded**: XLS-65 + XLS-66 baseline, plus `Batch` (XLS-56) for atomic payment-versus-shares settlement |
 | Network ID | 4001, event network |
 | JSON-RPC | `https://lending-hackathon.dev.ripplex.io:51234` |
 | WebSocket | `wss://lending-hackathon.dev.ripplex.io:51233` |
