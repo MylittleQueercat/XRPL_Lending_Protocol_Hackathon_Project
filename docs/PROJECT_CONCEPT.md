@@ -1,8 +1,8 @@
 # Raise — A Secondary Market for XRPL Vault Shares
 
-> Team discussion document · Version 1.0 · September 12, 2026
+> Team discussion document · Version 1.1 · September 12, 2026
 >
-> This document captures the initial product proposal for the team to develop together. It separates the product vision, hackathon requirements, and technical assumptions that still need validation. It is not evidence of a working integration or a claim that the team has approved every decision.
+> This document retains the product proposal and records the implemented baseline as of September 12, 2026. [PRODUCT_SCOPE.md](PRODUCT_SCOPE.md) is the current team decision; [README.md](../README.md) links implementation and evidence. Product hypotheses and unfinished integration remain explicitly open.
 
 ## 1. The idea
 
@@ -20,7 +20,7 @@ In an **open-ended vault**, deposits and withdrawals remain open throughout the 
 
 Raise would offer an alternative exit route: finding a buyer for the shares. An exit still requires a willing counterparty and an agreed price. A marketplace does not automatically create liquidity.
 
-The initial use case could be a vault financing business credit. The exact borrower profile and investment proposition remain team decisions.
+The selected use case is a vault financing SME working capital and receivables, as recorded in [the product scope](PRODUCT_SCOPE.md). Buyer demand and the investment proposition still require validation.
 
 ## 3. What is actually being sold?
 
@@ -55,7 +55,7 @@ The economic hypothesis is that some investors accept a discount to exit, while 
 
 ## 5. Hackathon alignment
 
-**Bootstrap target: Track 1, open-ended vault, Lending Protocol V1.** The shared foundation targets this environment. The endpoint currently advertises V1.1 as enabled, so open-ended loan origination is blocked until compatibility is resolved; see the README and issue #2. The broader product choices remain open for team discussion.
+**Selected environment: Track 1, open-ended vault, network 4001.** The endpoint enables V1.1, and the recorded Vanilla flow proves that open-ended loan origination works there. Interest is recognized when paid rather than at origination. The original bootstrap blocker has been superseded by the evidence linked in the README; any remaining official-guidance clarification is separate from technical compatibility.
 
 | Component | Role in Raise |
 |---|---|
@@ -84,7 +84,7 @@ A marketplace interface without this lending flow does not satisfy the baseline.
 
 ### Extension targeting Loaded
 
-Loaded adds another ledger primitive with a meaningful purpose. The share sale's settlement mechanism is a natural candidate, subject to actual network support.
+The team selected Loaded with Batch (XLS-56) for atomic payment-versus-shares settlement. The lending baseline remains separately reproducible. See [the settlement decision and evidence](SETTLEMENT.md).
 
 Loaded eligibility must not be inferred from the number of screens or the word “marketplace.” MPT shares already inherent in the vault do not automatically establish an additional Loaded feature. We should identify the added primitive and confirm its classification with the mentors.
 
@@ -166,7 +166,7 @@ Create a correctly configured vault, transfer its shares between accounts, ident
 
 **A successful share transfer is not proof of a successful sale.** Payment and share delivery should either both apply or neither apply. Any network fees must be distinguished from the exchanged assets.
 
-Candidate mechanisms to investigate:
+The initial investigation considered the mechanisms below. Batch is now selected and evidenced in `SETTLEMENT.md`; the other mechanisms remain unproven alternatives:
 
 - Native DEX execution, only if the network and SDK actually support trading these MPT shares.
 - An all-or-nothing `Batch`, only if the available version supports the required operations and signatures.
@@ -219,7 +219,7 @@ If settlement is unavailable, the Vanilla baseline remains useful, but **the fun
 | Faucet | `https://lending-hackathon-faucet.dev.ripplex.io/accounts` |
 | Explorer | `https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/` |
 
-Do not mix this setup with Track 2, which uses Public XRPL Devnet and a different vault lifecycle. The earlier event snapshot listed `xrpl.js@5.2.0-beta.0`; the subsequent update supplied to the team points to `5.2.0-beta.1`. The current pin is recorded in `package.json`; SDK changes do not establish network compatibility. RLUSD from tryrlusd.com is on Testnet, not these Devnets. XRP is proposed for the first vault and settlement flow; other assets remain an open team decision.
+Do not mix this setup with Track 2, which uses Public XRPL Devnet and a different vault lifecycle. The earlier event snapshot listed `xrpl.js@5.2.0-beta.0`; the subsequent update supplied to the team points to `5.2.0-beta.1`. The current pin is recorded in `package.json`; SDK changes do not establish network compatibility. RLUSD from tryrlusd.com is on Testnet, not these Devnets. XRP is selected for the current vault and settlement flow; other assets remain an open extension decision.
 
 ## 10. Target demonstration
 
@@ -260,16 +260,18 @@ Potential protocol security issues must remain private and be raised with a ment
 
 | Topic | Status |
 |---|---|
-| Use of XLS-65 and XLS-66 | Aligned with the concept and the required baseline. |
-| Track 1 open-ended | Proposed direction following the initial request. |
-| Transferable shares | Supported as a configuration in XLS-65; actual configuration and behavior need verification. |
-| Sale settlement on the hackathon network | Not demonstrated at this stage. |
-| Loaded classification | To confirm based on the additional primitive actually used. |
+| Use of XLS-65 and XLS-66 | Complete lending flow recorded in `evidence/vanilla-flow.json`. |
+| Track 1 open-ended | Selected and demonstrated on network 4001, including open-ended origination with V1.1 enabled. |
+| Transferable shares | Transfer, receiver opt-in and withdrawal by the new holder verified; see `SHARE_TRANSFER.md`. |
+| Sale settlement on the hackathon network | Batch sale and failure proofs recorded in `SALE.md` and the README; the browser journey is not yet integrated. |
+| Loaded classification | Team selected Loaded with Batch; explicit mentor confirmation is not recorded. |
 | Buyer demand and market depth | Product hypotheses requiring validation. |
 | Interactive mockup | Local illustration with fictional data and no connected real wallet. |
 | Final integration and production availability | Not delivered as part of this concept document. |
 
 ## 13. Team decisions and contributions
+
+This is the original discussion checklist, not the implementation tracker. Accepted decisions live in `PRODUCT_SCOPE.md`; current task states live on the [shared board](https://github.com/users/MylittleQueercat/projects/1).
 
 - [ ] Confirm the name and product statement.
 - [ ] Confirm Track 1 and the concrete borrower use case.

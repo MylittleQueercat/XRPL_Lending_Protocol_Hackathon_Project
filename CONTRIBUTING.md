@@ -7,7 +7,7 @@ Use English for shared documentation, issues and pull requests. Everyone can pro
 3. Open an issue using **Project task or proposal**, or comment on a relevant existing issue. Add observable acceptance criteria and dependencies; do not add time estimates unless the team requests them.
 4. Create a branch from current `main`, for example `feat/vault-position`, and keep its scope focused.
 5. Run `npm run check`. For ledger changes, attach sanitized proof from a validated ledger; submission alone is not success.
-6. Open a pull request referencing the issue. Get teammate review before merging changes that affect signing, amounts or settlement.
+6. Open a pull request referencing the issue. When implementation and checks are complete, mark the issue Done and make the PR ready for review; Done and merged are separate states. Get teammate review before merging changes that affect signing, amounts or settlement.
 
 The initial roadmap intentionally has no assignees. Coordinate before taking a task; do not assign other teammates without agreement. Use issue comments for changes to scope, and add new proposals freely. The [shared Project](https://github.com/users/MylittleQueercat/projects/1) is linked to the repository. Its Status field tracks workflow; milestones track the six phases. GitHub Projects permissions are separate from repository permissions, so new teammates need access to both. Current collaborators can add and organize tasks. The task template adds the `roadmap` label; the enabled workflow automatically adds matching open issues to the board. Marking a card Done closes the issue through the existing Auto-close workflow. Keep readiness labels aligned manually when changing Status.
 
@@ -20,3 +20,7 @@ Publish only evidence deliberately reviewed for sharing: network, SDK version, l
 ## Product guardrails
 
 Raise trades vault shares, not individual loan contracts. NAV, cash liquidity and market price are different quantities. A discount is not guaranteed yield. A listing is not proof that a trade can still execute. Never represent two separate transfers as an atomic sale.
+
+## Integrating parallel work
+
+Before merging, fetch current main, integrate its changes into the PR branch and check the combined result. Preserve each teammate's commands, evidence and interfaces when resolving conflicts. Merge dependent PRs in order and retarget a stacked PR to main after its prerequisite merges. Verify CI against the current head commit, then check the merged main. Teammates should pull main or merge origin/main into their own branches before continuing; do not reset or overwrite another person's work.

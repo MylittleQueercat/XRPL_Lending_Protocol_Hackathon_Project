@@ -70,8 +70,7 @@ execution entirely.
 ## Classification
 
 Because Batch is an additional ledger primitive beyond the XLS-65/XLS-66
-baseline, the expected classification is **Track 1 + Loaded**; mentor
-confirmation is pending. Question for mentors: “We use a multi-account
+baseline, the team selected **Track 1 + Loaded** on September 12, 2026; see [the current scope decision](PRODUCT_SCOPE.md#10-track-and-flavour-scope). An explicit mentor confirmation is not recorded in this repository. Question for mentors: “We use a multi-account
 all-or-nothing Batch to atomically settle XRP against transferable XLS-65 vault
 shares. Would you classify this submission as Loaded?”
 

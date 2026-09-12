@@ -77,12 +77,12 @@ The [Raise team board](https://github.com/users/MylittleQueercat/projects/1) is 
 | In progress | Actively being implemented. |
 | In review | Implementation ready for review or validation. |
 | Blocked | Waiting on an external dependency or decision. |
-| Done | Acceptance criteria verified and evidence attached. |
+| Done | Implementation and checks complete, with evidence attached. The associated PR can still await review or merge; inspect its state separately. |
 
 Initial organization: #1 Done; #2 Blocked; #3, #4 and #5 Ready; the remaining 27 tasks Backlog. These are the bootstrap states, not a live status report. Read the board for current progress.
 
 All four current repository collaborators have Project access. New teammates require separate access to the repository and Project. Existing teammates can create proposals, add issues, update acceptance criteria and move cards. Do not assign another teammate without coordination.
 
-For new tasks, create a repository issue with the task template: it adds the `roadmap` and `status:backlog` labels. The enabled auto-add workflow imports new or updated open issues with `roadmap` from this repository into the Project. Existing issues can also be added manually. Review dependencies before setting Ready. Status and the `status:*` labels are not automatically synchronized; keep them consistent when changing readiness. There are no time estimates. The existing Auto-close issue workflow closes an issue when its card is marked Done; use In review while verification is pending.
+For new tasks, create a repository issue with the task template: it adds the `roadmap` and `status:backlog` labels. The enabled auto-add workflow imports new or updated open issues with `roadmap` from this repository into the Project. Existing issues can also be added manually. Review dependencies before setting Ready. Status and the `status:*` labels are not automatically synchronized; keep them consistent when changing readiness. There are no time estimates. The existing Auto-close issue workflow closes an issue when its card is marked Done; use In review while verification is pending. Under the team workflow, completed and checked work moves to Done and its PR is marked ready for review; Done does not imply the code has already merged into main.
 
 Sources: [GitHub Projects](https://docs.github.com/en/issues/planning-and-tracking-with-projects/creating-projects/creating-a-project), [repository linking](https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-your-project/adding-your-project-to-a-repository).
