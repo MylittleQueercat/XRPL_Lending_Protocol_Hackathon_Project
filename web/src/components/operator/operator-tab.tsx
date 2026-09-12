@@ -23,6 +23,7 @@ import {
   INTERVAL_OPTIONS, percentToTenthBps, requiredCoverDrops, tenthBpsToPercent, validateLoanTerms,
 } from "./lending";
 import { AddressLink, ConnectPrompt, EmptyState, Field, LoanFlags, Mono, Select, UtilisationBar, XrpInput } from "./shared";
+import { VaultIdentity } from "./vault-identity";
 
 const xrp = (value: string) => formatXrp(ceilDrops(value));
 
@@ -189,21 +190,26 @@ function VaultsSection({ vaults, selected, onSelect, onCreate, onDeposit, onRefr
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {vaults.map((v) => (
-              <button
-                key={v.vaultId} type="button" onClick={() => onSelect(v.vaultId)} aria-pressed={selected === v.vaultId}
-                className={cn("rounded-lg border p-3 text-left transition-colors hover:bg-muted/40", selected === v.vaultId ? "border-primary ring-2 ring-primary/20" : "border-border")}
+              <div
+                key={v.vaultId}
+                className={cn("min-w-0 rounded-lg border", selected === v.vaultId ? "border-primary ring-2 ring-primary/20" : "border-border")}
               >
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <Mono value={v.vaultId} short={12} />
-                  <Badge variant={v.transferable ? "success" : "warning"}>{v.transferable ? "Transferable" : "Non-transferable"}</Badge>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Stat label="Assets total" value={xrp(v.assetsTotalDrops)} />
-                  <Stat label="Available" value={xrp(v.assetsAvailableDrops)} />
-                </div>
-                <div className="mt-2"><UtilisationBar totalDrops={v.assetsTotalDrops} availableDrops={v.assetsAvailableDrops} /></div>
-                <p className="mt-2 text-xs text-muted-foreground">Shares outstanding <span className="font-mono tabular-nums">{formatShares(v.sharesOutstanding)}</span> · issuance <Mono value={v.shareMptId} short={10} /></p>
-              </button>
+                <button type="button" onClick={() => onSelect(v.vaultId)} aria-pressed={selected === v.vaultId}
+                  aria-label={`Select vault ${v.vaultId}`}
+                  className="raise-focus block w-full cursor-pointer rounded-t-lg p-3 text-left transition-colors hover:bg-muted/40">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <Mono value={v.vaultId} short={12} />
+                    <Badge variant={v.transferable ? "success" : "warning"}>{v.transferable ? "Transferable" : "Non-transferable"}</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Stat label="Assets total" value={xrp(v.assetsTotalDrops)} />
+                    <Stat label="Available" value={xrp(v.assetsAvailableDrops)} />
+                  </div>
+                  <div className="mt-2"><UtilisationBar totalDrops={v.assetsTotalDrops} availableDrops={v.assetsAvailableDrops} /></div>
+                  <p className="mt-2 text-xs text-muted-foreground">Shares outstanding <span className="font-mono tabular-nums">{formatShares(v.sharesOutstanding)}</span> · issuance <Mono value={v.shareMptId} short={10} /></p>
+                </button>
+                <VaultIdentity vaultId={v.vaultId} />
+              </div>
             ))}
           </div>
         )}
