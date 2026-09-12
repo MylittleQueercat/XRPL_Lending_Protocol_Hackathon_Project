@@ -12,6 +12,8 @@ Automated capture is individual and session-based. This folder is the team's sep
 
 ## Final team report
 
+The curated report lives at [`DEVEX_FEEDBACK.md`](../DEVEX_FEEDBACK.md) in the repository root, as the event requires. It selects from this folder and links each entry back to its full finding, so the pool stays the working record and the report stays readable within the three-page limit.
+
 At report time, review all public findings and select the strongest ones: reproducible, clearly impactful, and specific enough to suggest an improvement. The manual report should summarize those selected findings; it is not a dump of automated capture events or raw logs.
 
 Use the capture-status language in `docs/DEVEX.md`: local buffering and remote delivery are separate claims. Do not claim remote delivery unless it is directly observable.

@@ -3,60 +3,44 @@
 | Field | Value |
 |---|---|
 | Track | 1, open-ended Single Asset Vault |
-| Flavour | Vanilla |
+| Flavour | XLS-65 + XLS-66 Vanilla baseline, complete and verified. A `Batch`-settlement spike also exists; because `Batch` is a primitive beyond that baseline, the final flavour is pending confirmation with mentors — see [`docs/PRODUCT_SCOPE.md`](docs/PRODUCT_SCOPE.md) §10. |
 | Protocol targeted | Lending Protocol V1 |
-| Protocol actually enabled | `LendingProtocol` **and** `LendingProtocolV1_1`, both enabled |
+| Protocol actually enabled | `LendingProtocol` **and** `LendingProtocolV1_1`, both enabled — see finding 1 |
 | Network | Custom Hackathon Devnet, network ID 4001, `rippled` 3.4.0-rc1 |
 | Endpoints | `wss://lending-hackathon.dev.ripplex.io:51233`, `https://lending-hackathon.dev.ripplex.io:51234` |
-| Library | `xrpl.js` 5.2.0-beta.1 (exact, committed lockfile). The §1 accounting measurement was taken with 5.2.0 stable; it is a ledger property and is unaffected by the client version. |
+| Library | `xrpl.js` 5.2.0-beta.1 (exact, committed lockfile). Findings 1 and 3 were measured with 5.2.0 stable and reproduce on both; they are ledger properties. |
 | Runtime | Node.js 24.21.0 |
 | Date | September 12, 2026 |
-| Evidence | [`evidence/vanilla-flow.json`](evidence/vanilla-flow.json), [`evidence/vault-smoke.json`](evidence/vault-smoke.json) |
 
-Every claim below is backed by a validated transaction on network 4001. Reproduce the whole set with `npm run vanilla`.
-
----
-
-## 1. The Track 1 network runs V1.1 accounting, which the track description does not
-
-**Category:** other (network configuration) · **Severity:** high
-
-**Attempted:** run the Track 1 flow described by the event: an open-ended vault under Lending Protocol V1.
-
-**Expected:** a V1 environment. The event's own annex anticipated the risk and stated that enabling V1.1 on the same ledger *"would restrict new loans to closed-ended vaults."*
-
-**Actual:** `LendingProtocolV1_1` is enabled on the Track 1 endpoint. The predicted consequence does **not** occur: open-ended origination succeeds. What changes instead is interest recognition.
-
-**Reproduction:**
-
-1. `feature` on the RPC endpoint returns `LendingProtocolV1_1` with `enabled: true`.
-2. Create an open-ended vault, deposit 800 XRP, and read `AssetsTotal` — 800.000000 XRP.
-3. Originate a 400 XRP loan at 100 % annualised over 12 monthly instalments. The `Loan` object reports `TotalValueOutstanding` of 644.187932 XRP, so 244.19 XRP of scheduled interest exists.
-4. Read `AssetsTotal` again — still exactly 800.000000 XRP.
-
-Under V1 whole-life accounting, step 4 would have shown roughly 1044 XRP. It did not move by a single drop, so interest is realised on payment (cash basis).
-
-**Impact:** teams following the Track 1 brief will document yield on the wrong accounting model, and any share-price or position-value calculation derived from `AssetsTotal` behaves differently from the V1 documentation they were pointed at. We lost time proving which model was live because the configuration and the brief disagreed.
-
-**Proposed fix:** either disable `LendingProtocolV1_1` on the Track 1 ledger, or state in the track description that Track 1 runs V1.1 accounting with open-ended vaults, and link the V1.1 accounting note rather than the V1 pages. A one-line `server_info` field naming the active lending protocol version would remove the guesswork entirely.
+This report is the **curated selection** from our team evidence pool in [`devfeedback/findings/`](devfeedback/findings/), following the process in [`devfeedback/README.md`](devfeedback/README.md). Every claim is backed by a validated transaction on network 4001, recorded in [`evidence/vanilla-flow.json`](evidence/vanilla-flow.json), [`evidence/vault-smoke.json`](evidence/vault-smoke.json) and [`scripts/raise-feasibility/RESULTS.md`](scripts/raise-feasibility/RESULTS.md). Reproduce the lending set with `npm run vanilla`.
 
 ---
 
-## 2. `GracePeriod` below 60 seconds fails with an opaque `temINVALID`
+## 1. Track 1 runs V1.1 cash-basis accounting, which its own description does not
 
-**Category:** client libraries · **Severity:** high
+**Severity: High · documentation / network configuration · [full finding](devfeedback/findings/004-track1-runs-v1-1-accounting.md)**
 
-**Attempted:** submit a `LoanSet` with `PaymentInterval: 60` and `GracePeriod: 30`.
+The Track 1 endpoint has `LendingProtocolV1_1` enabled. The event annex anticipated this and predicted it would *"restrict new loans to closed-ended vaults."* It does not: open-ended origination succeeds. What changes is interest recognition.
 
-**Expected:** either acceptance, or a client-side validation error naming the offending field — the pattern `validateLoanSet` already uses for every other bound.
+Measured, not inferred: we created an open-ended vault, deposited 800 XRP, and originated a 400 XRP loan whose `Loan` object carried 244.19 XRP of scheduled interest. `AssetsTotal` stayed at **exactly 800.000000 XRP** at origination. Under V1 whole-life accounting it would have shown roughly 1044 XRP. Interest is therefore realised when a payment delivers it.
 
-**Actual:** `xrpl.js` accepts the transaction and the ledger returns `temINVALID: The transaction is ill-formed.` The message names no field. `LoanSet` carries 20 optional parameters, so the search space is large, and the dual-signature construction is an obvious suspect — we spent our time there before finding the real cause.
+**Impact.** Teams following the brief will document yield on the wrong model, and any share price derived from `AssetsTotal` behaves unlike the V1 documentation they were pointed at — load-bearing for a secondary market that prices positions from vault accounting. We initially treated the amendment as a hard blocker purely on the documentation, and stopped building until we tested it.
 
-**Reproduction:** build any otherwise valid `LoanSet` with `GracePeriod` under 60 and submit it to network 4001.
+**Proposed fix.** Disable V1.1 on the Track 1 ledger, or state in the track description that Track 1 runs V1.1 accounting with open-ended vaults. A `server_info` field naming the active lending protocol version would end the guesswork for every team.
 
-**Cause (verified):** `node_modules/xrpl/dist/npm/models/transactions/loanSet.js` enforces `MIN_PAYMENT_INTERVAL = 60` for `PaymentInterval` and checks `GracePeriod <= PaymentInterval`, but never checks a lower bound on `GracePeriod`. The ledger does.
+---
 
-**Proposed fix:** add the symmetric check to `validateLoanSet`:
+## 2. `LoanSet` `GracePeriod` below 60 seconds fails with an opaque `temINVALID`
+
+**Severity: High · client libraries · [full finding](devfeedback/findings/005-loanset-graceperiod-lower-bound-unvalidated.md)**
+
+`xrpl.js` accepts a `LoanSet` with `GracePeriod: 30`; the ledger returns `temINVALID: The transaction is ill-formed`, naming no field.
+
+**Verified cause.** `models/transactions/loanSet.js` enforces `MIN_PAYMENT_INTERVAL = 60` for `PaymentInterval` and checks `GracePeriod <= PaymentInterval`, but never checks a lower bound on `GracePeriod`. The ledger does.
+
+**Impact.** This was our most expensive friction point. `LoanSet` carries 20 optional parameters and needs a two-party signature, so the dual-signature construction is the natural suspect — we investigated signing order and counterparty encoding before finding the cause by reading the SDK source. Any team building a short demo schedule will choose a small `GracePeriod` and hit it.
+
+**Proposed fix.** Add the symmetric check, mirroring the existing bounds:
 
 ```js
 if (tx.GracePeriod != null && tx.GracePeriod < MIN_GRACE_PERIOD) {
@@ -64,85 +48,56 @@ if (tx.GracePeriod != null && tx.GracePeriod < MIN_GRACE_PERIOD) {
 }
 ```
 
-Independently, `temINVALID` on lending transactions should name the field that failed. We are happy to open the pull request.
+Separately, `temINVALID` on lending transactions should name the offending field. We will open the pull request.
 
 ---
 
-## 3. `tecINSUFFICIENT_FUNDS` means two unrelated things on `LoanSet`
+## 3. A `Batch` outer `tesSUCCESS` does not mean the inner legs executed
 
-**Category:** UX (error messages) · **Severity:** medium
+**Severity: High · SDK / expectation · [full finding](devfeedback/findings/003-batch-outer-success-needs-state-check.md)**
 
-**Attempted:** originate a 50 XRP loan through a broker whose `CoverRateMinimum` was 100 %, with 20 XRP of cover deposited, against a vault holding 100 XRP.
+Settling an XRP payment against a vault-share MPT delivery with a two-account `tfAllOrNothing` `Batch`, we ran an intentionally unfunded payment leg. The forced-failure `Batch` **validated with outer `tesSUCCESS`** and charged the 60-drop outer fee, while the XRP balance and both share balances were unchanged. The success case moved both legs in the same validated ledger.
 
-**Expected:** a code distinguishing "the broker's first-loss cover is below its own minimum" from "the vault has no cash".
+**Impact.** Atomicity held exactly as promised — the guarantee is sound. But an application that reads the outer result alone will report a completed sale that never happened. For a marketplace settling payment against share delivery, that is the difference between a correct trade and a fabricated one.
 
-**Actual:** `tecINSUFFICIENT_FUNDS`. The vault was not short of anything — it held twice the principal. Only the broker cover was short. The same code is returned when a `VaultWithdraw` exceeds available vault liquidity, which is a genuinely different condition and the one we deliberately demonstrate as our guardrail.
-
-**Reproduction:** compare these two validated transactions on network 4001, both returning `tecINSUFFICIENT_FUNDS` for different reasons:
-
-- cover shortfall on `LoanSet`, reproducible by setting `CoverRateMinimum: 100000` with 20 XRP of cover
-- liquidity shortfall on `VaultWithdraw`, hash `A35CB5DC2235104B54F6B29DB48118013F836F9F96DA319ED103CCA846A1A028`
-
-**Impact:** an application cannot tell the borrower "the broker needs more cover" apart from "this vault is out of cash" without re-reading ledger objects and re-deriving the cover ratio itself. Those messages lead to opposite user actions.
-
-**Proposed fix:** a distinct code for the cover shortfall, for example `tecINSUFFICIENT_COVER`.
+**Proposed fix.** State prominently in the `Batch` documentation that the outer engine result reports acceptance and fee charging, not inner-leg execution, and give a canonical example of verifying inner effects from validated before/after state.
 
 ---
 
-## 4. Demonstrating "capital plus accrued yield" is not achievable in an event window
+## 4. `tecINSUFFICIENT_FUNDS` conflates two unrelated conditions
 
-**Category:** missing primitive · **Severity:** medium
+**Severity: Medium · UX / error messages · [full finding](devfeedback/findings/006-tec-insufficient-funds-conflates-cover-and-liquidity.md)**
 
-**Attempted:** satisfy Track 1 minimum-bar item 6, "withdraw capital plus accrued yield", with a visible, non-trivial yield.
+Originating a 50 XRP loan through a broker whose cover was below its own `CoverRateMinimum`, against a vault holding 100 XRP, returns `tecINSUFFICIENT_FUNDS`. The vault was short of nothing. The identical code is returned when a `VaultWithdraw` exceeds available vault liquidity — the guardrail we deliberately demonstrate (`A35CB5DC…`).
 
-**Expected:** some way to show a lender redeeming meaningfully more than they deposited.
+**Impact.** An application cannot separate "the broker needs more cover" from "this vault is out of cash" without re-reading the `LoanBroker` object and re-deriving the ratio. The two lead a user to opposite actions. For Raise the distinction is the product: a liquidity shortfall is precisely what should route a lender to the secondary market; a cover shortfall should not.
 
-**Actual:** yield is bounded by `principal x rate x elapsed time`, `InterestRate` is capped at 100 % annualised, and the ledger follows wall-clock time. Our 50 XRP loan held open for 120 seconds produced **188 drops** of yield against **190** predicted by the contract's own formula, the gap being ledger close timing. The mechanism is exactly right; the magnitude is dust. Reaching 1 XRP of interest requires principal x time on the order of one XRP-year.
-
-Two routes that look like workarounds do not work, and we verified both:
-
-- **Early full payment does not accelerate interest.** `LoanPay` with `tfLoanFullPayment` charges principal plus interest accrued *to date*, not the remaining schedule. The ledger caps the charge at what is owed: we offered 241.570476 XRP against a `TotalValueOutstanding` of 80.523492 XRP and the borrower was debited 55.000188 XRP. The cap is good behaviour and worth documenting explicitly.
-- **`ClosePaymentFee` does not reach the vault.** On the recorded run the borrower was charged 55.000188 XRP, the vault received 50.000188 XRP, and the 5 XRP prepayment fee went to the broker. Prepayment charges therefore cannot stand in for lender yield, and the split is worth documenting.
-
-**Impact:** every Track 1 team either reports a yield indistinguishable from rounding, or quietly presents a simulated figure. The judging criteria reward on-chain evidence, so the honest option looks weaker than it is.
-
-**Proposed fix:** either relax the `InterestRate` cap on hackathon devnets, or provide a ledger time-acceleration facility on those networks, or restate the minimum bar as "demonstrate the yield mechanism and reconcile it against the contract formula" — which is achievable and actually more rigorous. We report observed against expected accrual in `evidence/vanilla-flow.json` for exactly this reason.
+**Proposed fix.** A distinct code, for example `tecINSUFFICIENT_COVER`.
 
 ---
 
-## 5. Non-standard ports make the devnet unreachable on restricted networks
+## 5. "Capital plus accrued yield" is not demonstrable within an event window
 
-**Category:** other (infrastructure) · **Severity:** medium
+**Severity: Medium · missing primitive / event design · [full finding](devfeedback/findings/007-accrued-yield-unreachable-in-event-window.md)**
 
-**Attempted:** reach the RPC and WebSocket endpoints from the venue network.
+Yield is bounded by `principal × rate × elapsed time`; `InterestRate` caps at 100 % annualised and the ledger follows wall-clock time. Our 50 XRP loan held 120 seconds produced **188 drops** against **190** predicted by the contract formula. The mechanism is right, the magnitude is dust: 1 XRP of interest needs principal × time near one XRP-year.
 
-**Expected:** connectivity, since the faucet and explorer were both reachable.
+We verified that the two apparent workarounds do not work. `LoanPay` with `tfLoanFullPayment` charges interest **accrued to date**, not the remaining schedule — and the ledger caps the charge at what is owed, debiting 55.000188 XRP against 241.570476 offered. Of that, the vault received 50.000188 XRP and the broker kept the 5 XRP `ClosePaymentFee`, so prepayment charges cannot substitute for lender yield either.
 
-**Actual:** every endpoint on ports 51233 and 51234 timed out while every endpoint on port 443 worked. TCP connects appeared to succeed and then no data ever arrived, which reads like a node outage and sent us looking in the wrong place.
+**Impact.** Every Track 1 team must choose between a yield indistinguishable from rounding and a simulated figure. The criteria reward verified on-chain evidence, so the honest choice scores worse — a scoring incentive worth correcting.
 
-**Reproduction and isolation:** we confirmed the cause with controls rather than assuming it.
-
-| Target | Port | Result |
-|---|---|---|
-| `lending-hackathon-faucet.dev.ripplex.io` | 443 | reachable |
-| `custom.xrpl.org` explorer | 443 | HTTP 200 |
-| `xrplcluster.com` | 443 | HTTP 200, `build_version` 3.3.0 |
-| `xrplcluster.com` | 51234 | timeout |
-| `lending-hackathon.dev.ripplex.io` | 51233 / 51234 | timeout |
-| `s.devnet.rippletest.net` | 51234 | timeout |
-| `portquiz.net` | 8080 | timeout |
-
-Three independent networks and a neutral port-test host all failed on non-standard ports while port 443 worked everywhere, so the cause was outbound port filtering, not any XRPL service.
-
-**Impact:** roughly an hour lost, and the failure mode actively misleads — it looks exactly like a devnet outage.
-
-**Proposed fix:** publish a port-443 endpoint for hackathon devnets, and add a troubleshooting line to the event instructions: if the faucet works but RPC and WSS time out, test port 443 against `xrplcluster.com` before reporting an outage.
+**Proposed fix.** Relax the rate cap on hackathon devnets, provide ledger time acceleration there, or restate the minimum bar as "demonstrate the yield mechanism and reconcile observed accrual against the contract formula" — achievable, and more rigorous than a large number.
 
 ---
+
+## Also in the evidence pool
+
+- **[Non-standard ports break restricted networks](devfeedback/findings/001-network-path-connectivity-timeout.md).** Ports 51233/51234 timed out while port 443 worked, on three unrelated networks plus a neutral control host. Mainnet failing on 51234 and succeeding on 443 proved the access path, not any XRPL service, was filtering. TCP connected and then nothing arrived, so it reads exactly like a node outage. One diagnostic line in the event instructions — *if the faucet works but RPC times out, test `xrplcluster.com` on 443 and on 51234* — would save every affected team an hour.
+- **[Vault-share recipients need an explicit MPT holder setup](devfeedback/findings/002-vault-share-holder-setup.md).** The buyer must submit `MPTokenAuthorize` before shares can be delivered. Worth stating in the share-transfer prerequisites.
 
 ## What worked well
 
-- `signLoanSetByCounterparty` and `combineLoanSetCounterpartySigners` make the two-party origination tractable, and the error `Transaction must be first signed by first party` states the required order precisely once you hit it. Documenting that ordering next to the `LoanSet` reference would save the discovery step.
-- The ledger capping `LoanPay` at the amount actually owed is a strong safety property. It deserves to be stated in the `LoanPay` documentation rather than discovered.
-- `VaultCreate`, `VaultDeposit` and `VaultWithdraw` behaved exactly as documented, first try, with no surprises in share issuance or transferability flags.
-- The reference lending application was the fastest path to a correct `LoanSet`, more so than the specification text. Linking it from the `LoanSet` reference page would help.
+- `signLoanSetByCounterparty` makes two-party origination tractable, and `Transaction must be first signed by first party` states the required order precisely. Documenting that ordering beside the `LoanSet` reference would remove the discovery step.
+- The ledger capping `LoanPay` at the amount actually owed is a strong safety property that deserves to be documented rather than discovered.
+- `VaultCreate`, `VaultDeposit` and `VaultWithdraw` behaved exactly as documented on first attempt, with no surprises in share issuance or transferability flags.
+- The reference lending application was a faster path to a correct `LoanSet` than the specification text. Linking it from the `LoanSet` reference page would help the next team.
