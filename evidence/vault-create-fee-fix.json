@@ -1,0 +1,13 @@
+{
+  "verifiedAt": "2026-09-12T17:29:57.602Z",
+  "scope": "Actual operator browser click after bounded VaultCreate signing-fee fix, followed by independent ledger read.",
+  "hash": "F2CD2DCDCB70C78537938BEBFDF2DF74FA87E7251331DC8177CADBCEF75A1E53",
+  "networkId": 4001,
+  "account": "rnAjoctK2R23g3r25NwoENPmNAV1DbGBiD",
+  "transactionType": "VaultCreate",
+  "feeDrops": "2000000",
+  "resultCode": "tesSUCCESS",
+  "validated": true,
+  "ledgerIndex": 71357,
+  "vaultId": "41D2B9A1746B171D1C6C9948754F9B80129D4447D0DBFF218F7B0028F6E54FDD"
+}

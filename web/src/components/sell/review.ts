@@ -1,6 +1,6 @@
 // Pure logic for the sell flow, kept free of React so it can be unit-tested.
 import { discountRatio, unitPriceDrops, validateOfferInput } from "@/lib/offers";
-import { shareValueDrops, type VaultState } from "@/lib/ledger";
+import { estimateShareValueDrops, type VaultState } from "@/lib/ledger";
 import { xrpToDrops } from "@/lib/format";
 
 export const EXPIRY_OPTIONS = [
@@ -40,7 +40,7 @@ export interface Review {
 export function computeReview(
   input: TermsInput,
   ctx: {
-    vault: Pick<VaultState, "vaultId" | "shareMptId" | "assetsTotalDrops" | "sharesOutstanding">;
+    vault: Pick<VaultState, "vaultId" | "shareMptId" | "assetsTotalDrops" | "sharesOutstanding" | "lossUnrealizedDrops">;
     seller: string;
     balance: string;
     networkId: number;
@@ -64,7 +64,8 @@ export function computeReview(
   }
   if (errors.shares || errors.price || errors.general.length) return { errors, review: null };
 
-  const accountingValueDrops = shareValueDrops(shares, ctx.vault);
+  const accountingValueDrops = estimateShareValueDrops(shares, ctx.vault);
+  if (accountingValueDrops === null) return { errors: { ...errors, general: ["The vault or share supply changed. Reload your position before listing."] }, review: null };
   return {
     errors,
     review: {

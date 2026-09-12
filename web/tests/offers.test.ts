@@ -12,7 +12,7 @@ describe("offer lifecycle", () => {
     expect(canTransition("open", "cancelled")).toBe(true);
     expect(canTransition("settled", "open")).toBe(false);
     expect(canTransition("cancelled", "settling")).toBe(false);
-    expect(canTransition("settling", "open")).toBe(true); // rollback when settlement provably did not execute
+    expect(canTransition("settling", "open")).toBe(false); // ambiguous attempts stay reserved
   });
   it("derives expiry on read so a stale offer never looks open", () => {
     const stale = { ...base, expiresAt: new Date(Date.now() - 1000).toISOString() };

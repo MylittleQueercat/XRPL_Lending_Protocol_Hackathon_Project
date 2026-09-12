@@ -1,3 +1,4 @@
+import { floorAccountingDrops, subtractAccountingDrops } from "@/lib/accounting";
 // Pure arithmetic for the position screen. Everything takes drop or share-unit strings and stays
 // in BigInt until a ratio is needed for display, so no monetary quantity is ever float-rounded.
 
@@ -10,9 +11,9 @@ export interface LiquidityPicture {
 }
 
 export function liquidityPicture(assetsTotalDrops: string, assetsAvailableDrops: string): LiquidityPicture {
-  const total = BigInt(assetsTotalDrops || "0");
-  const available = BigInt(assetsAvailableDrops || "0");
-  const deployed = total > available ? total - available : 0n;
+  const total = BigInt(floorAccountingDrops(assetsTotalDrops || "0"));
+  const available = BigInt(floorAccountingDrops(assetsAvailableDrops || "0"));
+  const deployed = total >= available ? BigInt(floorAccountingDrops(subtractAccountingDrops(assetsTotalDrops || "0", assetsAvailableDrops || "0"))) : 0n;
   const utilisation = total === 0n ? 0 : Number((deployed * 10_000n) / total) / 10_000;
   return { totalDrops: total.toString(), availableDrops: available.toString(), deployedDrops: deployed.toString(), utilisation };
 }
@@ -28,13 +29,13 @@ export function shareOfVault(heldUnits: string, outstandingUnits: string): numbe
 // Whether a withdrawal request can be paid from available cash right now. This is a prediction the
 // ledger will confirm or refute; the screen shows it as a hint, never as the outcome.
 export function canVaultFund(requestedDrops: string, assetsAvailableDrops: string): boolean {
-  return BigInt(requestedDrops || "0") <= BigInt(assetsAvailableDrops || "0");
+  return BigInt(requestedDrops || "0") <= BigInt(floorAccountingDrops(assetsAvailableDrops || "0"));
 }
 
 // The largest withdrawal the vault could pay today for this holder: min(accounting value, cash).
 export function fundableTodayDrops(accountingValueDrops: string, assetsAvailableDrops: string): string {
   const value = BigInt(accountingValueDrops || "0");
-  const cash = BigInt(assetsAvailableDrops || "0");
+  const cash = BigInt(floorAccountingDrops(assetsAvailableDrops || "0"));
   return (value < cash ? value : cash).toString();
 }
 
@@ -45,6 +46,6 @@ export function classifyRefusal(resultCode: string, requestedDrops: string, acco
   if (resultCode !== "tecINSUFFICIENT_FUNDS") return "other";
   const requested = BigInt(requestedDrops || "0");
   if (requested > BigInt(accountingValueDrops || "0")) return "insufficient-shares";
-  if (requested > BigInt(assetsAvailableDrops || "0")) return "vault-liquidity";
+  if (requested > BigInt(floorAccountingDrops(assetsAvailableDrops || "0"))) return "vault-liquidity";
   return "other";
 }

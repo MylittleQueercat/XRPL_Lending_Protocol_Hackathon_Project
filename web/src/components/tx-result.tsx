@@ -9,7 +9,7 @@ import { shortHash } from "@/lib/format";
 export function TxResult({ result, context, title }: { result: Submitted; context?: Parameters<typeof explainResult>[1]; title?: string }) {
   const ok = result.resultCode === "tesSUCCESS";
   return (
-    <Alert variant={ok ? "success" : "destructive"}>
+    <Alert className="raise-state" variant={ok ? "success" : "destructive"}>
       {ok ? <CheckCircle2 /> : <XCircle />}
       <AlertTitle>{title ?? (ok ? "Validated" : "Rejected")} · <code className="font-mono text-xs">{result.resultCode}</code></AlertTitle>
       <AlertDescription>

@@ -4,36 +4,56 @@
 // result on its own: callers re-read state after a transaction validates, which is the only way to
 // tell a settled sale from an outer tesSUCCESS over inner legs that never executed.
 import {
-  BatchFlags,
   Client,
-  GlobalFlags,
   Wallet,
   signLoanSetByCounterparty,
-  signMultiBatch,
   type LoanSet,
   type SubmittableTransaction,
 } from "xrpl";
 import { TRACK1 } from "./network";
+import { floorAccountingDrops, subtractAccountingDrops, valuePosition } from "./accounting";
+import { assertActiveSigner } from "./signing-session";
+import { browserJournal, notifySubmissions, type PendingSubmission } from "./submission-journal";
 
 let client: Client | null = null;
 let connecting: Promise<Client> | null = null;
+let connectionGeneration = 0;
 
 export async function getClient(): Promise<Client> {
   if (client?.isConnected()) return client;
   if (connecting) return connecting;
-  connecting = (async () => {
+  const previous = client;
+  client = null;
+  const generation = connectionGeneration;
+  const pending = (async () => {
+    // disconnect() also cancels SDK reconnect timers when the socket is already closed.
+    if (previous) await previous.disconnect();
+    if (generation !== connectionGeneration) throw new Error("Connection cancelled.");
     const next = new Client(TRACK1.wsUrl, { connectionTimeout: 15_000, timeout: 20_000 });
-    await next.connect();
     client = next;
-    connecting = null;
-    return next;
+    // xrpl.js emits transport errors as well as rejecting requests.
+    next.on("error", () => { /* Request failures are surfaced to the requesting screen. */ });
+    try {
+      await next.connect();
+      if (generation !== connectionGeneration) throw new Error("Connection cancelled.");
+      return next;
+    } catch (error) {
+      await next.disconnect().catch(() => {});
+      if (client === next) client = null;
+      throw error;
+    }
   })();
-  return connecting;
+  connecting = pending;
+  try { return await pending; }
+  finally { if (connecting === pending) connecting = null; }
 }
 
 export async function disconnect() {
-  if (client?.isConnected()) await client.disconnect();
+  connectionGeneration++;
+  const previous = client;
   client = null;
+  connecting = null;
+  if (previous) await previous.disconnect();
 }
 
 export function record(value: unknown, label: string): Record<string, unknown> {
@@ -97,7 +117,7 @@ export function isEntryNotFound(error: unknown): boolean {
 // Loan amounts arrive as fractional drop strings (PeriodicPayment, TotalValueOutstanding), unlike
 // every other amount on the ledger. Screens work in whole drops, so they are floored here once.
 export function wholeDrops(value: unknown): string {
-  return String(value ?? "0").split(".")[0] || "0";
+  return floorAccountingDrops(String(value ?? "0"));
 }
 
 export async function accountExists(address: string): Promise<boolean> {
@@ -122,6 +142,7 @@ export interface VaultState {
   shareMptId: string;
   assetsTotalDrops: string;
   assetsAvailableDrops: string;
+  lossUnrealizedDrops?: string;
   sharesOutstanding: string;
   transferable: boolean;
   ledgerIndex: number;
@@ -141,6 +162,7 @@ export async function readVault(vaultId: string): Promise<VaultState> {
     shareMptId,
     assetsTotalDrops: String(vault.AssetsTotal ?? "0"),
     assetsAvailableDrops: String(vault.AssetsAvailable ?? "0"),
+    lossUnrealizedDrops: String(vault.LossUnrealized ?? "0"),
     sharesOutstanding: issuance.outstanding,
     transferable: issuance.transferable,
     ledgerIndex: Number((response.result as { ledger_index?: number }).ledger_index ?? 0),
@@ -190,10 +212,14 @@ export async function hasShareHolder(address: string, shareMptId: string): Promi
 }
 
 // Accounting value of a share quantity, exact integer division in drops.
-export function shareValueDrops(shares: string, vault: Pick<VaultState, "assetsTotalDrops" | "sharesOutstanding">): string {
-  const outstanding = BigInt(vault.sharesOutstanding);
-  if (outstanding === 0n) return "0";
-  return ((BigInt(shares) * BigInt(vault.assetsTotalDrops)) / outstanding).toString();
+export function shareValueDrops(shares: string, vault: Pick<VaultState, "assetsTotalDrops" | "sharesOutstanding" | "lossUnrealizedDrops">): string {
+  return valuePosition({ assetsTotalDrops: vault.assetsTotalDrops, assetsAvailableDrops: "0", lossUnrealizedDrops: vault.lossUnrealizedDrops ?? "0", totalSharesRaw: vault.sharesOutstanding, heldSharesRaw: shares, shareScale: 0 }).accountingClaimDrops;
+}
+
+// Market listings can outlive their share supply. Display an unavailable estimate instead of
+// letting an invalid or changed snapshot crash the page; execution still requires server checks.
+export function estimateShareValueDrops(shares: string, vault: Pick<VaultState, "assetsTotalDrops" | "sharesOutstanding" | "lossUnrealizedDrops">): string | null {
+  try { return shareValueDrops(shares, vault); } catch { return null; }
 }
 
 // Vaults an account owns, from its owner directory.
@@ -276,9 +302,9 @@ export interface LoanState {
   loanBrokerId: string;
   borrower: string;
   principalOutstandingDrops: string; // whole drops
-  totalValueOutstandingDrops: string; // whole drops, floored from the ledger's fractional string
+  totalValueOutstandingDrops: string; // exact decimal/scientific drops for repayment arithmetic
   scheduledInterestRemainingDrops: string;
-  periodicPaymentDrops: string; // whole drops, floored
+  periodicPaymentDrops: string; // exact drops; round up only when building a payment
   closePaymentFeeDrops: string; // "0" when the ledger omits the optional field
   paymentRemaining: number;
   paymentInterval: number;
@@ -294,15 +320,14 @@ export const rippleTimeToDate = (seconds: number) => new Date((seconds + RIPPLE_
 
 function toLoanState(loan: Record<string, unknown>, loanId: string): LoanState {
   const principal = wholeDrops(loan.PrincipalOutstanding);
-  const total = wholeDrops(loan.TotalValueOutstanding);
   return {
     loanId,
     loanBrokerId: String(loan.LoanBrokerID),
     borrower: String(loan.Borrower),
     principalOutstandingDrops: principal,
-    totalValueOutstandingDrops: total,
-    scheduledInterestRemainingDrops: (BigInt(total) - BigInt(principal)).toString(),
-    periodicPaymentDrops: wholeDrops(loan.PeriodicPayment),
+    totalValueOutstandingDrops: String(loan.TotalValueOutstanding ?? "0"),
+    scheduledInterestRemainingDrops: floorAccountingDrops(subtractAccountingDrops(String(loan.TotalValueOutstanding ?? "0"), String(loan.PrincipalOutstanding ?? "0"))),
+    periodicPaymentDrops: String(loan.PeriodicPayment ?? "0"),
     closePaymentFeeDrops: wholeDrops(loan.ClosePaymentFee),
     paymentRemaining: Number(loan.PaymentRemaining ?? 0),
     paymentInterval: Number(loan.PaymentInterval ?? 0),
@@ -351,60 +376,82 @@ export interface Submitted {
 
 // Signs and waits for validation. Rejections (tec*, tem*) are returned, not thrown, so screens can
 // explain them; only transport failures throw.
-export async function signAndSubmit(transaction: SubmittableTransaction, wallet: Wallet): Promise<Submitted> {
-  const c = await getClient();
-  const prepared = await c.autofill(transaction);
-  if (prepared.NetworkID !== TRACK1.networkId) throw new Error(`Refusing to sign for network ${prepared.NetworkID}; this app is fixed to ${TRACK1.networkId}.`);
-  const signed = wallet.sign(prepared);
+async function withSubmissionLock<T>(account: string, action: () => Promise<T>): Promise<T> {
+  if (typeof navigator === "undefined" || !navigator.locks) throw new Error("This browser cannot protect concurrent submissions. Use a browser with Web Locks on localhost or HTTPS.");
+  return navigator.locks.request("raise-submit-journal", async () => {
+    browserJournal().assertClear(account);
+    return action();
+  });
+}
+
+async function submitTracked(c: Client, prepared: SubmittableTransaction, signed: { hash: string; tx_blob: string }): Promise<Submitted> {
+  const journal = browserJournal();
+  journal.record({ hash: signed.hash, account: prepared.Account, transactionType: prepared.TransactionType, networkId: 4001, lastLedgerSequence: Number(prepared.LastLedgerSequence), createdAt: new Date().toISOString() });
+  notifySubmissions();
   try {
     const result = (await c.submitAndWait(signed.tx_blob)).result;
     const meta = record(result.meta, "transaction metadata");
-    return { hash: String(result.hash), ledgerIndex: Number(result.ledger_index), resultCode: String(meta.TransactionResult), validated: result.validated === true, meta };
-  } catch (error) {
-    // xrpl.js throws on tem/tef results before they reach a ledger. Surface them as a result code.
-    const message = (error as Error).message ?? "";
-    const match = message.match(/\b(te[cfmrs][A-Z_]+)\b/);
-    if (match) return { hash: signed.hash, ledgerIndex: 0, resultCode: match[1], validated: false, meta: {} };
-    throw error;
+    if (result.validated !== true || String(result.hash).toUpperCase() !== signed.hash.toUpperCase() || !Number.isSafeInteger(result.ledger_index) || Number(result.ledger_index) < 1 || typeof meta.TransactionResult !== "string") throw new Error("Transaction validation is not confirmed.");
+    journal.resolveValidated(signed.hash);
+    notifySubmissions();
+    return { hash: signed.hash, ledgerIndex: Number(result.ledger_index), resultCode: String(meta.TransactionResult), validated: true, meta };
+  } catch (cause) {
+    throw new Error(`Transaction ${signed.hash} is saved for recovery. ${(cause as Error).message} Use Check transaction in the recovery notice; do not send it again.`);
   }
 }
 
-// LoanSet needs two signatures: the broker (Account) first, then the borrower as counterparty.
+export async function recoverSubmission(entry: PendingSubmission): Promise<Submitted | null> {
+  const net = await readNetworkStatus();
+  if (!net.matches || !Number.isFinite(net.ledgerAgeSeconds) || net.ledgerAgeSeconds > 30) throw new Error("Cannot check a transaction on an unavailable or stale network.");
+  const c = await getClient();
+  try {
+    const result = (await c.request({ command: "tx", transaction: entry.hash })).result;
+    if (result.validated !== true) return null;
+    const transaction = record(result.tx_json, "validated transaction");
+    const meta = record(result.meta, "validated transaction metadata");
+    if (String(result.hash).toUpperCase() !== entry.hash.toUpperCase() || transaction.Account !== entry.account || transaction.TransactionType !== entry.transactionType || transaction.NetworkID !== 4001) throw new Error("Recorded transaction identity does not match the ledger response.");
+    if (!Number.isSafeInteger(result.ledger_index) || Number(result.ledger_index) < 1 || typeof meta.TransactionResult !== "string") throw new Error("Transaction validation metadata is incomplete.");
+    if (!navigator.locks) throw new Error("Web Locks are required to update transaction recovery safely.");
+    await navigator.locks.request("raise-submit-journal", () => browserJournal().resolveValidated(entry.hash));
+    notifySubmissions();
+    return { hash: entry.hash, ledgerIndex: Number(result.ledger_index), resultCode: String(meta.TransactionResult), validated: true, meta };
+  } catch (cause) {
+    if ((cause as { data?: { error?: string } }).data?.error === "txnNotFound") return null;
+    throw cause;
+  }
+}
+
+export async function signAndSubmit(transaction: SubmittableTransaction, wallet: Wallet): Promise<Submitted> {
+  if (transaction.Account !== wallet.classicAddress) throw new Error("Connect the account that owns this operation.");
+  return withSubmissionLock(wallet.classicAddress, async () => {
+    const c = await getClient();
+    const prepared = await c.autofill(transaction);
+    if (prepared.NetworkID !== TRACK1.networkId) throw new Error(`Refusing to sign for network ${prepared.NetworkID}.`);
+    // VaultCreate burns the incremental owner reserve (2 XRP on network 4001).
+    // Its SDK autofill cost intentionally exceeds the ordinary transaction cap.
+    const isVaultCreation = transaction.TransactionType === "VaultCreate" && prepared.TransactionType === "VaultCreate";
+    const feeLimitDrops = isVaultCreation ? 2_000_000n : 1_000_000n;
+    if (!/^[1-9]\d*$/.test(String(prepared.Fee)) || BigInt(prepared.Fee!) > feeLimitDrops) {
+      throw new Error(`Transaction fee exceeds the ${isVaultCreation ? "2 XRP VaultCreate" : "1 XRP"} signing limit.`);
+    }
+    assertActiveSigner(wallet);
+    return submitTracked(c, prepared, wallet.sign(prepared));
+  });
+}
+
+// Operator-only demo: broker signs first, borrower counter-signs. Public hash recovery is shared.
 export async function signAndSubmitLoanSet(transaction: SubmittableTransaction, broker: Wallet, borrower: Wallet): Promise<Submitted> {
-  const c = await getClient();
-  const prepared = await c.autofill(transaction);
-  if (prepared.NetworkID !== TRACK1.networkId) throw new Error(`Refusing to sign for network ${prepared.NetworkID}.`);
-  const first = broker.sign(prepared);
-  const both = signLoanSetByCounterparty(borrower, first.tx_blob as unknown as LoanSet);
-  const result = (await c.submitAndWait(both.tx_blob)).result;
-  const meta = record(result.meta, "transaction metadata");
-  return { hash: String(result.hash), ledgerIndex: Number(result.ledger_index), resultCode: String(meta.TransactionResult), validated: result.validated === true, meta };
-}
-
-// Atomic sale: buyer pays XRP, seller delivers shares, all-or-nothing. The buyer signs their inner
-// leg; the seller signs the outer Batch. Either wallet may be the local one; the other must be
-// available for signing too, which on this network means both are local dev wallets.
-export function buildSaleBatch(seller: string, buyer: string, shareMptId: string, priceDrops: string, shares: string): SubmittableTransaction {
-  return {
-    TransactionType: "Batch",
-    Account: seller,
-    Flags: BatchFlags.tfAllOrNothing,
-    RawTransactions: [
-      { RawTransaction: { TransactionType: "Payment", Account: buyer, Destination: seller, Amount: priceDrops, Flags: GlobalFlags.tfInnerBatchTxn } },
-      { RawTransaction: { TransactionType: "Payment", Account: seller, Destination: buyer, Amount: { mpt_issuance_id: shareMptId, value: shares }, Flags: GlobalFlags.tfInnerBatchTxn } },
-    ],
-  } as unknown as SubmittableTransaction;
-}
-
-export async function signAndSubmitSale(batch: SubmittableTransaction, seller: Wallet, buyer: Wallet): Promise<Submitted> {
-  const c = await getClient();
-  const prepared = await c.autofill(batch, 1);
-  if (prepared.NetworkID !== TRACK1.networkId) throw new Error(`Refusing to sign for network ${prepared.NetworkID}.`);
-  signMultiBatch(buyer, prepared as never);
-  const signed = seller.sign(prepared);
-  const result = (await c.submitAndWait(signed.tx_blob)).result;
-  const meta = record(result.meta, "transaction metadata");
-  return { hash: String(result.hash), ledgerIndex: Number(result.ledger_index), resultCode: String(meta.TransactionResult), validated: result.validated === true, meta };
+  if (transaction.Account !== broker.classicAddress) throw new Error("Connect the broker account for this loan.");
+  return withSubmissionLock(broker.classicAddress, async () => {
+    const c = await getClient();
+    const prepared = await c.autofill(transaction);
+    if (prepared.NetworkID !== TRACK1.networkId) throw new Error(`Refusing to sign for network ${prepared.NetworkID}.`);
+    if (!/^[1-9]\d*$/.test(String(prepared.Fee)) || BigInt(prepared.Fee!) > 1_000_000n) throw new Error("Transaction fee exceeds the 1 XRP signing limit.");
+    assertActiveSigner(broker);
+    const first = broker.sign(prepared);
+    const both = signLoanSetByCounterparty(borrower, first.tx_blob as unknown as LoanSet);
+    return submitTracked(c, prepared, both);
+  });
 }
 
 export function createdEntry(meta: Record<string, unknown>, entryType: string): string | undefined {

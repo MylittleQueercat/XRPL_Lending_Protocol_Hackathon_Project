@@ -8,6 +8,7 @@
     "node": ">=24.11.1 <25"
   },
   "scripts": {
+    "market:e2e": "tsx scripts/market-e2e.ts",
     "doctor": "tsx src/cli.ts doctor",
     "vanilla": "tsx src/cli.ts vanilla",
     "wallet:live-test": "tsx scripts/wallet/live-test.ts",
@@ -21,6 +22,7 @@
     "settlement": "tsx src/cli.ts settlement"
   },
   "dependencies": {
+    "ripple-keypairs": "3.1.0",
     "xrpl": "5.2.0-beta.1"
   },
   "devDependencies": {

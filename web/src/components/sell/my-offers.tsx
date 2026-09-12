@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useWallet } from "@/lib/wallet";
-import { listOffers, subscribeOffers, transitionOffer, unitPriceDrops, type Offer, type OfferState } from "@/lib/offers";
+import { unitPriceDrops, type OfferState } from "@/lib/offers";
+import { performMarketAction } from "@/lib/market-client";
+import { useOffers } from "@/components/market/use-offers";
 import { formatRelativeTime, formatShares, formatXrp, shortHash } from "@/lib/format";
 import { explorerTx, routes } from "@/lib/network";
 
@@ -22,49 +24,32 @@ const STATE_VARIANT: Record<OfferState, React.ComponentProps<typeof Badge>["vari
 };
 
 export function MyOffers() {
-  const { account } = useWallet();
-  const [offers, setOffers] = React.useState<Offer[]>([]);
+  const wallet = useWallet();
+  const { account } = wallet;
+  const market = useOffers();
+  const offers = market.offers.filter((offer) => offer.seller === account?.address);
   const [confirming, setConfirming] = React.useState<string | null>(null);
+  const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-
-  const refresh = React.useCallback(() => {
-    if (!account) return setOffers([]);
-    setOffers(listOffers().filter((o) => o.seller === account.address));
-  }, [account]);
-
-  React.useEffect(() => {
-    refresh();
-    return subscribeOffers(refresh);
-  }, [refresh]);
-
-  // Expiry is derived on read, so re-render periodically to let an open offer turn expired.
-  React.useEffect(() => {
-    const t = setInterval(refresh, 30_000);
-    return () => clearInterval(t);
-  }, [refresh]);
-
   if (!account) return null;
-
-  const cancel = (id: string) => {
-    setError(null);
+  const cancel = async (id: string) => {
+    setError(null); setBusy(true);
     try {
-      transitionOffer(id, "cancelled");
-      setConfirming(null);
-    } catch (cause) {
-      setError((cause as Error).message);
-      setConfirming(null);
-    }
+      await performMarketAction({ type: "cancel", offerId: id }, wallet.requireSigner);
+      await market.refresh();
+    } catch (cause) { setError((cause as Error).message); }
+    finally { setConfirming(null); setBusy(false); }
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Your offers</CardTitle>
-        <CardDescription>Stored in this browser. Cancellation takes effect in Raise immediately; the ledger only sees an offer when it settles.</CardDescription>
+        <CardDescription>Shared across browsers. A pending sale needs your approval from your own connected wallet. Started settlement attempts cannot be reopened.</CardDescription>
       </CardHeader>
       <CardContent>
-        {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
-        {offers.length === 0 ? (
+        {(error || market.error) && <p role="alert" className="mb-3 text-sm text-destructive">{error || market.error} <Button variant="ghost" size="sm" onClick={() => void market.refresh()}>Refresh</Button></p>}
+        {!market.ready ? <p role="status" className="text-sm text-muted-foreground">Loading shared offers…</p> : offers.length === 0 ? (
           <p className="text-sm text-muted-foreground">No offers yet.</p>
         ) : (
           <Table>
@@ -98,10 +83,11 @@ export function MyOffers() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{o.state === "open" ? formatRelativeTime(o.expiresAt) : "—"}</TableCell>
                   <TableCell className="text-right">
+                    {o.state === "settling" && <Link href={routes.buy(o.id)} className="text-sm font-medium text-primary hover:underline">Review sale</Link>}
                     {o.state === "open" && (
                       confirming === o.id ? (
                         <span className="inline-flex gap-1">
-                          <Button size="sm" variant="destructive" onClick={() => cancel(o.id)}>Confirm cancel</Button>
+                          <Button size="sm" variant="destructive" disabled={busy} onClick={() => void cancel(o.id)}>Confirm cancel</Button>
                           <Button size="sm" variant="ghost" onClick={() => setConfirming(null)}>Keep</Button>
                         </span>
                       ) : (

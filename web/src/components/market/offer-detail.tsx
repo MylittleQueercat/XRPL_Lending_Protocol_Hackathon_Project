@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/page-header";
 import { Stat } from "@/components/stat";
-import { readNetworkStatus, readShareBalance, readVault, shareValueDrops, type VaultState } from "@/lib/ledger";
+import { readNetworkStatus, readShareBalance, readVault, estimateShareValueDrops, type VaultState } from "@/lib/ledger";
 import { formatPercent, formatRelativeTime, formatShares, formatXrp, shortAddress } from "@/lib/format";
 import { explorerAccount, explorerTx, routes } from "@/lib/network";
 import { unitPriceDrops } from "@/lib/offers";
@@ -28,7 +28,7 @@ type LiveState =
   | { status: "error"; message: string };
 
 export function OfferDetail({ id }: { id: string }) {
-  const { offer, ready } = useOffer(id);
+  const { offer, ready, error: marketError, refresh: refreshMarket } = useOffer(id);
   const { account } = useWallet();
   const [live, setLive] = React.useState<LiveState>({ status: "loading" });
 
@@ -54,14 +54,14 @@ export function OfferDetail({ id }: { id: string }) {
   if (!offer) {
     return (
       <>
-        <PageHeader title="Offer not found" description="This offer does not exist in this browser's market store, or it was removed." />
+        <PageHeader title="Offer not found" description={marketError ?? "This offer is not present in the shared marketplace."} />
         <Link href={routes.market} className={cn(buttonVariants({ variant: "outline" }))}><ArrowLeft /> Back to market</Link>
       </>
     );
   }
 
   const vault = live.status === "ready" ? live.vault : null;
-  const accountingValue = vault ? shareValueDrops(offer.shares, vault) : null;
+  const accountingValue = vault ? estimateShareValueDrops(offer.shares, vault) : null;
   const vsValue = describeVsValue(offer.priceDrops, accountingValue);
   const sellerCovers = live.status === "ready" ? sellerCanDeliver(live.sellerShares, offer.shares) : null;
   const buyable = isBuyable(offer, sellerCovers, account?.address ?? null);
@@ -80,7 +80,8 @@ export function OfferDetail({ id }: { id: string }) {
         }
       />
 
-      {live.status === "ready" && sellerCovers === false && (
+      {marketError && <Alert variant="warning" className="mb-4"><AlertTitle>Shared offer data may be stale</AlertTitle><AlertDescription>{marketError} <Button variant="outline" size="sm" onClick={() => void refreshMarket()}>Refresh marketplace</Button></AlertDescription></Alert>}
+      {offer.state === "open" && live.status === "ready" && sellerCovers === false && (
         <Alert variant="warning" className="mb-4">
           <AlertTriangle />
           <AlertTitle>Seller no longer holds enough shares</AlertTitle>
@@ -121,15 +122,15 @@ export function OfferDetail({ id }: { id: string }) {
             <Separator />
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
               <dt className="text-muted-foreground">Seller</dt>
-              <dd className="flex items-center gap-1.5">
-                <code className="text-xs">{offer.seller}</code>
+              <dd className="flex min-w-0 flex-wrap items-center gap-1.5">
+                <code className="text-xs break-all">{offer.seller}</code>
                 {mine && <Badge variant="secondary">you</Badge>}
                 <a href={explorerAccount(offer.seller)} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground" aria-label="Seller in explorer"><ExternalLink className="size-3.5" /></a>
               </dd>
               <dt className="text-muted-foreground">Seller holds now</dt>
               <dd className="tabular-nums">
                 {live.status === "ready" ? (
-                  <span className={cn(sellerCovers === false && "text-destructive")}>{formatShares(live.sellerShares)} units</span>
+                  <span className={cn(offer.state === "open" && sellerCovers === false && "text-destructive")}>{formatShares(live.sellerShares)} units</span>
                 ) : live.status === "loading" ? <Skeleton className="inline-block h-4 w-20" /> : "—"}
                 {live.status === "ready" && <span className="ml-2 text-xs text-muted-foreground">validated ledger #{live.ledgerIndex.toLocaleString("en-US")}</span>}
               </dd>
@@ -189,9 +190,11 @@ export function OfferDetail({ id }: { id: string }) {
             <CardDescription>{buyable.ok ? "Live checks passed for this offer." : buyable.reason}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            {mine ? (
+            {offer.state === "settling" ? (
+              <Link href={routes.buy(offer.id)} className={cn(buttonVariants({ variant: "outline" }), "w-full")}>Review saved sale <ArrowRight /></Link>
+            ) : mine ? (
               <Link href={routes.sell()} className={cn(buttonVariants({ variant: "outline" }), "w-full")}>Manage my offers <ArrowRight /></Link>
-            ) : buyable.ok ? (
+            ) : buyable.ok && !marketError ? (
               <Link href={routes.buy(offer.id)} className={cn(buttonVariants({ size: "lg" }), "w-full")}>Buy this position <ArrowRight /></Link>
             ) : (
               <Button size="lg" className="w-full" disabled>Buy this position</Button>

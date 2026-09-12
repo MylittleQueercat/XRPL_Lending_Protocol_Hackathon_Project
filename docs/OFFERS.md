@@ -31,7 +31,7 @@ npm run offers -- list
 npm run offers -- cancel --id OFFER_ID --seller SELLER_ADDRESS
 ```
 
-`list` returns open, unexpired advertisements. Creating, publishing and cancelling only change the local database. In particular, publishing does not claim that the seller has been checked on the ledger. A future HTTP API must authenticate wallet control and derive the actor from that session before calling these service methods.
+`list` returns open, unexpired advertisements. Creating, publishing and cancelling only change the local database. In particular, publishing does not claim that the seller has been checked on the ledger. The shared HTTP API now authenticates wallet control using a short-lived, one-use signed challenge and derives the actor from that proof before calling these methods. These local CLI actor arguments remain an operator-only interface, never an HTTP authentication mechanism.
 
 Before handing an open offer to a future settlement executor:
 
@@ -60,10 +60,18 @@ SQLite stores exact monetary quantities as strings. Each offer has a revision. C
 
 The store uses Node's built-in [`node:sqlite` module](https://nodejs.org/download/release/latest-v24.x/docs/api/sqlite.html), so no new npm dependency is required. The supported Node 24.11.1 runtime emits an experimental-feature warning for this API. This embedded database is a local or single-host deployment choice; separate database copies do not share offers or coordinate acceptance. Use shared durable service storage before deploying multiple independent hosts.
 
-The completion verifier is a trusted in-process integration adapter, not input from a buyer or an unauthenticated endpoint. It must verify actual validated ledger evidence for the recorded attempt, including the correct buyer, seller, share issuance, share quantity and XRP payment. An outer Batch `tesSUCCESS` alone is insufficient. No default verifier is installed: completion fails closed until the settlement implementation provides one. The independent settlement failure/reconciliation work belongs to #15.
+The completion verifier is a trusted in-process integration adapter, not input from a buyer or an unauthenticated endpoint. It must verify actual validated ledger evidence for the recorded attempt, including the correct buyer, seller, share issuance, share quantity and XRP payment. An outer Batch `tesSUCCESS` alone is insufficient. The shared marketplace installs `XrplMarketGateway` as this verifier. It matches the exact outer and two inner transaction hashes, validated ledger, parent Batch relationship and delivered amounts. The standalone CLI intentionally has no completion override. See [integration details](INTEGRATION.md).
 
 ## Verification
 
 Behavior tests exercise input validation, persistence across reopen, expiry, seller checks, concurrent state changes, fresh ownership checks and settlement evidence requirements. The CLI test launches separate processes against a temporary SQLite file, checks discovery and cancels the advertisement. It makes no network requests and submits no transactions.
 
 [Live preflight evidence](../evidence/offer-preflight.json) records the complete local CLI journey on 2026-09-12. The oversized offer was rejected, cancellation survived a process restart, and the valid offer prepared once against validated ledger **67742**. A second preparation was rejected and the offer remained `settling`, with no claim of payment or share delivery.
+
+## Shared API and two-party settlement
+
+`GET /api/market` returns public offers and attempts. `POST /api/market/challenge` accepts an account and exact action; `POST /api/market` accepts only the resulting challenge ID, public key and signature. Challenges bind domain, origin, network, account, nonce, expiry and action; a nonce is consumed once. The actor must control an enabled master key on the fresh network-4001 ledger. Regular-key and account-multisign authentication are outside this version.
+
+The new coordinator in `src/market-service.ts` adds immutable prepared Batch terms, buyer authorization, seller outer signing, durable single broadcast and exact-hash reconciliation on top of the offer service. `awaiting-buyer → awaiting-seller → submitting/pending → settled` is an attempt lifecycle; it does not add a shortcut back to an open offer. Database revision checks serialize racing actors and survive server restarts.
+
+Same-origin checks and a 48 KiB request limit apply before processing. Public snapshots omit signed blobs, private wallet data and challenge contents. Transactions/signatures already published to XRPL are public. Failed, expired signed or unresolved attempts remain locked for operator investigation; this version does not offer an automatic retry or cancellation of a signed authorization.

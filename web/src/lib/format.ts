@@ -1,9 +1,11 @@
+import { floorAccountingDrops } from "./accounting";
 // All ledger amounts are drop strings. Formatting never rounds the underlying value.
 const DROPS_PER_XRP = 1_000_000n;
 
 export function dropsToXrpString(drops: string | bigint, decimals = 6): string {
   // Some Loan fields are fractional drop strings; whole drops are what a person can hold or pay.
-  const value = typeof drops === "bigint" ? drops : BigInt((drops || "0").split(".")[0] || "0");
+  const text = typeof drops === "string" ? drops || "0" : "0";
+  const value = typeof drops === "bigint" ? drops : BigInt(floorAccountingDrops(text.startsWith("-") ? text.slice(1) : text)) * (text.startsWith("-") ? -1n : 1n);
   const negative = value < 0n;
   const abs = negative ? -value : value;
   const whole = abs / DROPS_PER_XRP;

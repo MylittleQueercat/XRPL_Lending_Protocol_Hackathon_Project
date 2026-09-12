@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-09-12T16:31:50.273Z",
+  "networkId": 4001,
+  "build": "3.4.0-rc1",
+  "ledgerIndex": 70204,
+  "amendments": [
+    {
+      "id": "955DF3FA5891195A9DAEFA1DDC6BB244B545DDE1BAA84CBB25D5F12A8DA68A0C",
+      "enabled": false,
+      "name": "TicketBatch",
+      "supported": true
+    },
+    {
+      "id": "9F287AED3CDB50A7BD1ACEC24296A30C9B5230CCD136219317AC790E3B884377",
+      "enabled": true,
+      "name": "BatchV1_1",
+      "supported": true
+    }
+  ]
+}

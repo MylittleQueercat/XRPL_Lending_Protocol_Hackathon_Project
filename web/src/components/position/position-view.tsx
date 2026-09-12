@@ -24,7 +24,7 @@ import {
   readShareHoldings,
   readVault,
   shareValueDrops,
-  signAndSubmit,
+  signAndSubmit, wholeDrops,
   type BrokerState,
   type LoanState,
   type ShareHolding,
@@ -32,6 +32,7 @@ import {
   type VaultState,
 } from "@/lib/ledger";
 import { cn } from "@/lib/utils";
+import { valuePosition } from "@/lib/accounting";
 import { isVaultId, readKnownVaults, rememberVault } from "./known-vaults";
 import { LiquidityBar } from "./liquidity-bar";
 import { canVaultFund, classifyRefusal, fundableTodayDrops, liquidityPicture, shareOfVault } from "./position-math";
@@ -131,8 +132,8 @@ export function PositionView() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Vault</CardTitle>
-          <CardDescription>Shares are MPTs issued by the vault&apos;s own account. Point the page at a vault to read your holding in it.</CardDescription>
+          <CardTitle>Choose your vault</CardTitle>
+          <CardDescription>Enter a vault ID or choose one you have used before. You can deposit XRP, review your shares and check available cash.</CardDescription>
         </CardHeader>
         <CardContent>
           <VaultSelector value={vaultId} known={known} onSelect={select} disabled={loading} />
@@ -171,7 +172,7 @@ function NotConnected() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Connect a wallet to see your position</CardTitle>
+        <CardTitle>Connect a wallet to deposit or manage shares</CardTitle>
         <CardDescription>Use the wallet button in the header. This page will then show, from the validated ledger:</CardDescription>
       </CardHeader>
       <CardContent>
@@ -189,16 +190,17 @@ function NotConnected() {
 function PositionCard({ position, loading, onRefresh, account }: { position: Position; loading: boolean; onRefresh: () => void; account: string }) {
   const { vault, heldUnits, accountingValueDrops } = position;
   const picture = liquidityPicture(vault.assetsTotalDrops, vault.assetsAvailableDrops);
-  const fundable = fundableTodayDrops(accountingValueDrops, vault.assetsAvailableDrops);
+  const valuation = valuePosition({ assetsTotalDrops: vault.assetsTotalDrops, assetsAvailableDrops: vault.assetsAvailableDrops, lossUnrealizedDrops: vault.lossUnrealizedDrops ?? "0", totalSharesRaw: vault.sharesOutstanding, heldSharesRaw: heldUnits, shareScale: 0 });
+  const fundable = valuation.liquidityLimitedWithdrawalEstimateDrops;
   const ownership = shareOfVault(heldUnits, vault.sharesOutstanding);
-  const canExitInFull = BigInt(fundable) >= BigInt(accountingValueDrops) && BigInt(accountingValueDrops) > 0n;
+  const canExitInFull = BigInt(fundable) >= BigInt(valuation.withdrawalValueEstimateDrops) && BigInt(valuation.withdrawalValueEstimateDrops) > 0n;
   return (
     <Card>
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle>Your position</CardTitle>
           {vault.transferable ? <Badge variant="success">transferable shares</Badge> : <Badge variant="warning">non-transferable shares</Badge>}
-          {BigInt(accountingValueDrops) > 0n && (canExitInFull ? <Badge variant="outline">fully redeemable today</Badge> : <Badge variant="warning">partly locked in loans</Badge>)}
+          {BigInt(accountingValueDrops) > 0n && (canExitInFull ? <Badge variant="outline">cash covers withdrawal estimate</Badge> : <Badge variant="warning">withdrawal estimate exceeds cash</Badge>)}
         </div>
         <CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs">
           <span title={vault.vaultId}>vault {shortHash(vault.vaultId)}</span>
@@ -213,15 +215,29 @@ function PositionCard({ position, loading, onRefresh, account }: { position: Pos
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label="Shares held" value={formatShares(heldUnits)} hint={`${formatPercent(ownership, 2)} of ${formatShares(vault.sharesOutstanding)} outstanding`} />
-          <Stat label="Accounting value" value={formatXrp(accountingValueDrops)} hint="Your share of total vault assets. Realised interest only." />
-          <Stat label="Vault cash available" value={formatXrp(vault.assetsAvailableDrops)} hint={`of ${formatXrp(vault.assetsTotalDrops)} total assets`} />
-          <Stat label="Fundable for you today" value={formatXrp(fundable)} hint={canExitInFull ? "The vault can pay your whole position." : "The rest is deployed in loans."} className={cn(!canExitInFull && BigInt(accountingValueDrops) > 0n && "ring-1 ring-warning/40")} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Stat label="Accounting value" value={formatXrp(accountingValueDrops)} hint="Your share of net vault assets after unrealized losses." />
+          <Stat label="Estimated XRP withdrawable now" value={formatXrp(fundable)} hint={valuation.soleHolderLossWaiverApplied ? "Sole-holder loss waiver included; execution is not guaranteed." : "Subject to ledger rounding, permissions and later changes."} className={cn(!canExitInFull && BigInt(accountingValueDrops) > 0n && "ring-1 ring-warning/40")} />
         </div>
+        <details className="rounded-xl border px-4 py-3 text-sm">
+          <summary className="cursor-pointer font-medium">Shares and vault cash</summary>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Stat label="Shares held" value={formatShares(heldUnits)} hint={`${formatPercent(ownership, 2)} of ${formatShares(vault.sharesOutstanding)} outstanding`} />
+            <Stat label="Vault cash available" value={formatXrp(vault.assetsAvailableDrops)} hint={`of ${formatXrp(vault.assetsTotalDrops)} total assets`} />
+          </div>
+        </details>
         <LiquidityBar picture={picture} fundableDrops={fundable} />
+        {BigInt(heldUnits) > 0n && vault.transferable && (
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-success/25 bg-accent/40 p-5">
+            <div className="max-w-lg">
+              <h3 className="font-semibold">Need liquidity?</h3>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Withdraw from the vault&apos;s available cash below, or list your shares at your chosen price. A sale needs a buyer and both signatures before XRP changes hands.</p>
+            </div>
+            <Link href={routes.sell({ vault: vault.vaultId, shares: heldUnits })} className={cn(buttonVariants({ variant: "secondary" }))}>List shares for sale</Link>
+          </div>
+        )}
         <p className="text-xs text-muted-foreground">
-          Every figure is read from the validated ledger at the index shown. Interest on this network is recognised when a payment delivers it, so accounting value never includes scheduled interest.
+          Estimates use validated ledger reads. Interest is recognized when a payment delivers it; unrealized losses reduce accounting value. These figures are not a guaranteed transaction quote.
           Holder <span className="font-mono">{shortAddress(account)}</span>.
         </p>
       </CardContent>
@@ -275,7 +291,7 @@ function DepositCard({ position, onDone }: { position: Position; onDone: () => P
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><ArrowDownToLine className="size-4 text-primary" /> Deposit</CardTitle>
-        <CardDescription>Add XRP to the vault and receive shares at the current accounting price.</CardDescription>
+        <CardDescription>Deposit XRP into the vault and receive shares. Its loan broker manages lending; a loan interest rate is not a guaranteed return on your deposit.</CardDescription>
       </CardHeader>
       <CardContent>
         <form className="space-y-3" onSubmit={submit}>
@@ -284,7 +300,7 @@ function DepositCard({ position, onDone }: { position: Position; onDone: () => P
             {busy ? "Waiting for validation…" : "Sign and deposit"}
           </Button>
           {wallet.networkError && <p className="text-xs text-destructive">{wallet.networkError}</p>}
-          {error && <p className="text-xs text-destructive">{error}</p>}
+          {error && <p className="text-xs text-destructive [overflow-wrap:anywhere]">{error}</p>}
           {result && <TxResult result={result} context="generic" title={result.resultCode === "tesSUCCESS" ? "Deposit validated" : "Deposit rejected"} />}
         </form>
       </CardContent>
@@ -348,7 +364,7 @@ function WithdrawCard({ position, onDone, account }: { position: Position; onDon
             disabled={busy}
             hint={
               <>
-                Your position is worth {formatXrp(accountingValueDrops)}; the vault holds {formatXrp(vault.assetsAvailableDrops)} in cash.
+                Your position’s accounting value is {formatXrp(accountingValueDrops)}; the vault holds {formatXrp(vault.assetsAvailableDrops)} in cash.
                 {predictedFundable === false && <span className="text-warning-foreground dark:text-warning"> This request exceeds available cash — the ledger will likely refuse it.</span>}
               </>
             }
@@ -358,7 +374,7 @@ function WithdrawCard({ position, onDone, account }: { position: Position; onDon
             {busy ? "Waiting for validation…" : predictedFundable === false ? "Submit anyway and let the ledger decide" : "Sign and withdraw"}
           </Button>
           {wallet.networkError && <p className="text-xs text-destructive">{wallet.networkError}</p>}
-          {error && <p className="text-xs text-destructive">{error}</p>}
+          {error && <p className="text-xs text-destructive [overflow-wrap:anywhere]">{error}</p>}
           {result && <TxResult result={result} context="withdraw" title={result.resultCode === "tesSUCCESS" ? "Withdrawal validated" : "Withdrawal refused"} />}
           {refusal && <RefusalExplainer refusal={refusal} vaultId={vault.vaultId} heldUnits={heldUnits} />}
         </form>
@@ -370,20 +386,20 @@ function WithdrawCard({ position, onDone, account }: { position: Position; onDon
 // The moment the product exists for. It has to be exact about the cause and calm about it.
 function RefusalExplainer({ refusal, vaultId, heldUnits }: { refusal: Refusal; vaultId: string; heldUnits: string }) {
   if (refusal.kind === "vault-liquidity") {
-    const gap = (BigInt(refusal.requestedDrops) - BigInt(refusal.availableDrops)).toString();
+    const gap = (BigInt(refusal.requestedDrops) - BigInt(wholeDrops(refusal.availableDrops))).toString();
     return (
       <Alert variant="warning">
         <Info />
         <AlertTitle>The vault can&apos;t fund this today</AlertTitle>
         <AlertDescription className="space-y-3">
           <p>
-            You asked for <span className="tabular-nums text-foreground">{formatXrp(refusal.requestedDrops)}</span>. The vault holds <span className="tabular-nums text-foreground">{formatXrp(refusal.availableDrops)}</span> in cash — the other{" "}
-            <span className="tabular-nums text-foreground">{formatXrp(gap)}</span> is deployed in loans that are still running.
+            You asked for <span className="tabular-nums text-foreground">{formatXrp(refusal.requestedDrops)}</span>. The vault holds <span className="tabular-nums text-foreground">{formatXrp(refusal.availableDrops)}</span> in cash, leaving a shortfall of{" "}
+            <span className="tabular-nums text-foreground">{formatXrp(gap)}</span>. Some capital may be deployed in outstanding loans.
           </p>
           <p>
             Your shares were not touched: <span className="font-mono tabular-nums text-foreground">{formatShares(refusal.sharesBefore)}</span> before, <span className="font-mono tabular-nums text-foreground">{formatShares(refusal.sharesAfter)}</span> after. This is the vault&apos;s liquidity, not your holding.
           </p>
-          <p>You can wait for repayments to bring cash back, or sell the position to another investor now at a price you set.</p>
+          <p>You can wait for repayments to bring cash back, or list the position at a price you set and wait for an interested buyer.</p>
           <Link href={routes.sell({ vault: vaultId, shares: heldUnits })} className={cn(buttonVariants({ size: "default" }), "mt-1")}>
             Sell this position on Raise
           </Link>
@@ -414,7 +430,7 @@ function DeployedCard({ vault, deployed }: { vault: VaultState; deployed: Deploy
       </CardHeader>
       <CardContent className="space-y-4">
         {deployed.error && <p className="text-sm text-muted-foreground">Loan details unavailable right now: {deployed.error}</p>}
-        {!deployed.error && deployed.brokers.length === 0 && deployed.loans.length === 0 && <p className="text-sm text-muted-foreground">No brokers or loans found for this vault owner. All assets are held as cash.</p>}
+        {!deployed.error && deployed.brokers.length === 0 && deployed.loans.length === 0 && <p className="text-sm text-muted-foreground">No brokers or loans found for this vault owner. Check the available-cash figure above; this lookup alone does not establish where all assets are held.</p>}
         {deployed.brokers.length > 0 && (
           <Table>
             <TableHeader>

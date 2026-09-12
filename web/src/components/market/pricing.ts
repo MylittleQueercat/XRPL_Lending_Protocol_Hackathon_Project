@@ -1,3 +1,4 @@
+import { liquidityPicture } from "@/components/position/position-math";
 // Pure pricing helpers for the market screens. No ledger access here so they are unit-testable.
 import { unitPriceDrops, type Offer, type OfferState } from "@/lib/offers";
 import type { VaultState } from "@/lib/ledger";
@@ -6,10 +7,7 @@ export { describeVsValue, type VsValue, type VsValueKind } from "@/lib/pricing";
 
 // Share of vault assets currently out on loan. 0 when the vault is empty.
 export function utilisationRatio(vault: Pick<VaultState, "assetsTotalDrops" | "assetsAvailableDrops">): number {
-  const total = Number(vault.assetsTotalDrops);
-  if (!total) return 0;
-  const deployed = total - Number(vault.assetsAvailableDrops);
-  return Math.min(1, Math.max(0, deployed / total));
+  return liquidityPicture(vault.assetsTotalDrops, vault.assetsAvailableDrops).utilisation;
 }
 
 export function unitPriceLabel(offer: Pick<Offer, "priceDrops" | "shares">): string {

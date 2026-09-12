@@ -13,7 +13,7 @@ import { Stat } from "@/components/stat";
 import { TxResult } from "@/components/tx-result";
 import { formatShares, formatXrp, xrpToDrops } from "@/lib/format";
 import {
-  createdEntry, readLoan, readLoansFor, readOwnedBrokers, readOwnedVaults, rippleTimeToDate, signAndSubmit, signAndSubmitLoanSet,
+  wholeDrops, createdEntry, readLoan, readLoansFor, readOwnedBrokers, readOwnedVaults, rippleTimeToDate, signAndSubmit, signAndSubmitLoanSet,
   type BrokerState, type LoanState, type Submitted, type VaultState,
 } from "@/lib/ledger";
 import { useWallet } from "@/lib/wallet";
@@ -181,7 +181,7 @@ function VaultsSection({ vaults, selected, onSelect, onCreate, onDeposit, onRefr
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-xs text-muted-foreground">Creating a vault consumes a 2 XRP owner reserve on this network, charged as the transaction fee. Shares are transferable by default, which is what a secondary market needs.</p>
+        <p className="text-xs text-muted-foreground">Creating a vault costs 2 test XRP on network 4001. This fee is consumed, not deposited into the vault. Shares are transferable by default.</p>
         {vaults === null ? (
           <div className="grid gap-3 md:grid-cols-2"><Skeleton className="h-36" /><Skeleton className="h-36" /></div>
         ) : vaults.length === 0 ? (
@@ -208,11 +208,13 @@ function VaultsSection({ vaults, selected, onSelect, onCreate, onDeposit, onRefr
           </div>
         )}
         {selected && (
-          <form className="flex flex-wrap items-end gap-3 rounded-lg bg-muted/40 p-3" onSubmit={(e) => { e.preventDefault(); if (depositDrops) onDeposit(depositDrops); }}>
-            <Field id="seed-liquidity" label="Seed liquidity (optional)" hint="Deposit your own XRP so the selected vault has something to lend. In a product this is the lenders' capital." className="min-w-56 flex-1">
-              <XrpInput id="seed-liquidity" value={depositXrp} onChange={setDepositXrp} />
+          <form className="rounded-lg bg-muted/40 p-3" onSubmit={(e) => { e.preventDefault(); if (depositDrops) onDeposit(depositDrops); }}>
+            <Field id="seed-liquidity" label="Seed liquidity (optional)" hint="Deposit your own XRP so the selected vault has something to lend. In a product this is the lenders' capital.">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="min-w-0 flex-1 basis-56"><XrpInput id="seed-liquidity" value={depositXrp} onChange={setDepositXrp} /></div>
+                <Button type="submit" variant="outline" disabled={!depositDrops || busy !== null}>{busy === "VaultDeposit" ? "Depositing…" : "Deposit"}</Button>
+              </div>
             </Field>
-            <Button type="submit" variant="outline" disabled={!depositDrops || busy !== null}>{busy === "VaultDeposit" ? "Depositing…" : "Deposit"}</Button>
           </form>
         )}
       </CardContent>
@@ -325,8 +327,8 @@ function OriginateSection({ vault, brokers, onOriginate, busy }: { vault: VaultS
 
   const termErrors = interestRate === null ? ["Interest rate must be a percentage."] : validateLoanTerms({ interestRate, paymentInterval, paymentTotal, gracePeriod });
   const required = principalDrops ? requiredCoverDrops(principalDrops, broker.coverRateMinimum) : "0";
-  const coverShort = BigInt(broker.coverAvailableDrops) < BigInt(required);
-  const liquidityShort = principalDrops ? BigInt(vault.assetsAvailableDrops) < BigInt(principalDrops) : false;
+  const coverShort = BigInt(wholeDrops(broker.coverAvailableDrops)) < BigInt(required);
+  const liquidityShort = principalDrops ? BigInt(wholeDrops(vault.assetsAvailableDrops)) < BigInt(principalDrops) : false;
   const addressOk = /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(borrower);
   const canSubmit = addressOk && borrowerSeed.trim().length > 0 && principalDrops && interestRate !== null && termErrors.length === 0 && busy === null;
 
@@ -341,7 +343,7 @@ function OriginateSection({ vault, brokers, onOriginate, busy }: { vault: VaultS
           <Info />
           <AlertTitle>Borrower signing seed (demo only)</AlertTitle>
           <AlertDescription>
-            In a product the borrower signs this in their own wallet. On this network no wallet supports the LoanSet counterparty signature, so the demo asks for the borrower&apos;s test seed here. Used once, in this browser, never stored.
+            This operator demo asks for the borrower&apos;s test seed to co-sign LoanSet in this browser. Used once and never stored. Separate borrower approval is not yet connected in this console; the marketplace sale uses separate buyer and seller wallets.
           </AlertDescription>
         </Alert>
 

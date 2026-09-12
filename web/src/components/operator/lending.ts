@@ -1,3 +1,4 @@
+import { ceilAccountingDrops } from "@/lib/accounting";
 // Pure lending logic for the operator console. Mirrors the transaction shapes and defaults proven
 // by `npm run vanilla` at the repository root (src/lending.ts). No network access here.
 import type { SubmittableTransaction } from "xrpl";
@@ -123,9 +124,7 @@ export function buildLoanPay(borrower: string, loanId: string, amountDrops: stri
 // Ledger amounts on Loan objects may carry a fractional part (PeriodicPayment does). Round up to a
 // whole drop so an offer never falls short by rounding.
 export function ceilDrops(value: string): string {
-  const [whole = "0", frac = ""] = value.split(".");
-  const base = BigInt(whole || "0");
-  return (/[1-9]/.test(frac) ? base + 1n : base).toString();
+  return ceilAccountingDrops(value || "0");
 }
 
 // What to offer for an early full repayment: everything outstanding plus the close fee. The ledger

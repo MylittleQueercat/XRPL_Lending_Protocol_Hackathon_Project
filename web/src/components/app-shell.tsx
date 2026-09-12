@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Logo, RaiseMark } from "@/components/logo";
 import { NetworkBadge } from "@/components/network-badge";
 import { WalletButton } from "@/components/wallet-button";
+import { SubmissionRecovery } from "@/components/submission-recovery";
 
 // Every screen is reachable from here. Screens never build their own navigation.
 const NAV = [
@@ -61,21 +62,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex min-h-[100dvh] flex-col">
+      <a href="#site-content" className="skip-link raise-focus">Skip to content</a>
       <header className="sticky top-0 z-40 w-full border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80" role="banner">
         <div className="mx-auto flex h-20 w-full max-w-layout-wide items-center justify-between px-4 md:px-6 lg:px-8">
           <div className="flex flex-grow items-center gap-10 md:flex-none">
             <Link href={routes.home} aria-label="Home" className="raise-focus rounded-sm">
               <Logo />
             </Link>
-            <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
+            <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
               {NAV.map((item) => {
                 const active = isActive(pathname, item.href);
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={cn("raise-focus rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground", active ? "bg-accent text-accent-foreground" : "text-muted-foreground")}
+                    className={cn("raise-focus raise-nav rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground", active ? "bg-accent text-accent-foreground" : "text-muted-foreground")}
                     aria-current={active ? "page" : undefined}
                   >
                     {item.label}
@@ -92,11 +94,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <WalletButton />
           </div>
         </div>
-        <nav className="flex gap-1 overflow-x-auto px-4 pb-3 md:hidden" aria-label="Primary mobile">
+        <nav className="flex gap-1 overflow-x-auto px-4 pb-3 lg:hidden" aria-label="Primary mobile">
           {NAV.map((item) => {
             const active = isActive(pathname, item.href);
             return (
-              <Link key={item.href} href={item.href} className={cn("rounded-full px-4 py-1.5 text-sm whitespace-nowrap transition-colors", active ? "bg-accent text-accent-foreground" : "text-foreground hover:bg-secondary")}>
+              <Link key={item.href} href={item.href} className={cn("raise-focus raise-nav rounded-full px-4 py-1.5 text-sm whitespace-nowrap transition-colors", active ? "bg-accent text-accent-foreground" : "text-foreground hover:bg-secondary")} aria-current={active ? "page" : undefined}>
                 {item.label}
               </Link>
             );
@@ -104,7 +106,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
       </header>
 
-      <main id="site-content" className="relative z-0 flex-1" role="main">
+      <main id="site-content" tabIndex={-1} className="relative z-0 flex-1 outline-none" role="main">
+        <div className="mx-auto w-full max-w-layout px-4 md:px-6 lg:px-8"><SubmissionRecovery /></div>
         {pathname === routes.home ? children : <div className="mx-auto w-full max-w-layout px-4 py-10 md:px-6 lg:px-8 lg:py-16">{children}</div>}
       </main>
 
