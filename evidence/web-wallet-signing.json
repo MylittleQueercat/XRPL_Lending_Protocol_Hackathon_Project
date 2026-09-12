@@ -1,0 +1,30 @@
+{
+  "status": "verified",
+  "scope": "Local development wallet signing path (web/src/lib/ledger.ts signAndSubmit) validated on the hackathon ledger.",
+  "completedAt": "2026-09-12T14:51:31.113Z",
+  "network": {
+    "networkId": 4001,
+    "build": "3.4.0-rc1",
+    "ledgerIndex": 68194
+  },
+  "accounts": {
+    "sender": "rw9CzT5me1sUYWxDNpcTvdKYuMADMh5E6e",
+    "receiver": "rLkKsMTBAJ6XrCyu5sP6PRnnYTZkFoyY5z"
+  },
+  "transaction": {
+    "type": "Payment",
+    "amountDrops": "1000000",
+    "hash": "E2FACC3B78F5036E8475E540A74C739F9362B0B9A504D0189078452426625DF1",
+    "ledgerIndex": 68199,
+    "resultCode": "tesSUCCESS",
+    "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/E2FACC3B78F5036E8475E540A74C739F9362B0B9A504D0189078452426625DF1"
+  },
+  "receiverBalanceDrops": {
+    "before": "1000000000",
+    "after": "1001000000"
+  },
+  "environment": {
+    "xrpl": "5.2.0-beta.1",
+    "node": "v24.21.0"
+  }
+}
