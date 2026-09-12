@@ -31,7 +31,7 @@ npm run check
 npm run doctor
 ```
 
-No API key or `.env` file is required. The SDK is pinned to **xrpl.js 5.2.0** with a committed lockfile. `npm run check` runs strict type checking and offline tests; it does not contact the network or create wallets. CI repeats these checks and dependency auditing.
+No API key or `.env` file is required. The SDK is pinned to **xrpl.js 5.2.0-beta.1** with a committed lockfile, following the September 12 event update supplied to the team. `npm run check` runs strict type checking and offline tests; it does not contact the network or create wallets. CI repeats these checks and dependency auditing.
 
 | Target | Value |
 |---|---|
@@ -42,6 +42,8 @@ No API key or `.env` file is required. The SDK is pinned to **xrpl.js 5.2.0** wi
 | WebSocket | `wss://lending-hackathon.dev.ripplex.io:51233` |
 | Faucet | `https://lending-hackathon-faucet.dev.ripplex.io/accounts` |
 | Asset | Faucet-funded test XRP |
+
+The refreshed Notion copy still listed stable xrpl.js for Track 1 and beta.0 for Track 2 when this pin was updated; the explicit team update points to [5.2.0-beta.1 on npm](https://www.npmjs.com/package/xrpl/v/5.2.0-beta.1). Updating the client library does not change the selected track or the amendments enabled on the ledger.
 
 ## Commands
 
@@ -67,7 +69,9 @@ Secrets and run details are stored under ignored `.local/` directories with dire
 
 ## Verified ledger evidence
 
-The [sanitized smoke report](evidence/vault-smoke.json) records three validated `tesSUCCESS` transactions and exact before/after values:
+The SDK update was also checked with a fresh [xrpl.js 5.2.0-beta.1 smoke report](evidence/vault-smoke-beta.1.json): creation, a 10 XRP deposit and full withdrawal all validated successfully. Exact SDK version, transaction hashes, ledger indexes and balance snapshots are in the report. The original evidence below is retained with its actual 5.2.0 version.
+
+The original [sanitized smoke report](evidence/vault-smoke.json), produced with xrpl.js 5.2.0, records three validated `tesSUCCESS` transactions and exact before/after values:
 
 | Operation | Ledger | Transaction |
 |---|---:|---|

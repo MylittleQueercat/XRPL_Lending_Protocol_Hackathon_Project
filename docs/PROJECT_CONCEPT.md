@@ -213,13 +213,13 @@ If settlement is unavailable, the Vanilla baseline remains useful, but **the fun
 | Item | Reference |
 |---|---|
 | Protocol | Lending Protocol V1, open-ended vault |
-| SDK | Compatible stable `xrpl.js`; verify and pin the exact version |
+| SDK | `xrpl.js@5.2.0-beta.1`, pinned after the September 12 event update supplied to the team |
 | RPC | `https://lending-hackathon.dev.ripplex.io:51234` |
 | WSS | `wss://lending-hackathon.dev.ripplex.io:51233` |
 | Faucet | `https://lending-hackathon-faucet.dev.ripplex.io/accounts` |
 | Explorer | `https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/` |
 
-Do not mix this setup with Track 2, which uses Public XRPL Devnet and requires `xrpl.js@5.2.0-beta.0` according to the event. RLUSD from tryrlusd.com is on Testnet, not these Devnets. XRP is proposed for the first vault and settlement flow; other assets remain an open team decision.
+Do not mix this setup with Track 2, which uses Public XRPL Devnet and a different vault lifecycle. The earlier event snapshot listed `xrpl.js@5.2.0-beta.0`; the subsequent update supplied to the team points to `5.2.0-beta.1`. The current pin is recorded in `package.json`; SDK changes do not establish network compatibility. RLUSD from tryrlusd.com is on Testnet, not these Devnets. XRP is proposed for the first vault and settlement flow; other assets remain an open team decision.
 
 ## 10. Target demonstration
 
