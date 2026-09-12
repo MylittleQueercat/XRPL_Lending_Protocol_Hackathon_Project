@@ -17,7 +17,7 @@ Updated September 12, 2026. This is a working hackathon application, with separa
 | Interface | Position, market, sell, offer detail, purchase and operator screens; Apple/system typography, light/dark themes and reduced-motion support. |
 | Persistence | One Next.js Node server with SQLite; offers, reservations and submission state survive restarts. |
 | Verification | 281 root + 119 web tests; type checks, production build and CI passed. Recorded real API/ledger and two-browser E2E journeys include buyer redemption. |
-| Hosting | Running on Sunny through Dokploy, persistent volume, Cloudflare and HTTPS. See the dated [deployment checks and remaining acceptance work](docs/DEPLOYMENT.md#verification-record--12-september-2026). |
+| Hosting | Running on Sunny through Dokploy, persistent volume, Cloudflare and HTTPS. See the dated [deployment checks](docs/DEPLOYMENT.md#verification-record--12-september-2026). |
 
 The local E2E evidence is not a claim that the entire trade has been repeated on the public domain. Public deployment checks and their limits are recorded separately.
 
@@ -111,7 +111,7 @@ An outer Batch `tesSUCCESS` is insufficient evidence of an exchange. The integra
 - The embed route is a launch/handoff prototype, not a production partner SDK. Customer and integrator validation remain open in #31–32.
 - Demo master-key wallets only; no verified external connector for the complete custom-network signing flow. No account multisigning or independent server replicas.
 - Signed failures remain locked for investigation. Offer cancellation/expiry cannot revoke a previously signed Batch. There is no general recovery administration console.
-- Slides, demo rehearsal and final submission/team sign-off remain #27–28. Deployment acceptance is tracked in #45. Current states live on the [board](https://github.com/users/MylittleQueercat/projects/1).
+- Slides, demo rehearsal and final submission/team sign-off remain #27–28. Hosted deployment acceptance is complete in #45. Current states live on the [board](https://github.com/users/MylittleQueercat/projects/1).
 
 ## Documentation map
 

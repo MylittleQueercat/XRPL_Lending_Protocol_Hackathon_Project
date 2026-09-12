@@ -109,11 +109,12 @@ The [integration evidence](INTEGRATION.md) links the complete API/ledger and two
 - **Ambiguity is preserved.** A timeout or missing proof stays pending. The app checks the recorded transaction instead of sending another payment. Failed signed attempts require investigation.
 - **Test environment only.** Master-key faucet wallets and a single host are the current supported configuration. An external production wallet connector, custody architecture and general recovery console are not delivered.
 
+Hosted deployment acceptance is complete in [#45](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/45); see the dated [deployment evidence](DEPLOYMENT.md).
+
 ## What remains
 
 | Work | State / decision |
 |---|---|
-| Public deployment acceptance | [#45](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/45); current proof and remaining checks in the deployment guide. |
 | Mentor demo and presentation | [#27](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/27); prepare the narrative and rehearsal using reproducible evidence. |
 | Submission and team sign-off | [#28](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/28). |
 | Multiple-vault comparison, bids and RFQs | [#31](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/31); technical comparison exists, independent buyer/seller feedback is missing. |

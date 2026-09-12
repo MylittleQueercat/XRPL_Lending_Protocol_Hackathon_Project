@@ -79,13 +79,13 @@ Use the service Deployments and Logs tabs for build/start errors, Containers for
 
 Deployment is running on Sunny. DNS and HTTPS now respond for [raise.vgtray.fr](https://raise.vgtray.fr). Hosted smoke checks pass; the complete local trading E2E is a separate proof, not a claim of a full trade repeated on the public origin.
 
-- Source: [`391219d8ecd21a58a41a377ef450749145fa0d97`](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/commit/391219d8ecd21a58a41a377ef450749145fa0d97), merged in [PR #46](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/pull/46).
-- Release tag: `raise-web:e9db2dc` (the reviewed PR head; its tree matches the main merge). Retained rollback alias: `raise-web:rollback-e9db2dc`.
-- Docker image ID: `sha256:205ceba52b1b1ba4a4af2ee0af9efe050f8f7f8851783dc961a62cffd467675f`.
-- Dokploy reports two successful deployments from that main commit. Auto-deploy is disabled. The initial release used versioned labels; the routing configuration is being aligned to the single Domains entry added by Adam. Verify the final effective labels after deploying that change.
+- Source: [`7fd07ed9ba05d87457972daff1c80021ed9ad5b3`](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/commit/7fd07ed9ba05d87457972daff1c80021ed9ad5b3), merged in [PR #48](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/pull/48).
+- Release tag: `raise-web:7fd07ed`. Retained rollback alias: `raise-web:rollback-e9db2dc`.
+- Docker image ID: `sha256:8a944af7524f917eb6796c05168e1ea19c3f5ff93d7149c44ce0ed02f0f9e053`.
+- Dokploy reports a successful deployment from that main commit (1m 33s). Auto-deploy is disabled. Effective container labels contain exactly the HTTP and HTTPS routers injected by the single Domains entry; the duplicate Compose routers are gone. Documentation-only follow-up commits do not require another application build.
 - Current container: healthy, UID 1000, only an unbound `3000/tcp`, attached to `dokploy-network`, with `raise-market-data` mounted at `/data`.
 - Local checks: root 281 tests and web 119 tests pass, including type checks; GitHub CI passes. Production build succeeds on Sunny.
-- Trivy `0.74.0` scans of both the candidate and Dokploy-built release report **zero HIGH/CRITICAL vulnerabilities**. The scanner warns that Alpine 3.24 is absent from its EOL list; this result is a dated vulnerability check, not a claim of complete security coverage.
+- Trivy `0.74.0` scans of the candidate and final `raise-web:7fd07ed` Dokploy-built release report **zero HIGH/CRITICAL vulnerabilities**. The scanner warns that Alpine 3.24 is absent from its EOL list; this result is a dated vulnerability check, not a claim of complete security coverage.
 - Eight public application/API routes return HTTP 200, including graceful empty states for unknown dynamic offer/buy IDs. Seventeen referenced JS/CSS assets pass. HTTP probes used `curl --resolve` against an authoritative Cloudflare address while the local OS DNS cache was stale; normal SNI and certificate verification remained enabled.
 - SQLite integrity checks and an online backup succeed. The actual volume marker and database inode survive service restart and Dokploy redeploy. An isolated image replacement preserves a database marker; a consistent backup restores into a separate volume and starts healthy with the retained image.
 - The existing Traefik returns HTTP 308 to HTTPS from Sunny, and Cloudflare returns HTTP 301 to `https://raise.vgtray.fr/`. Public HTTPS returns 200. Direct origin HTTPS on Sunny also passes normal certificate verification and returns 200; no insecure TLS option was used. Direct public-IP access times out under the existing Cloudflare-only ingress policy.
@@ -93,7 +93,7 @@ Deployment is running on Sunny. DNS and HTTPS now respond for [raise.vgtray.fr](
 
 - A browser on the public HTTPS origin created a fresh faucet wallet with 1,000 test XRP, connected through WSS to network 4001 and read vault `87911A8C93AC413EA8A1035E5D0CD3BB26F60364F623C75BD8BA702B4DA54FF0` at validated ledger 73549. Home, Position, Market, Sell and Operator rendered; no console warning/error or HTTP resource URL was observed in those checks. No seed was exported.
 
-Machine-readable HTTP/browser smoke evidence is in [deployment-smoke.json](../evidence/deployment-smoke.json). This checks hosted loading, ledger reads and faucet access; it does not repeat the complete share sale/redemption E2E on the public domain. The final Domains-only effective configuration and source revision are recorded in [#45](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/45), which must remain open until that configuration check passes. Demo and submission still require their own sign-off in #27–28.
+Machine-readable HTTP/browser smoke evidence is in [deployment-smoke.json](../evidence/deployment-smoke.json). This checks hosted loading, ledger reads and faucet access; it does not repeat the complete share sale/redemption E2E on the public domain. The final Domains-only effective configuration and source revision are recorded in [#45](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/45), with all deployment acceptance checks completed. Demo and submission still require their own sign-off in #27–28.
 
 ## References
 

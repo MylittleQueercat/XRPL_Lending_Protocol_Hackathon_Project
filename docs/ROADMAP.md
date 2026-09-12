@@ -6,11 +6,10 @@ Use [Issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon
 
 ## Current delivery snapshot — September 12, 2026
 
-The foundation, Vanilla lending flow, share transfer/atomic settlement and integrated marketplace are merged. The recorded local API/ledger and two-browser journeys include buyer redemption; root/web checks total 400 passing tests. The hosted release runs on Sunny. See [README](../README.md), [INTEGRATION](INTEGRATION.md) and [DEPLOYMENT](DEPLOYMENT.md) for the evidence boundaries.
+The foundation, Vanilla lending flow, share transfer/atomic settlement and integrated marketplace are merged. The recorded local API/ledger and two-browser journeys include buyer redemption; root/web checks total 400 passing tests. Hosted deployment acceptance (#45) is complete; the release runs on Sunny. See [README](../README.md), [INTEGRATION](INTEGRATION.md) and [DEPLOYMENT](DEPLOYMENT.md) for the evidence boundaries.
 
 | Remaining issue | Work left |
 |---|---|
-| [#45](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/45) | Complete and record hosted deployment acceptance; current results are in the deployment guide. |
 | [#27](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/27) | Presentation, demo narrative and rehearsal. |
 | [#28](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/28) | Final submission completeness and team sign-off. |
 | [#31](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/31) | Independent buyer/seller validation for multiple vaults, bids and RFQs. |
