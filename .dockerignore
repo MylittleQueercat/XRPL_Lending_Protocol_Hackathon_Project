@@ -1,0 +1,29 @@
+# Allow only application source and exact install/build inputs. In particular,
+# .local, wallets, .env files, Git, capture identities and host node_modules never
+# enter the build context, including newly added private working directories.
+**
+!Dockerfile
+!.dockerignore
+!package.json
+!package-lock.json
+!tsconfig.json
+!src/
+!src/**
+!web/
+!web/package.json
+!web/package-lock.json
+!web/next.config.ts
+!web/tsconfig.json
+!web/postcss.config.mjs
+!web/src/
+!web/src/**
+!web/public/
+!web/public/**
+# Keep these excluded even if accidentally placed inside an allowed directory.
+**/.env
+**/.env.*
+**/.local/**
+**/*wallets*.json
+**/*.sqlite*
+**/*.pem
+**/*.key

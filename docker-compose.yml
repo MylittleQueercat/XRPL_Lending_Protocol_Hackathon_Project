@@ -1,0 +1,48 @@
+services:
+  web:
+    image: raise-web:${RAISE_IMAGE_TAG:?Set an immutable release tag, normally the Git commit}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    expose:
+      - "3000"
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      RAISE_MARKET_ORIGIN: https://${RAISE_DOMAIN:?Set the public hostname without scheme or path}
+      RAISE_MARKET_DB_PATH: /data/market.sqlite
+    volumes:
+      - market-data:/data
+    networks:
+      - dokploy-network
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-http.rule=Host(`${RAISE_DOMAIN:?Set the public hostname}`)
+      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-http.entrypoints=${TRAEFIK_HTTP_ENTRYPOINT:?Set the existing HTTP entrypoint}
+      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-http.middlewares=${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https-redirect
+      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-http.service=${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}
+      - traefik.http.middlewares.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https-redirect.redirectscheme.permanent=true
+      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https.rule=Host(`${RAISE_DOMAIN:?Set the public hostname}`)
+      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https.entrypoints=${TRAEFIK_HTTPS_ENTRYPOINT:?Set the existing HTTPS entrypoint}
+      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https.tls=true
+      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https.tls.certresolver=${TRAEFIK_CERT_RESOLVER:?Set the existing certificate resolver}
+      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https.service=${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}
+      - traefik.http.services.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}.loadbalancer.server.port=3000
+
+volumes:
+  market-data:
+    # Stable across code releases; never remove this volume during a rollback.
+    name: ${RAISE_VOLUME_NAME:?Set a stable unique volume name for this deployment}
+
+networks:
+  dokploy-network:
+    external: true
