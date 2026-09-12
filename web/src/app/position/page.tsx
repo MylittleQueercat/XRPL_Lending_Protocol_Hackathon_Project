@@ -1,13 +1,17 @@
+import { Suspense } from "react";
 import { PageHeader } from "@/components/page-header";
+import { PositionView } from "@/components/position/position-view";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// TODO(#19): screen not yet built. Owned by the #19 ticket.
 export const metadata = { title: "My position" };
 
 export default function Page() {
   return (
     <>
-      <PageHeader title="My position" description="Holdings, accounting value against available liquidity, deposit and withdraw." />
-      <p className="text-sm text-muted-foreground">Coming with #19.</p>
+      <PageHeader title="My position" description="Your vault shares, what they are worth on the vault's books, and how much of that the vault could actually pay you today." />
+      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+        <PositionView />
+      </Suspense>
     </>
   );
 }
