@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { ValueBadge } from "@/components/value-badge";
+import { describeRatio } from "@/lib/pricing";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Stat } from "@/components/stat";
@@ -287,9 +289,5 @@ function StepIndicator({ step }: { step: Step }) {
 }
 
 export function DiscountBadge({ discount }: { discount: number | null }) {
-  if (discount === null) return <Badge variant="outline">No accounting value to compare</Badge>;
-  if (Math.abs(discount) < 0.00005) return <Badge variant="outline">At accounting value</Badge>;
-  return discount > 0
-    ? <Badge variant="success">{formatPercent(discount, 2)} discount to accounting value</Badge>
-    : <Badge variant="warning">{formatPercent(-discount, 2)} premium over accounting value</Badge>;
+  return <ValueBadge value={describeRatio(discount)} verbose />;
 }

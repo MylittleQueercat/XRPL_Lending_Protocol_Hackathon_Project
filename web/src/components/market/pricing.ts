@@ -1,26 +1,8 @@
 // Pure pricing helpers for the market screens. No ledger access here so they are unit-testable.
-import { discountRatio, unitPriceDrops, type Offer, type OfferState } from "@/lib/offers";
+import { unitPriceDrops, type Offer, type OfferState } from "@/lib/offers";
 import type { VaultState } from "@/lib/ledger";
-import { formatPercent } from "@/lib/format";
 
-export type VsValueKind = "discount" | "premium" | "par" | "unknown";
-
-export interface VsValue {
-  kind: VsValueKind;
-  ratio: number | null; // positive = below accounting value
-  label: string; // e.g. "−5.0 %", "+3.2 %", "at value", "—"
-}
-
-// A price below accounting value is a discount to the position's book value. It is not yield: the
-// buyer's return still depends on the vault's loans and on liquidity being there when they exit.
-export function describeVsValue(priceDrops: string, accountingValueDrops: string | null | undefined): VsValue {
-  if (!accountingValueDrops) return { kind: "unknown", ratio: null, label: "—" };
-  const ratio = discountRatio(priceDrops, accountingValueDrops);
-  if (ratio === null) return { kind: "unknown", ratio: null, label: "—" };
-  if (Math.abs(ratio) < 0.00005) return { kind: "par", ratio, label: "at value" };
-  if (ratio > 0) return { kind: "discount", ratio, label: `−${formatPercent(ratio)}` };
-  return { kind: "premium", ratio, label: `+${formatPercent(-ratio)}` };
-}
+export { describeVsValue, type VsValue, type VsValueKind } from "@/lib/pricing";
 
 // Share of vault assets currently out on loan. 0 when the vault is empty.
 export function utilisationRatio(vault: Pick<VaultState, "assetsTotalDrops" | "assetsAvailableDrops">): number {

@@ -9,6 +9,8 @@ import { Stat } from "@/components/stat";
 import { TxResult } from "@/components/tx-result";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { ValueBadge } from "@/components/value-badge";
+import { describeRatio } from "@/lib/pricing";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -305,8 +307,8 @@ export function BuyFlow({ offerId }: { offerId: string }) {
               <Stat label="Unit price" value={`${unitPriceDrops(offer)} XRP`} hint="per share unit" />
               <Stat
                 label="Against accounting value"
-                value={discount === null ? "—" : <span className={discount >= 0 ? "text-success" : "text-warning"}>{discount >= 0 ? "−" : "+"}{formatPercent(Math.abs(discount))}</span>}
-                hint={discount === null ? "vault has no assets" : discount >= 0 ? "discount" : "premium"}
+                value={<ValueBadge value={describeRatio(discount)} />}
+                hint={discount === null ? "vault has no assets" : "against accounting value"}
               />
             </CardContent>
           </Card>
