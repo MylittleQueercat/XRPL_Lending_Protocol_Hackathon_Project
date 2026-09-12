@@ -427,7 +427,13 @@ export async function signAndSubmit(transaction: SubmittableTransaction, wallet:
     const c = await getClient();
     const prepared = await c.autofill(transaction);
     if (prepared.NetworkID !== TRACK1.networkId) throw new Error(`Refusing to sign for network ${prepared.NetworkID}.`);
-    if (!/^[1-9]\d*$/.test(String(prepared.Fee)) || BigInt(prepared.Fee!) > 1_000_000n) throw new Error("Transaction fee exceeds the 1 XRP signing limit.");
+    // VaultCreate burns the incremental owner reserve (2 XRP on network 4001).
+    // Its SDK autofill cost intentionally exceeds the ordinary transaction cap.
+    const isVaultCreation = transaction.TransactionType === "VaultCreate" && prepared.TransactionType === "VaultCreate";
+    const feeLimitDrops = isVaultCreation ? 2_000_000n : 1_000_000n;
+    if (!/^[1-9]\d*$/.test(String(prepared.Fee)) || BigInt(prepared.Fee!) > feeLimitDrops) {
+      throw new Error(`Transaction fee exceeds the ${isVaultCreation ? "2 XRP VaultCreate" : "1 XRP"} signing limit.`);
+    }
     assertActiveSigner(wallet);
     return submitTracked(c, prepared, wallet.sign(prepared));
   });

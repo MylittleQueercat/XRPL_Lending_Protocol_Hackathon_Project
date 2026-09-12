@@ -77,3 +77,43 @@ describe("transport and persistent submission recovery", () => {
     expect(sign).not.toHaveBeenCalled(); expect(transport.submitAndWait).not.toHaveBeenCalled();
   });
 });
+
+
+describe("bounded VaultCreate fee exception on the hackathon network", () => {
+  const vaultCreate = (): SubmittableTransaction => ({ TransactionType: "VaultCreate", Account: signer.classicAddress, Asset: { currency: "XRP" }, Flags: 0, WithdrawalPolicy: 1 });
+
+  it("signs and validates VaultCreate at the observed 2 XRP creation cost", async () => {
+    const prepared = { ...vaultCreate(), NetworkID: 4001, Fee: "2000000", Sequence: 1, LastLedgerSequence: 100 };
+    const expected = signer.sign(prepared);
+    transport.autofill.mockResolvedValueOnce(prepared);
+    transport.submitAndWait.mockResolvedValueOnce({ result: { hash: expected.hash, validated: true, ledger_index: 99, meta: { TransactionResult: "tesSUCCESS" } } });
+    const result = await ledger.signAndSubmit(vaultCreate(), signer);
+    expect(result.validated).toBe(true);
+    expect(result.resultCode).toBe("tesSUCCESS");
+    expect(transport.submitAndWait).toHaveBeenCalledWith(expected.tx_blob);
+  });
+
+  it.each(["2000001", "0", "-1", "NaN", "2e6", "2000000.0"])("refuses invalid or excessive VaultCreate fee %s before signing", async fee => {
+    transport.autofill.mockImplementationOnce(async tx => ({ ...tx, NetworkID: 4001, Fee: fee, Sequence: 1, LastLedgerSequence: 100 }));
+    const sign = vi.spyOn(signer, "sign");
+    await expect(ledger.signAndSubmit(vaultCreate(), signer)).rejects.toThrow(/fee/i);
+    expect(sign).not.toHaveBeenCalled();
+    expect(transport.submitAndWait).not.toHaveBeenCalled();
+  });
+
+  it.each(["Payment", "LoanBrokerSet"])("keeps the 1 XRP limit for %s", async type => {
+    const tx = { ...transaction(), TransactionType: type } as SubmittableTransaction;
+    transport.autofill.mockImplementationOnce(async input => ({ ...input, NetworkID: 4001, Fee: "1000001", Sequence: 1, LastLedgerSequence: 100 }));
+    const sign = vi.spyOn(signer, "sign");
+    await expect(ledger.signAndSubmit(tx, signer)).rejects.toThrow(/1 XRP signing limit/);
+    expect(sign).not.toHaveBeenCalled();
+    expect(transport.submitAndWait).not.toHaveBeenCalled();
+  });
+
+  it("refuses the creation fee on a different network", async () => {
+    transport.autofill.mockImplementationOnce(async tx => ({ ...tx, NetworkID: 1, Fee: "2000000", Sequence: 1, LastLedgerSequence: 100 }));
+    const sign = vi.spyOn(signer, "sign");
+    await expect(ledger.signAndSubmit(vaultCreate(), signer)).rejects.toThrow(/Refusing to sign for network/);
+    expect(sign).not.toHaveBeenCalled();
+  });
+});

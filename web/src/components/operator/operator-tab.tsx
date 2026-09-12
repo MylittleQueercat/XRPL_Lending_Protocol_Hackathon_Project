@@ -181,7 +181,7 @@ function VaultsSection({ vaults, selected, onSelect, onCreate, onDeposit, onRefr
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-xs text-muted-foreground">Creating a vault consumes a 2 XRP owner reserve on this network, charged as the transaction fee. Shares are transferable by default, which is what a secondary market needs.</p>
+        <p className="text-xs text-muted-foreground">Creating a vault costs 2 test XRP on network 4001. This fee is consumed, not deposited into the vault. Shares are transferable by default.</p>
         {vaults === null ? (
           <div className="grid gap-3 md:grid-cols-2"><Skeleton className="h-36" /><Skeleton className="h-36" /></div>
         ) : vaults.length === 0 ? (
