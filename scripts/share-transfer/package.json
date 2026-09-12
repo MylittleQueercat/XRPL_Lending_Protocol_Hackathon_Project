@@ -1,0 +1,12 @@
+{
+  "name": "xrpl-share-transfer-evidence",
+  "private": true,
+  "type": "module",
+  "description": "Read-only Track 1 XLS-65 vault-share transfer verifier",
+  "scripts": {
+    "verify": "node verify.mjs"
+  },
+  "dependencies": {
+    "xrpl": "5.2.0"
+  }
+}
