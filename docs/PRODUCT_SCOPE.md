@@ -52,9 +52,16 @@ Raise does not promise:
 
 ## 10. Track and flavour scope
 
-Track 1's open-ended vault is the chosen environment. XLS-65 and XLS-66 are the Vanilla baseline for the lending and vault workflow.
+Track 1's open-ended vault is the chosen environment. XLS-65 and XLS-66 are the Vanilla baseline for the lending and vault workflow, and that baseline is complete, verified on the event ledger and reproducible on its own with `npm run vanilla`.
 
-Raise's current feasibility work uses `Batch` for atomic XRP-payment-for-vault-share settlement. `Batch` is an additional ledger primitive beyond that Vanilla baseline. Therefore, if Batch remains in the final submission, the submission must **not** be described as Vanilla; the final flavour should be confirmed with mentors and may be Loaded. This document uses “Track 1 Vanilla baseline” only to describe the underlying XLS-65/XLS-66 environment, not to classify a final Batch-enabled submission.
+**The submission is Loaded.** Raise settles a share sale with `Batch` (XLS-56) for atomic XRP-payment-for-vault-share delivery. `Batch` is an additional ledger primitive beyond XLS-65/XLS-66, so the submission is not described as Vanilla. This is a deliberate team decision taken on September 12, 2026, not an upgrade for its own sake: without atomic settlement a share transfer and a payment are two independent events, and presenting them as a completed sale is precisely what this project refuses to do.
+
+Two constraints the event sets, and how they are met:
+
+- *"Add another primitive only when it creates a meaningful use case or useful feedback."* `Batch` is the mechanism the product depends on, and it produced our strongest developer-experience finding: an outer `tesSUCCESS` reports acceptance and fee charging, never inner-leg execution, across three independent failure shapes. See [`devfeedback/findings/003-batch-outer-success-needs-state-check.md`](../devfeedback/findings/003-batch-outer-success-needs-state-check.md) and [`evidence/settlement-failures.json`](../evidence/settlement-failures.json).
+- *Native vault MPT shares alone do not qualify.* They arrive with XLS-65 and are not claimed as the additional primitive. `Batch` is, and nothing else.
+
+Loaded is not treated as better than Vanilla. The baseline stays separately runnable and separately evidenced so a reviewer can check each layer independently.
 
 ## 11. Demo story
 
