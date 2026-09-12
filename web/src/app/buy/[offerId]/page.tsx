@@ -1,7 +1,8 @@
-import { PageHeader } from "@/components/page-header";
+import { BuyFlow } from "@/components/buy/buy-flow";
 
-// TODO(#22): purchase confirmation and post-trade ownership. Owned by the #22 ticket.
+export const metadata = { title: "Buy" };
+
 export default async function Page(props: PageProps<"/buy/[offerId]">) {
   const { offerId } = await props.params;
-  return <PageHeader title="Buy" description={`Coming with #22 · ${offerId}`} />;
+  return <BuyFlow offerId={offerId} />;
 }
