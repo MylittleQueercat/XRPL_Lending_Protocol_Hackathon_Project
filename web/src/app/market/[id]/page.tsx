@@ -1,7 +1,8 @@
-import { PageHeader } from "@/components/page-header";
+import { OfferDetail } from "@/components/market/offer-detail";
 
-// TODO(#20): offer detail page. Owned by the #20 ticket.
-export default async function Page(props: PageProps<"/market/[id]">) {
+export const metadata = { title: "Offer" };
+
+export default async function OfferPage(props: PageProps<"/market/[id]">) {
   const { id } = await props.params;
-  return <PageHeader title="Offer" description={`Coming with #20 · ${id}`} />;
+  return <OfferDetail id={id} />;
 }
