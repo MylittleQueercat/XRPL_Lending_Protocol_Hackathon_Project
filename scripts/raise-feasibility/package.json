@@ -1,0 +1,9 @@
+{
+  "name": "raise-feasibility-spike",
+  "private": true,
+  "type": "module",
+  "description": "Isolated Track 1 XRPL Lending Protocol feasibility probes",
+  "dependencies": {
+    "xrpl": "5.2.0"
+  }
+}
