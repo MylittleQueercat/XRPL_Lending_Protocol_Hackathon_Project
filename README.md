@@ -14,6 +14,7 @@ This repository contains a reproducible TypeScript environment, network checks, 
 - [Six milestones](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/milestones)
 - [How teammates can contribute](CONTRIBUTING.md)
 - [Validated positions and exact valuation](docs/READ_MODEL.md)
+- [Offer lifecycle and local persistence](docs/OFFERS.md)
 
 ## Current network finding
 
@@ -37,7 +38,7 @@ npm run check
 npm run doctor
 ```
 
-No API key or `.env` file is required. The SDK is pinned to **xrpl.js 5.2.0-beta.1** with a committed lockfile, following the September 12 event update supplied to the team. `npm run check` runs strict type checking and offline tests; it does not contact the network or create wallets. CI repeats these checks and dependency auditing.
+No API key or `.env` file is required. The active root application SDK is pinned to **xrpl.js 5.2.0-beta.1** with a committed lockfile, following the September 12 event update supplied to the team. `npm run check` runs strict type checking and offline tests; it does not contact the network or create wallets. CI repeats these checks and dependency auditing.
 
 | Target | Value |
 |---|---|
@@ -51,6 +52,8 @@ No API key or `.env` file is required. The SDK is pinned to **xrpl.js 5.2.0-beta
 
 The refreshed Notion copy still listed stable xrpl.js for Track 1 and beta.0 for Track 2 when this pin was updated; the explicit team update points to [5.2.0-beta.1 on npm](https://www.npmjs.com/package/xrpl/v/5.2.0-beta.1). Updating the client library does not change the selected track or the amendments enabled on the ledger.
 
+Historical standalone evidence projects under `scripts/` retain their recorded SDK pins, including `5.2.0`. They are separate reproduction environments; new application code uses the root package and `5.2.0-beta.1`. Recorded transaction evidence keeps the version that produced it.
+
 ## Commands
 
 | Command | Behavior |
@@ -63,6 +66,7 @@ The refreshed Notion copy still listed stable xrpl.js for Track 1 and beta.0 for
 | `npm run vanilla` | Run the complete Track 1 Vanilla baseline end to end: vault, deposit, broker, cover, origination, guardrail, repayment and redemption. Creates three faucet wallets and sends test-network transactions. Holds the loan open for `RAISE_LOAN_HOLD_SECONDS` (default 120) so interest accrues measurably. |
 | `npm run position -- --vault ID --account ADDRESS` | Read a validated XRP vault position and exact accounting estimates; optional broker/loan and sale-price comparison. |
 | `npm run transaction -- --hash HASH` | Read transaction finality without submitting or resubmitting anything. |
+| `npm run offers -- list` | Discover locally published offers; create, show, publish, cancel and prepare commands are documented in the offer guide. |
 | `npm audit` | Check installed dependencies for known advisories. |
 
 Run the smoke explicitly when you want new test accounts and ledger objects:
@@ -118,7 +122,7 @@ Atomic settlement is what makes a share sale safe, so the failure cases matter m
 
 **Three of those four rows share the same outer result while differing completely in economic effect.** An application reading the engine result alone would report two sales that never happened. Raise verifies inner-leg state from validated balances instead, and [`DEVEX_FEEDBACK.md`](DEVEX_FEEDBACK.md) §3 reports this as a documentation gap.
 
-**Expiry and seller cancellation are not ledger concepts.** An offer is an application record, so those cases belong to the offer lifecycle (#16), not to settlement. On-ledger, cancellation reduces to the seller consuming or moving the shares — the second row above. The report states this rather than claiming coverage it does not have.
+**Offer expiry and cancellation are enforced locally before preparation.** They do not revoke a previously signed Batch. The unavailable-share scenario proves a failed delivery when shares are missing; it is not a general cancellation mechanism. See the [offer lifecycle](docs/OFFERS.md) for the boundary between local state and ledger execution.
 
 ### XLS-65 vault smoke — standalone
 
@@ -132,17 +136,18 @@ The original [sanitized smoke report](evidence/vault-smoke.json), produced with 
 | `VaultDeposit` | 65165 | [76F408DE…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/76F408DE062E73ABD5738AB733F952599045694A7C720A13ADC5E476A7D2390B) |
 | `VaultWithdraw` | 65167 | [DD1BCC04…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/DD1BCC04E48B181A18DFC260F109076FCE77808DA27E97076001CA5D35746D63) |
 
-The deposit created **10,000,000 raw share units** and 10 XRP of available vault assets. Withdrawal returned 10 XRP and left share supply and vault assets at zero. Share transferability was read from the actual issuance flags; a transfer to a buyer is still future work. The raw unit ratio in this empty-vault example is not a universal pricing rule.
+The deposit created **10,000,000 raw share units** and 10 XRP of available vault assets. Withdrawal returned 10 XRP and left share supply and vault assets at zero. This standalone smoke reads transferability flags but does not exercise a buyer transfer; the separate [share-transfer proof](docs/SHARE_TRANSFER.md) verifies that flow. The raw unit ratio in this empty-vault example is not a universal pricing rule.
 
 This proves **XLS-65 only**. It does not prove a loan, the guardrail or a completed secondary sale. Event ledgers may reset; the checked reports retain hashes and ledger indexes even if an explorer later loses history.
 
 ## Next steps
 
-1. Prove transfer of vault shares to a new holder and confirm the new holder can withdraw.
-2. Select and prove a payment-for-shares settlement mechanism with atomicity guarantees.
-3. Build the investor, market, seller, buyer and operator journeys on those proofs.
-4. Verify the integrated flow and prepare the presentation and submission.
-5. Consider Loaded and broader market features after the secondary sale works.
+1. Connect the wallet boundary to the investor, market, seller, buyer and operator screens (#18–23).
+2. Connect local offers, validated positions and the real settlement executor. Bind each persisted attempt to its submitted hash and verify both exchange legs before reporting a settled offer.
+3. Verify the complete user journey and recovery behavior (#24–25), then finish the presentation and submission (#27–28).
+4. Consider partial fills, multiple vaults and embedding after the complete journey works. Loaded with Batch is already the team's selected scope.
+
+The lending, share-transfer and Batch-sale proofs are implemented. The local offer database and the wallet boundary are foundations for the application; they do not yet form a browser marketplace or an authenticated public service.
 
 The [roadmap](docs/ROADMAP.md) gives acceptance criteria and dependency links through repository issues. All issues are initially unassigned. Teammates can add proposals from **Issues → New issue**. The [shared board](https://github.com/users/MylittleQueercat/projects/1) is linked to this repository and contains all 32 roadmap issues. All four current repository collaborators have Project access. Use Backlog, Ready, In progress, In review, Blocked and Done; check dependencies before moving a task to Ready.
 

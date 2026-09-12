@@ -181,8 +181,8 @@ export async function runSettlementFailures(client: Client, network: NetworkRepo
       // Expiry and seller cancellation are not ledger concepts here: an offer is an application
       // record, so those cases belong to the offer lifecycle in #16 rather than to settlement.
       notLedgerEnforced: {
-        offerExpiry: 'No ledger primitive. The Batch is only valid while the outer account sequence holds, so a superseded offer cannot settle, but expiry itself must be enforced by the offer model (#16).',
-        sellerCancellation: 'No ledger primitive. Cancellation is an application state change; on-ledger it reduces to the seller consuming or moving the shares, which case 2 covers.',
+        offerExpiry: 'Expiry is enforced by the offer model before preparation. An unchanged account sequence does not enforce a listing deadline; a previously signed Batch may still execute after local expiry.',
+        sellerCancellation: 'Local cancellation prevents new preparation but does not revoke a previously signed Batch. The unavailable-share scenario proves only that delivery fails while the required shares are unavailable; it is not a general cancellation mechanism.',
       },
       allGuaranteesHeld: true,
     };

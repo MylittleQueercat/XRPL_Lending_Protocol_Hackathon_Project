@@ -2,7 +2,7 @@
   "name": "raise-xrpl",
   "version": "0.1.0",
   "private": true,
-  "description": "Raise: Track 1 Vanilla foundation for a secondary market in XRPL vault shares",
+  "description": "Raise: Track 1 Loaded marketplace foundation with an independently reproducible Vanilla lending baseline",
   "type": "module",
   "engines": {
     "node": ">=24.11.1 <25"
@@ -17,6 +17,7 @@
     "vault:smoke": "tsx src/cli.ts vault-smoke",
     "position": "tsx src/read-cli.ts position",
     "transaction": "tsx src/read-cli.ts transaction",
+    "offers": "tsx src/offer-cli.ts",
     "settlement": "tsx src/cli.ts settlement"
   },
   "dependencies": {

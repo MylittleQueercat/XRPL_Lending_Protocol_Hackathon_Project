@@ -1,4 +1,4 @@
-import type { SubmittableTransaction } from 'xrpl';
+import { isValidClassicAddress, type SubmittableTransaction } from 'xrpl';
 import { TRACK1 } from './core.js';
 
 /** The transaction surface used by the current Raise demo. Payment appears twice because
@@ -50,7 +50,7 @@ export function assertWalletReady(connection: WalletConnection): void {
   if (connection.networkId !== TRACK1.networkId) {
     throw new WalletOperationError('WRONG_NETWORK', `Wallet network ${String(connection.networkId)} does not match Track 1 network ${TRACK1.networkId}. Signing is blocked.`);
   }
-  if (!connection.account || !/^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(connection.account)) {
+  if (!isValidClassicAddress(connection.account)) {
     throw new WalletOperationError('SIGNING_FAILED', 'Connected wallet did not provide a valid classic XRPL account.');
   }
 }
@@ -61,10 +61,14 @@ export function assertSupportedTransaction(transaction: SubmittableTransaction):
   }
 }
 
-/** Signs only after the wallet/network checks. This function deliberately has no submit or server call. */
+/** Signs an already prepared Track 1 transaction. Autofill belongs to the caller;
+ * this function deliberately has no submit or server call. */
 export async function signTrack1(transaction: SubmittableTransaction, signer: Track1Signer) {
   assertWalletReady(signer);
   assertSupportedTransaction(transaction);
+  if (transaction.NetworkID !== TRACK1.networkId) {
+    throw new WalletOperationError('WRONG_NETWORK', `Prepare the transaction for network ${TRACK1.networkId} before signing; its NetworkID is ${String(transaction.NetworkID)}.`);
+  }
   try {
     return await signer.sign(transaction);
   } catch (error) {
