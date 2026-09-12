@@ -8,6 +8,10 @@ describe("amount formatting never rounds the ledger value", () => {
     expect(dropsToXrpString("0")).toBe("0");
     expect(formatXrp("5000000")).toBe("5 XRP");
   });
+  it("floors fractional drop strings from Loan objects instead of throwing", () => {
+    expect(dropsToXrpString("6710290.955601783635")).toBe("6.71029");
+    expect(formatXrp("80523492.5")).toBe("80.523492 XRP");
+  });
   it("groups thousands", () => {
     expect(dropsToXrpString("1234567890000")).toBe("1,234,567.89");
   });

@@ -89,6 +89,17 @@ export function isActNotFound(error: unknown): boolean {
   return data?.error === "actNotFound";
 }
 
+export function isEntryNotFound(error: unknown): boolean {
+  const data = (error as { data?: { error?: string } })?.data;
+  return data?.error === "entryNotFound";
+}
+
+// Loan amounts arrive as fractional drop strings (PeriodicPayment, TotalValueOutstanding), unlike
+// every other amount on the ledger. Screens work in whole drops, so they are floored here once.
+export function wholeDrops(value: unknown): string {
+  return String(value ?? "0").split(".")[0] || "0";
+}
+
 export async function accountExists(address: string): Promise<boolean> {
   const c = await getClient();
   try {
@@ -264,10 +275,11 @@ export interface LoanState {
   loanId: string;
   loanBrokerId: string;
   borrower: string;
-  principalOutstandingDrops: string;
-  totalValueOutstandingDrops: string;
+  principalOutstandingDrops: string; // whole drops
+  totalValueOutstandingDrops: string; // whole drops, floored from the ledger's fractional string
   scheduledInterestRemainingDrops: string;
-  periodicPaymentDrops: string;
+  periodicPaymentDrops: string; // whole drops, floored
+  closePaymentFeeDrops: string; // "0" when the ledger omits the optional field
   paymentRemaining: number;
   paymentInterval: number;
   gracePeriod: number;
@@ -281,16 +293,17 @@ const RIPPLE_EPOCH_OFFSET = 946_684_800;
 export const rippleTimeToDate = (seconds: number) => new Date((seconds + RIPPLE_EPOCH_OFFSET) * 1000);
 
 function toLoanState(loan: Record<string, unknown>, loanId: string): LoanState {
-  const principal = String(loan.PrincipalOutstanding ?? "0");
-  const total = String(loan.TotalValueOutstanding ?? "0");
+  const principal = wholeDrops(loan.PrincipalOutstanding);
+  const total = wholeDrops(loan.TotalValueOutstanding);
   return {
     loanId,
     loanBrokerId: String(loan.LoanBrokerID),
     borrower: String(loan.Borrower),
     principalOutstandingDrops: principal,
     totalValueOutstandingDrops: total,
-    scheduledInterestRemainingDrops: (BigInt(total.split(".")[0]) - BigInt(principal.split(".")[0])).toString(),
-    periodicPaymentDrops: String(loan.PeriodicPayment ?? "0"),
+    scheduledInterestRemainingDrops: (BigInt(total) - BigInt(principal)).toString(),
+    periodicPaymentDrops: wholeDrops(loan.PeriodicPayment),
+    closePaymentFeeDrops: wholeDrops(loan.ClosePaymentFee),
     paymentRemaining: Number(loan.PaymentRemaining ?? 0),
     paymentInterval: Number(loan.PaymentInterval ?? 0),
     gracePeriod: Number(loan.GracePeriod ?? 0),

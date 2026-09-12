@@ -2,7 +2,8 @@
 const DROPS_PER_XRP = 1_000_000n;
 
 export function dropsToXrpString(drops: string | bigint, decimals = 6): string {
-  const value = typeof drops === "bigint" ? drops : BigInt(drops || "0");
+  // Some Loan fields are fractional drop strings; whole drops are what a person can hold or pay.
+  const value = typeof drops === "bigint" ? drops : BigInt((drops || "0").split(".")[0] || "0");
   const negative = value < 0n;
   const abs = negative ? -value : value;
   const whole = abs / DROPS_PER_XRP;

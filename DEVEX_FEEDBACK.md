@@ -96,6 +96,8 @@ We verified that the two apparent workarounds do not work. `LoanPay` with `tfLoa
 - **[Non-standard ports break restricted networks](devfeedback/findings/001-network-path-connectivity-timeout.md).** Ports 51233/51234 timed out while port 443 worked, on three unrelated networks plus a neutral control host. Mainnet failing on 51234 and succeeding on 443 proved the access path, not any XRPL service, was filtering. TCP connected and then nothing arrived, so it reads exactly like a node outage. One diagnostic line in the event instructions — *if the faucet works but RPC times out, test `xrplcluster.com` on 443 and on 51234* — would save every affected team an hour.
 - **[Vault-share recipients need an explicit MPT holder setup](devfeedback/findings/002-vault-share-holder-setup.md).** The buyer must submit `MPTokenAuthorize` before shares can be delivered. Worth stating in the share-transfer prerequisites.
 
+- **[Loan amounts are fractional drop strings, and payoff cannot be derived from chain state](devfeedback/findings/009-loan-object-amounts-fractional-and-close-fee.md).** `PeriodicPayment` and `TotalValueOutstanding` arrive as `6710290.955601783635`-style strings while every other amount is an integer; `ClosePaymentFee` is omitted when zero and accrued interest is not a field. Consumers must special-case two fields and offer an upper bound for early payoff, safe only because the ledger caps the charge.
+
 ## What worked well
 
 - `signLoanSetByCounterparty` makes two-party origination tractable, and `Transaction must be first signed by first party` states the required order precisely. Documenting that ordering beside the `LoanSet` reference would remove the discovery step.
