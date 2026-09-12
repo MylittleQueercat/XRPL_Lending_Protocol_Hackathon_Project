@@ -3,11 +3,13 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { WalletProvider } from "@/lib/wallet";
 import { AppShell } from "@/components/app-shell";
 import "./globals.css";
+import { ThemeFavicon } from "@/components/theme-favicon";
 
 export const metadata: Metadata = {
   title: { default: "Raise", template: "%s · Raise" },
   description: "A secondary market for XRPL vault shares. Sell your position when the vault cannot fund your withdrawal.",
   applicationName: "Raise",
+  icons: { icon: [{ url: "/brand/favicon-light.svg", type: "image/svg+xml" }] },
   keywords: ["XRPL", "XRP Ledger", "XLS-65", "XLS-66", "Single Asset Vault", "Lending Protocol", "Batch"],
 };
 
@@ -25,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" suppressHydrationWarning className="h-full">
       <body className="min-h-full">
         <ThemeProvider>
+          <ThemeFavicon />
           <WalletProvider>
             <AppShell>{children}</AppShell>
           </WalletProvider>

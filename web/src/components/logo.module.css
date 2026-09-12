@@ -1,0 +1,23 @@
+.mark {
+  display: inline-block;
+  width: auto;
+  height: 3rem;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.wordmark {
+  color: #20382c;
+  font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  font-size: 2rem;
+  font-weight: 750;
+  letter-spacing: -.065em;
+  line-height: 1;
+}
+:global(.dark) .mark,
+:global(#site-footer) .mark {
+  filter: brightness(.55) saturate(1.5);
+}
+:global(.dark) .wordmark,
+:global(#site-footer) .wordmark {
+  color: #c5e6a4;
+}
