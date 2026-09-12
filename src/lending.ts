@@ -97,7 +97,55 @@ async function readEntry(client: Client, index: string, ledgerIndex: number | 'v
 async function vaultAssets(client: Client, vaultId: string, ledgerIndex: number | 'validated' = 'validated') {
   const vault = await readEntry(client, vaultId, ledgerIndex);
   if (vault.LedgerEntryType !== 'Vault') throw new Error('Unexpected vault ledger entry.');
-  return { availableDrops: String(vault.AssetsAvailable ?? '0'), totalDrops: String(vault.AssetsTotal ?? '0') };
+  return {
+    availableDrops: String(vault.AssetsAvailable ?? '0'), totalDrops: String(vault.AssetsTotal ?? '0'),
+    shareMptId: String(vault.ShareMPTID ?? ''),
+  };
+}
+
+// Share supply outstanding across all holders, which is what a redemption burns.
+async function shareSupply(client: Client, shareMptId: string, ledgerIndex: number | 'validated' = 'validated') {
+  const response = await client.request({ command: 'ledger_entry', mpt_issuance: shareMptId, ledger_index: ledgerIndex });
+  if (response.result.validated !== true) throw new Error('Share issuance snapshot is not validated.');
+  const issuance = record(response.result.node, 'share issuance');
+  if (issuance.LedgerEntryType !== 'MPTokenIssuance') throw new Error('Unexpected share issuance entry.');
+  return String(issuance.OutstandingAmount ?? '0');
+}
+
+// One holder's share balance. Absent holder objects read as zero rather than throwing, so the
+// guardrail can state the lender's holding at the moment of rejection.
+async function shareBalance(client: Client, address: string, shareMptId: string, ledgerIndex: number | 'validated' = 'validated') {
+  try {
+    const response = await client.request({ command: 'account_objects', account: address, type: 'mptoken', ledger_index: ledgerIndex });
+    for (const value of response.result.account_objects ?? []) {
+      const holding = record(value, 'mptoken holding');
+      if (String(holding.MPTokenIssuanceID) === shareMptId) return String(holding.MPTAmount ?? '0');
+    }
+    return '0';
+  } catch {
+    return '0';
+  }
+}
+
+// The broker's first-loss cover, which must clear CoverRateMinimum before origination is allowed.
+async function brokerCover(client: Client, loanBrokerId: string, ledgerIndex: number | 'validated' = 'validated') {
+  const entry = await readEntry(client, loanBrokerId, ledgerIndex);
+  if (entry.LedgerEntryType !== 'LoanBroker') throw new Error('Unexpected loan broker ledger entry.');
+  return {
+    coverAvailableDrops: String(entry.CoverAvailable ?? '0'), debtTotalDrops: String(entry.DebtTotal ?? '0'),
+    coverRateMinimum: Number(entry.CoverRateMinimum ?? 0),
+  };
+}
+
+// Loan economics split the way issue #9 asks: principal apart from the scheduled total.
+function loanPosition(loan: Record<string, unknown>) {
+  const principal = String(loan.PrincipalOutstanding ?? '0');
+  const totalValue = String(loan.TotalValueOutstanding ?? '0');
+  return {
+    principalOutstandingDrops: principal, totalValueOutstandingDrops: totalValue,
+    scheduledInterestRemainingDrops: (BigInt(totalValue) - BigInt(principal)).toString(),
+    periodicPaymentDrops: String(loan.PeriodicPayment ?? '0'), paymentRemaining: Number(loan.PaymentRemaining ?? 0),
+  };
 }
 
 export async function runVanillaFlow(client: Client, network: NetworkReport) {
@@ -123,7 +171,9 @@ export async function runVanillaFlow(client: Client, network: NetworkReport) {
     // 3. Loan broker plus its first-loss cover.
     const brokerSet = await submitValidated(client, buildLoanBrokerSet(broker.address, vaultId), broker, directory);
     const loanBrokerId = createdEntry(brokerSet.meta, 'LoanBroker');
-    await submitValidated(client, { TransactionType: 'LoanBrokerCoverDeposit', Account: broker.address, LoanBrokerID: loanBrokerId, Amount: parseXrp(LOAN_TERMS.coverXrp) } as SubmittableTransaction, broker, directory);
+    const coverDeposit = await submitValidated(client, { TransactionType: 'LoanBrokerCoverDeposit', Account: broker.address, LoanBrokerID: loanBrokerId, Amount: parseXrp(LOAN_TERMS.coverXrp) } as SubmittableTransaction, broker, directory);
+    const coverAfterDeposit = await brokerCover(client, loanBrokerId, coverDeposit.evidence.ledgerIndex);
+    if (coverAfterDeposit.coverAvailableDrops !== parseXrp(LOAN_TERMS.coverXrp)) throw new Error('Broker cover balance does not match the validated deposit.');
 
     // 4. Origination accepted by the borrower, which disburses the principal in the same transaction.
     const borrowerBeforeLoan = await readBalance(client, borrower.address);
@@ -135,8 +185,13 @@ export async function runVanillaFlow(client: Client, network: NetworkReport) {
     const afterOrigination = await vaultAssets(client, vaultId, loanSet.evidence.ledgerIndex);
 
     // 5. Guardrail: the lender holds enough shares, but the vault no longer holds enough cash.
+    const sharesBeforeGuardrail = await shareBalance(client, lender.address, afterDeposit.shareMptId, loanSet.evidence.ledgerIndex);
     const guardrail = await submitAllowingRejection(client, { TransactionType: 'VaultWithdraw', Account: lender.address, VaultID: vaultId, Amount: depositDrops }, lender, directory);
     if (guardrail.resultCode === 'tesSUCCESS') throw new Error('The insufficient-liquidity guardrail did not reject the withdrawal.');
+    const sharesAfterGuardrail = await shareBalance(client, lender.address, afterDeposit.shareMptId, guardrail.ledgerIndex);
+    // The rejection must be about vault cash, not about the lender's holding.
+    if (BigInt(sharesBeforeGuardrail) <= 0n) throw new Error('Cannot prove the guardrail: the lender held no shares.');
+    if (sharesAfterGuardrail !== sharesBeforeGuardrail) throw new Error('The rejected withdrawal still moved shares.');
 
     // 6. Hold the loan open so interest accrues by elapsed time, then repay early.
     // Early close charges principal plus interest accrued to date, not the whole schedule, so
@@ -147,13 +202,21 @@ export async function runVanillaFlow(client: Client, network: NetworkReport) {
     // Early close also charges the prepayment fee and close interest, so the outstanding value alone
     // would under-pay. The ledger caps the charge at what is truly owed, so offering more is safe.
     const offeredDrops = (BigInt(owedDrops) * 3n).toString();
+    const loanBeforeRepayment = loanPosition(loan);
+    const borrowerBeforeRepayment = await readBalance(client, borrower.address);
     const repayment = await submitValidated(client, { TransactionType: 'LoanPay', Account: borrower.address, LoanID: loanId, Amount: offeredDrops, Flags: LoanPayFlags.tfLoanFullPayment } as SubmittableTransaction, borrower, directory);
     const afterRepayment = await vaultAssets(client, vaultId, repayment.evidence.ledgerIndex);
+    const borrowerAfterRepayment = await readBalance(client, borrower.address, repayment.evidence.ledgerIndex);
+    const repaidDrops = (BigInt(borrowerBeforeRepayment) - BigInt(borrowerAfterRepayment) - BigInt(repayment.evidence.feeDrops)).toString();
 
     // 7. Redeem capital plus the yield the repayment realised.
     const redeemDrops = afterRepayment.availableDrops;
+    const supplyBeforeRedeem = await shareSupply(client, afterDeposit.shareMptId, repayment.evidence.ledgerIndex);
     const withdraw = await submitValidated(client, { TransactionType: 'VaultWithdraw', Account: lender.address, VaultID: vaultId, Amount: redeemDrops }, lender, directory);
     const lenderEnd = await readBalance(client, lender.address, withdraw.evidence.ledgerIndex);
+    const supplyAfterRedeem = await shareSupply(client, afterDeposit.shareMptId, withdraw.evidence.ledgerIndex);
+    const sharesAfterRedeem = await shareBalance(client, lender.address, afterDeposit.shareMptId, withdraw.evidence.ledgerIndex);
+    if (BigInt(supplyAfterRedeem) >= BigInt(supplyBeforeRedeem)) throw new Error('Redemption did not burn any share supply.');
     const yieldDrops = (BigInt(redeemDrops) - BigInt(depositDrops)).toString();
 
     const report = {
@@ -164,7 +227,14 @@ export async function runVanillaFlow(client: Client, network: NetworkReport) {
       ledgerObjects: { vaultId, loanBrokerId, loanId },
       terms: LOAN_TERMS,
       transactions: [create.evidence, deposit.evidence, brokerSet.evidence, loanSet.evidence, guardrail, repayment.evidence, withdraw.evidence],
-      guardrail: { transactionType: 'VaultWithdraw', requestedDrops: depositDrops, availableDrops: afterOrigination.availableDrops, resultCode: guardrail.resultCode, hash: guardrail.hash },
+      // Issue #8 asks to separate a liquidity rejection from an insufficient personal holding, so
+      // the lender's share balance at the moment of rejection is part of the proof, not a detail.
+      guardrail: {
+        transactionType: 'VaultWithdraw', requestedDrops: depositDrops,
+        availableDrops: afterOrigination.availableDrops, resultCode: guardrail.resultCode, hash: guardrail.hash,
+        lenderSharesBefore: sharesBeforeGuardrail, lenderSharesAfter: sharesAfterGuardrail,
+        cause: 'vault liquidity, not the lender holding: shares were sufficient and unchanged by the rejection',
+      },
       amounts: { depositDrops, drawdownDrops, owedAtRepaymentDrops: owedDrops, offeredAtRepaymentDrops: offeredDrops, redeemedDrops: redeemDrops, yieldDrops },
       interestAccrual: {
         heldSeconds: HOLD_SECONDS,
@@ -173,6 +243,15 @@ export async function runVanillaFlow(client: Client, network: NetworkReport) {
         expectedDrops: Math.round((Number(parseXrp(LOAN_TERMS.principalXrp)) * (LOAN_TERMS.interestRate / 100000) * HOLD_SECONDS) / 31_536_000).toString(),
       },
       vaultAssets: { afterDeposit, afterOrigination, afterRepayment },
+      brokerCover: coverAfterDeposit,
+      loanPosition: { beforeRepayment: loanBeforeRepayment, afterRepayment: 'closed by full payment' },
+      shares: {
+        mptIssuanceId: afterDeposit.shareMptId,
+        lenderHeldBeforeRedeem: sharesBeforeGuardrail, lenderHeldAfterRedeem: sharesAfterRedeem,
+        supplyBeforeRedeem, supplyAfterRedeem,
+        burnedDrops: (BigInt(supplyBeforeRedeem) - BigInt(supplyAfterRedeem)).toString(),
+      },
+      repayment: { offeredDrops, actuallyChargedDrops: repaidDrops, borrowerBalanceDrops: { before: borrowerBeforeRepayment, after: borrowerAfterRepayment } },
       lenderBalancesDrops: { start: lenderStart, end: lenderEnd },
       // V1.1 is enabled on this network, so interest is realised when a payment delivers it.
       accountingBasis: 'cash', fullVanillaComplete: true,
