@@ -47,6 +47,25 @@ Publish a small health endpoint and return explicit TLS or service-unavailable e
 
 Retry from a known-good network path and distinguish endpoint reachability from amendment activation with live `feature` and ledger queries.
 
+## Additional isolation evidence
+
+A second teammate hit the same timeout independently and isolated the cause with controls rather than inference. Every endpoint on the non-standard ports failed while every endpoint on port 443 worked, across three unrelated networks and a neutral port-test host:
+
+| Target | Port | Result |
+|---|---|---|
+| `lending-hackathon-faucet.dev.ripplex.io` | 443 | reachable |
+| `custom.xrpl.org` explorer | 443 | HTTP 200 |
+| `xrplcluster.com` (mainnet) | 443 | HTTP 200, `build_version` 3.3.0 |
+| `xrplcluster.com` (mainnet) | 51234 | timeout |
+| `lending-hackathon.dev.ripplex.io` | 51233 / 51234 | timeout |
+| `s.devnet.rippletest.net` (public devnet) | 51234 | timeout |
+| `portquiz.net` (neutral control) | 8080 | timeout |
+
+Mainnet failing on 51234 while succeeding on 443 rules out any XRPL service as the cause: the access path filtered outbound non-standard ports. TCP connects appeared to succeed and then no data arrived, which is why the failure reads as a node outage rather than a filtered port.
+
+The practical diagnostic is one line: **if the faucet works but RPC and WSS time out, test `xrplcluster.com` on 443 and on 51234 before reporting a devnet outage.** Publishing a port-443 endpoint for hackathon devnets would remove the failure mode entirely.
+
+
 ## Public or private-security
 
 Public
