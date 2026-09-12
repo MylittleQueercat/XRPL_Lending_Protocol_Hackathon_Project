@@ -1,42 +1,57 @@
 "use client";
 
 import * as React from "react";
-import { getOffer, listOffers, subscribeOffers, type Offer } from "@/lib/offers";
+import { readMarket, subscribeMarket, toDisplayOffer } from "@/lib/market-client";
+import type { MarketSnapshot } from "@/lib/market-contract";
 
-// Offers live in the browser store; these hooks keep a component in step with it, including changes
-// made in another tab. `ready` is false during SSR and the first client render, so the page can
-// render a skeleton instead of a misleading empty state.
-export function useOffers(): { offers: Offer[]; ready: boolean } {
-  const [offers, setOffers] = React.useState<Offer[]>([]);
+export function useMarket() {
+  const [snapshot, setSnapshot] = React.useState<MarketSnapshot>({ offers: [], attempts: [] });
   const [ready, setReady] = React.useState(false);
-  React.useEffect(() => {
-    const refresh = () => setOffers(listOffers());
-    refresh();
-    setReady(true);
-    const unsubscribe = subscribeOffers(refresh);
-    // Expiry is derived from the clock, so re-read periodically even without store events.
-    const interval = setInterval(refresh, 30_000);
-    return () => {
-      unsubscribe();
-      clearInterval(interval);
-    };
+  const [error, setError] = React.useState<string | null>(null);
+  const [refreshing, setRefreshing] = React.useState(false);
+  const mounted = React.useRef(false);
+  const active = React.useRef<Promise<void> | null>(null);
+  const refresh = React.useCallback((): Promise<void> => {
+    if (active.current) return active.current;
+    setRefreshing(true);
+    const pending = (async () => {
+      try {
+        const next = await readMarket();
+        if (mounted.current) { setSnapshot(next); setError(null); }
+      } catch (cause) {
+        if (mounted.current) setError((cause as Error).message || "Cannot reach the shared marketplace. Refresh before continuing.");
+      } finally {
+        if (mounted.current) { setReady(true); setRefreshing(false); }
+        active.current = null;
+      }
+    })();
+    active.current = pending;
+    return pending;
   }, []);
-  return { offers, ready };
+  React.useEffect(() => {
+    mounted.current = true;
+    void refresh();
+    const update = () => void refresh();
+    const unsubscribe = subscribeMarket(update);
+    const interval = setInterval(update, 7_500);
+    window.addEventListener("online", update);
+    window.addEventListener("focus", update);
+    return () => {
+      mounted.current = false;
+      unsubscribe(); clearInterval(interval);
+      window.removeEventListener("online", update);
+      window.removeEventListener("focus", update);
+    };
+  }, [refresh]);
+  return { snapshot, ready, error, refreshing, refresh };
 }
 
-export function useOffer(id: string): { offer: Offer | null; ready: boolean } {
-  const [offer, setOffer] = React.useState<Offer | null>(null);
-  const [ready, setReady] = React.useState(false);
-  React.useEffect(() => {
-    const refresh = () => setOffer(getOffer(id) ?? null);
-    refresh();
-    setReady(true);
-    const unsubscribe = subscribeOffers(refresh);
-    const interval = setInterval(refresh, 30_000);
-    return () => {
-      unsubscribe();
-      clearInterval(interval);
-    };
-  }, [id]);
-  return { offer, ready };
+export function useOffers() {
+  const market = useMarket();
+  const offers = React.useMemo(() => market.snapshot.offers.map(toDisplayOffer).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)), [market.snapshot]);
+  return { ...market, offers };
+}
+export function useOffer(id: string) {
+  const market = useOffers();
+  return { ...market, offer: market.offers.find((offer) => offer.id === id) ?? null, attempt: market.snapshot.attempts.find((attempt) => attempt.offerId === id) ?? null };
 }

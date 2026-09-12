@@ -77,6 +77,29 @@ function decimalDisplay(units: bigint, places: number): string {
   return `${digits.slice(0, -places)}${fraction ? `.${fraction}` : ''}`;
 }
 
+/** Convert an accounting NUMBER to spendable whole drops only at an output boundary. */
+export function floorAccountingDrops(value: string): string {
+  const amount = decimalAmount(value, 'accounting amount');
+  return (amount.units / (10n ** BigInt(amount.places))).toString();
+}
+
+/** Round a positive repayment requirement up, never silently underpay a sub-drop. */
+export function ceilAccountingDrops(value: string): string {
+  const amount = decimalAmount(value, 'accounting amount');
+  const precision = 10n ** BigInt(amount.places);
+  return ((amount.units + precision - 1n) / precision).toString();
+}
+
+/** Exact nonnegative NUMBER difference. Preserve fractions until display/payment conversion. */
+export function subtractAccountingDrops(left: string, right: string): string {
+  const a = decimalAmount(left, 'left accounting amount');
+  const b = decimalAmount(right, 'right accounting amount');
+  const places = Math.max(a.places, b.places);
+  const difference = a.units * 10n ** BigInt(places - a.places) - b.units * 10n ** BigInt(places - b.places);
+  if (difference < 0n) throw new Error('Accounting difference must be nonnegative');
+  return decimalDisplay(difference, places);
+}
+
 function validateBalances(total: bigint, available: bigint, loss: bigint, supply: bigint, held: bigint): void {
   if (available > total) throw new Error('assetsAvailableDrops exceeds assetsTotalDrops');
   if (loss > total) throw new Error('lossUnrealizedDrops exceeds assetsTotalDrops');

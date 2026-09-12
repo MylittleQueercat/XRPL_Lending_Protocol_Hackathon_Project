@@ -47,9 +47,13 @@ export function WalletButton() {
 
   const copy = async () => {
     if (!wallet.account) return;
-    await navigator.clipboard.writeText(wallet.account.address);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    try {
+      await navigator.clipboard.writeText(wallet.account.address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      setCopied(false);
+    }
   };
 
   return (
@@ -60,7 +64,7 @@ export function WalletButton() {
       </Button>
 
       {open && (
-        <div role="dialog" aria-label="Wallet" className="absolute right-0 z-50 mt-2 w-[22rem] rounded-xl bg-popover p-4 text-popover-foreground shadow-lg ring-1 ring-foreground/10">
+        <div role="dialog" aria-label="Wallet" className="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-xl bg-popover p-4 text-popover-foreground shadow-lg ring-1 ring-foreground/10">
           {wallet.account ? (
             <div className="space-y-3">
               <div>
@@ -85,7 +89,7 @@ export function WalletButton() {
               <div>
                 <p className="font-medium">Local development wallet</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Keys stay in this browser session. The app has no server. Signing is refused unless the node reports network 4001.
+                  Keys stay in this browser session. The shared market receives public data and signatures only. Signing is refused unless the node reports network 4001.
                 </p>
               </div>
               <Button className="w-full" disabled={busy !== null} onClick={() => run("create", () => wallet.createFundedWallet())}>

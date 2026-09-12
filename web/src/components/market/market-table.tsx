@@ -3,11 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { shareValueDrops } from "@/lib/ledger";
+import { estimateShareValueDrops } from "@/lib/ledger";
 import { formatRelativeTime, formatShares, formatXrp, shortAddress } from "@/lib/format";
 import { routes } from "@/lib/network";
 import { unitPriceDrops, type Offer } from "@/lib/offers";
@@ -26,7 +27,7 @@ const FILTERS: { key: MarketFilter; label: string }[] = [
 ];
 
 export function MarketTable() {
-  const { offers, ready } = useOffers();
+  const { offers, ready, error, refresh, refreshing } = useOffers();
   const { account } = useWallet();
   const [filter, setFilter] = React.useState<MarketFilter>("open");
   const visible = React.useMemo(() => filterOffers(offers, filter), [offers, filter]);
@@ -35,6 +36,7 @@ export function MarketTable() {
 
   return (
     <div className="space-y-4">
+      {error && <Alert variant="warning"><AlertTitle>Shared marketplace unavailable</AlertTitle><AlertDescription>{error} <Button variant="outline" size="sm" disabled={refreshing} onClick={() => void refresh()}>Retry</Button></AlertDescription></Alert>}
       <div role="tablist" aria-label="Offer status" className="flex flex-wrap gap-1">
         {FILTERS.map((f) => (
           <Button key={f.key} role="tab" aria-selected={filter === f.key} size="sm" variant={filter === f.key ? "secondary" : "ghost"} onClick={() => setFilter(f.key)}>
@@ -46,7 +48,7 @@ export function MarketTable() {
 
       {!ready ? (
         <TableSkeleton />
-      ) : visible.length === 0 ? (
+      ) : error && offers.length === 0 ? <p className="text-sm text-muted-foreground">Offers could not be loaded. Retry when your connection returns.</p> : visible.length === 0 ? (
         <EmptyState filter={filter} />
       ) : (
         <Card className="py-0">
@@ -78,7 +80,7 @@ export function MarketTable() {
 
 function OfferRow({ offer, entry, viewer }: { offer: Offer; entry: ReturnType<typeof useVaults>[string] | undefined; viewer: string | null }) {
   const mine = viewer === offer.seller;
-  const accountingValue = entry?.status === "ready" ? shareValueDrops(offer.shares, entry.vault) : null;
+  const accountingValue = entry?.status === "ready" ? estimateShareValueDrops(offer.shares, entry.vault) : null;
   return (
     <TableRow>
       <TableCell><code className="text-xs">{offer.vaultId.slice(0, 8)}…</code></TableCell>

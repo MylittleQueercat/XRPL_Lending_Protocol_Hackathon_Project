@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { explorerAccount, explorerTx } from "@/lib/network";
 import { shortAddress, shortHash } from "@/lib/format";
+import { liquidityPicture } from "@/components/position/position-math";
 import { isLoanDefaulted, isLoanImpaired } from "./lending";
 
 export function Field({ id, label, hint, children, className }: { id: string; label: string; hint?: React.ReactNode; children: React.ReactNode; className?: string }) {
@@ -67,9 +68,7 @@ export function TxLink({ hash }: { hash: string }) {
 
 // Share of assets currently deployed in loans. Pure divs so it needs no dependency.
 export function UtilisationBar({ totalDrops, availableDrops }: { totalDrops: string; availableDrops: string }) {
-  const total = Number(totalDrops);
-  const available = Number(availableDrops);
-  const ratio = total > 0 ? Math.min(1, Math.max(0, (total - available) / total)) : 0;
+  const ratio = liquidityPicture(totalDrops, availableDrops).utilisation;
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs text-muted-foreground">

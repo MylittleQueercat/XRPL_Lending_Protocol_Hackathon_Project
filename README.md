@@ -14,7 +14,13 @@ This repository contains a reproducible TypeScript environment, network checks, 
 - [Six milestones](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/milestones)
 - [How teammates can contribute](CONTRIBUTING.md)
 - [Validated positions and exact valuation](docs/READ_MODEL.md)
-- [Offer lifecycle and local persistence](docs/OFFERS.md)
+- [Offer lifecycle and shared persistence](docs/OFFERS.md)
+
+## Shared marketplace integration
+
+The web application now uses a durable server API: seller and buyer see the same offer and sign separately from their own browser sessions. The server authenticates single-use wallet intents, persists the exact signed transaction hash before submission, and confirms both exchange legs from validated metadata. Reloads and ambiguous network responses never authorize another payment.
+
+The complete API-to-ledger run, including **buyer redemption after borrower repayment**, is recorded in [market-e2e.json](evidence/market-e2e.json). A separate [two-browser run](evidence/browser-market-e2e.json) verifies the actual seller and buyer interface, including recovery after a server restart. Setup, two-account usage, recovery behavior and current limitations are in [INTEGRATION.md](docs/INTEGRATION.md). Both root and web dependencies must be installed.
 
 ## Current network finding
 
@@ -59,6 +65,7 @@ Historical standalone evidence projects under `scripts/` retain their recorded S
 | Command | Behavior |
 |---|---|
 | `npm run check` | Typecheck and offline tests. |
+| `npm run market:e2e` | With the web server running, verify the complete shared marketplace journey with fresh test actors, exact transaction proof, repayment and buyer redemption. See [integration guide](docs/INTEGRATION.md). |
 | `npm run doctor` | Read HTTP/WebSocket server information and amendments; check network, synchronization and ledger freshness. Exit 0 when compatible, 2 when reachable but incompatible, 1 on error. |
 | `npm run vault:smoke` | Create two fresh faucet wallets, create a transferable XRP vault, deposit 10 XRP, withdraw 10 XRP, and verify validated results and balances. Sends test-network transactions. |
 | `npm run settlement` | Verify the settlement guarantees under failure: an unpayable buyer, a seller who no longer holds the offered shares, a reference sale, and a replay of the identical signed `Batch`. Creates four faucet wallets and sends test-network transactions. |
@@ -120,7 +127,7 @@ Atomic settlement is what makes a share sale safe, so the failure cases matter m
 
 **The guarantee held in every case.** In particular the buyer was never debited for shares the seller had already moved away, and the replay changed nothing — the outer account sequence prevents it.
 
-**Three of those four rows share the same outer result while differing completely in economic effect.** An application reading the engine result alone would report two sales that never happened. Raise verifies inner-leg state from validated balances instead, and [`DEVEX_FEEDBACK.md`](DEVEX_FEEDBACK.md) §3 reports this as a documentation gap.
+**Three of those four rows share the same outer result while differing completely in economic effect.** An application reading the engine result alone would report two sales that never happened. The historical failure harness measured validated balance changes. The integrated marketplace now verifies the exact inner transaction hashes, parent Batch ID and delivered amounts, and [`DEVEX_FEEDBACK.md`](DEVEX_FEEDBACK.md) §3 reports this as a documentation gap.
 
 **Offer expiry and cancellation are enforced locally before preparation.** They do not revoke a previously signed Batch. The unavailable-share scenario proves a failed delivery when shares are missing; it is not a general cancellation mechanism. See the [offer lifecycle](docs/OFFERS.md) for the boundary between local state and ledger execution.
 

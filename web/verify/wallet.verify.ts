@@ -1,8 +1,9 @@
-import { afterAll, describe, expect, it } from "vitest";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { mkdirSync, readFileSync, existsSync, writeFileSync } from "node:fs";
 import { Wallet } from "xrpl";
 import { TRACK1, explorerTx } from "@/lib/network";
 import { accountExists, disconnect, readNetworkStatus, readXrpBalance, signAndSubmit } from "@/lib/ledger";
+import { setActiveSigner } from "@/lib/signing-session";
 
 // Issue #18, criterion 4: "verify it with a real signed test transaction". The browser wallet
 // signs through signAndSubmit in src/lib/ledger.ts; this exercises exactly that function against
@@ -18,7 +19,19 @@ async function fundedWallet(): Promise<Wallet> {
 }
 
 describe("local dev wallet signs a real transaction on network 4001", () => {
-  afterAll(async () => { await disconnect(); });
+  beforeAll(() => {
+    // Node adapter harness, not a browser click test. Persist public recovery identifiers
+    // before spending; the single test serializes calls like the browser Web Lock.
+    mkdirSync(".local", { recursive: true, mode: 0o700 });
+    const file = ".local/wallet-verification-journal.json";
+    const rows: Record<string,string> = existsSync(file) ? JSON.parse(readFileSync(file,"utf8")) : {};
+    vi.stubGlobal("window", { localStorage: {
+      getItem: (key:string) => rows[key] ?? null,
+      setItem: (key:string,value:string) => { rows[key] = value; writeFileSync(file, JSON.stringify(rows), {mode:0o600}); },
+    }, dispatchEvent() {} });
+    vi.stubGlobal("navigator", { locks: { request: async (_name:string, callback:()=>unknown) => callback() } });
+  });
+  afterAll(async () => { setActiveSigner(null); await disconnect(); vi.unstubAllGlobals(); });
 
   it("refuses to sign unless the node reports network 4001, then signs and validates a payment", async () => {
     const status = await readNetworkStatus();
@@ -28,6 +41,7 @@ describe("local dev wallet signs a real transaction on network 4001", () => {
     const sender = await fundedWallet();
     const receiver = await fundedWallet();
     const before = await readXrpBalance(receiver.classicAddress);
+    setActiveSigner(sender);
 
     const result = await signAndSubmit({ TransactionType: "Payment", Account: sender.classicAddress, Destination: receiver.classicAddress, Amount: "1000000" }, sender);
     expect(result.validated).toBe(true);
@@ -41,7 +55,7 @@ describe("local dev wallet signs a real transaction on network 4001", () => {
     mkdirSync("../evidence", { recursive: true });
     writeFileSync("../evidence/web-wallet-signing.json", JSON.stringify({
       status: "verified",
-      scope: "Local development wallet signing path (web/src/lib/ledger.ts signAndSubmit) validated on the hackathon ledger.",
+      scope: "Node adapter harness of web/src/lib/ledger.ts signAndSubmit with explicit storage/Web Lock stand-ins; real hackathon ledger transaction, not browser click automation.",
       completedAt: new Date().toISOString(),
       network: { networkId: status.networkId, build: status.build, ledgerIndex: status.ledgerIndex },
       accounts: { sender: sender.classicAddress, receiver: receiver.classicAddress },

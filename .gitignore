@@ -27,3 +27,6 @@ tmp/
 .next/
 out/
 next-env.d.ts
+# Next dev generates these framework hints locally; project instructions live at the root.
+/web/AGENTS.md
+/web/CLAUDE.md

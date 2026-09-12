@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-09-12T16:35:42.284423+00:00",
+  "applicationOrigin": "http://127.0.0.1:3100",
+  "offerId": "49fd109d-7123-49d2-9730-9e5931ecdd7b",
+  "scope": "Observed browser interactions; lending fixture supplies broker and borrower. Not external customer research.",
+  "observed": [
+    "Separate faucet-funded seller and buyer browser sessions with different addresses",
+    "Wallet restoration after browser reload without another faucet request",
+    "Seller deposits 100 test XRP through Position",
+    "100 XRP withdrawal is refused with 100000000 shares unchanged and 50 XRP available",
+    "Seller publishes 100000000 shares for 95 XRP; buyer sees the same offer",
+    "Buyer authorizes holding and signs payment; seller only sees seller approval",
+    "Seller reload preserves exact buyer signature and attempt",
+    "Seller submits once; pending exact hash survives switch from development to production server using same SQLite file",
+    "Buyer clicks read-only Check recorded transaction and receives validated both-leg proof",
+    "Buyer redeems 100.000635 XRP through Position after fixture repayment; final share supply and holding are zero",
+    "Desktop page visually inspected; mobile Position has labelled inputs and no document-level horizontal overflow (487 CSS pixel viewport at existing browser zoom)"
+  ],
+  "verification": {
+    "saleHash": "A5741277F63D465D6161AAEF94BF52F3137D2E8A1C0AFA171DD01E47466997E0",
+    "saleLedger": 70172,
+    "redemptionHash": "BC5E99388A5DD86F1657C53E695D136CCD57AF09E111D2A5C6225D079BEFAC7E",
+    "redemptionLedger": 70221
+  }
+}

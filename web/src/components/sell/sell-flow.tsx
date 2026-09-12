@@ -15,7 +15,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Stat } from "@/components/stat";
 import { useWallet } from "@/lib/wallet";
-import { createOffer, type Offer } from "@/lib/offers";
+import type { Offer } from "@/lib/offers";
+import { performMarketAction, toDisplayOffer } from "@/lib/market-client";
 import { readShareBalance, readVault, type VaultState } from "@/lib/ledger";
 import { formatPercent, formatShares, formatXrp, shortAddress } from "@/lib/format";
 import { TRACK1, routes } from "@/lib/network";
@@ -47,6 +48,7 @@ export function SellFlow() {
   const [expiryHours, setExpiryHours] = React.useState<number>(24);
 
   const [published, setPublished] = React.useState<Offer | null>(null);
+  const [publishing, setPublishing] = React.useState(false);
   const [publishError, setPublishError] = React.useState<string | null>(null);
 
   React.useEffect(() => setKnownVaults(readKnownVaults()), []);
@@ -84,28 +86,34 @@ export function SellFlow() {
   }, [vault, address, balance, shares, priceXrp, expiryHours]);
 
   const canProceedFromPosition = !!vault && balance !== null && BigInt(balance) > 0n && vault.transferable;
-  const blocked = !!wallet.networkError;
+  const blocked = !!wallet.networkError || publishing;
 
-  const publish = () => {
+  const publish = async () => {
     if (!review || !vault || !address) return;
     setPublishError(null);
+    setPublishing(true);
     try {
-      const offer = createOffer({
-        network: TRACK1.networkId,
+      const result = await performMarketAction({ type: "create", input: {
+        networkId: TRACK1.networkId as 4001,
+        priceAsset: { currency: "XRP" },
         vaultId: vault.vaultId,
         shareMptId: vault.shareMptId,
         seller: address,
-        shares: review.shares,
+        sharesRaw: review.shares,
         priceDrops: review.priceDrops,
         expiresAt: review.expiresAt,
-      });
-      setPublished(offer);
+      } }, wallet.requireSigner);
+      const created = result.offers.filter((offer) => offer.seller === address && offer.vaultId === vault.vaultId).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+      if (!created) throw new Error("Offer saved but could not be loaded. Check Your offers before publishing again.");
+      setPublished(toDisplayOffer(created));
       setShares("");
       setPriceXrp("");
       setExpiryHours(24);
       setStep(1);
     } catch (cause) {
-      setPublishError((cause as Error).message);
+      setPublishError(`${(cause as Error).message} Check Your offers before retrying: a connection failure can happen after the offer was saved.`);
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -119,7 +127,7 @@ export function SellFlow() {
             The underlying loans continue unchanged, and the sale settles all-or-nothing on the ledger.
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">Use the wallet button in the header. Creating an offer does not sign anything; settlement does.</CardContent>
+        <CardContent className="text-sm text-muted-foreground">Use the wallet button in the header. Publishing signs a marketplace authorization with your wallet. It does not move XRP or shares.</CardContent>
       </Card>
     );
   }
@@ -135,7 +143,7 @@ export function SellFlow() {
               {formatShares(published.shares)} units for {formatXrp(published.priceDrops)}.{" "}
               <Link href={routes.offer(published.id)} className="font-medium text-primary hover:underline">View the offer</Link>.
             </p>
-            <p>Offers live in this browser for now; expiry and cancellation are enforced by Raise, not by the ledger. Ownership is verified on the ledger at settlement.</p>
+            <p>Your offer is shared with every browser using this marketplace. Expiry and cancellation are enforced by Raise. The ledger verifies ownership at settlement.</p>
           </AlertDescription>
         </Alert>
       )}
@@ -252,7 +260,7 @@ export function SellFlow() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Stat label="Shares" value={formatShares(review.shares)} />
               <Stat label="Total price" value={formatXrp(review.priceDrops)} />
-              <Stat label="Unit price" value={<span className="font-mono">{review.unitPriceXrp}</span>} hint="XRP per unit" />
+              <Stat label="Unit price" value={<span className="font-mono">{review.unitPriceXrp}</span>} hint="drops per raw share unit" />
               <Stat label="Accounting value" value={formatXrp(review.accountingValueDrops)} hint={`for ${formatShares(review.shares)} units`} />
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -265,7 +273,7 @@ export function SellFlow() {
             {publishError && <Alert variant="destructive"><Info /><AlertTitle>Could not publish</AlertTitle><AlertDescription>{publishError}</AlertDescription></Alert>}
             <div className="flex justify-between">
               <Button variant="ghost" onClick={() => setStep(2)}><ArrowLeft /> Back</Button>
-              <Button disabled={blocked} onClick={publish}>Publish offer</Button>
+              <Button disabled={blocked} onClick={() => void publish()}>{publishing ? "Publishing…" : "Publish offer"}</Button>
             </div>
           </CardContent>
         </Card>

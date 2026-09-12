@@ -35,12 +35,12 @@ describe("sell review", () => {
     expect(errors.general.join(" ")).toMatch(/Seller/);
     expect(review).toBeNull();
   });
-  it("handles a vault with zero supply without dividing by zero", () => {
-    const { review } = computeReview(
+  it("rejects a stale holding when the vault supply has already been redeemed", () => {
+    const { errors, review } = computeReview(
       { shares: "1", priceXrp: "1", expiryHours: 1 },
       { ...ctx, vault: { ...vault, sharesOutstanding: "0", assetsTotalDrops: "0" }, balance: "1" },
     );
-    expect(review?.accountingValueDrops).toBe("0");
-    expect(review?.discount).toBeNull();
+    expect(review).toBeNull();
+    expect(errors.general.join(" ")).toMatch(/supply changed/);
   });
 });

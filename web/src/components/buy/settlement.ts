@@ -1,8 +1,6 @@
-// Pure decision logic for the purchase flow. No ledger access here so it can be tested exactly.
-//
-// The engine result of a Batch is not evidence that a sale happened: an outer tesSUCCESS can sit
-// over inner legs that did not execute. The only acceptable proof is that both economic legs moved
-// by exactly the agreed amounts between two validated snapshots.
+// Legacy balance comparison helpers retained for offline demonstrations and regression fixtures.
+// They do not prove transaction execution. Live BuyFlow uses the shared server's transaction-hash
+// and exact-ledger metadata verification; it never settles or reopens offers from these helpers.
 
 export interface Snapshot {
   buyerShares: string;

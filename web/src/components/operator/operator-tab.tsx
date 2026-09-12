@@ -13,7 +13,7 @@ import { Stat } from "@/components/stat";
 import { TxResult } from "@/components/tx-result";
 import { formatShares, formatXrp, xrpToDrops } from "@/lib/format";
 import {
-  createdEntry, readLoan, readLoansFor, readOwnedBrokers, readOwnedVaults, rippleTimeToDate, signAndSubmit, signAndSubmitLoanSet,
+  wholeDrops, createdEntry, readLoan, readLoansFor, readOwnedBrokers, readOwnedVaults, rippleTimeToDate, signAndSubmit, signAndSubmitLoanSet,
   type BrokerState, type LoanState, type Submitted, type VaultState,
 } from "@/lib/ledger";
 import { useWallet } from "@/lib/wallet";
@@ -325,8 +325,8 @@ function OriginateSection({ vault, brokers, onOriginate, busy }: { vault: VaultS
 
   const termErrors = interestRate === null ? ["Interest rate must be a percentage."] : validateLoanTerms({ interestRate, paymentInterval, paymentTotal, gracePeriod });
   const required = principalDrops ? requiredCoverDrops(principalDrops, broker.coverRateMinimum) : "0";
-  const coverShort = BigInt(broker.coverAvailableDrops) < BigInt(required);
-  const liquidityShort = principalDrops ? BigInt(vault.assetsAvailableDrops) < BigInt(principalDrops) : false;
+  const coverShort = BigInt(wholeDrops(broker.coverAvailableDrops)) < BigInt(required);
+  const liquidityShort = principalDrops ? BigInt(wholeDrops(vault.assetsAvailableDrops)) < BigInt(principalDrops) : false;
   const addressOk = /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(borrower);
   const canSubmit = addressOk && borrowerSeed.trim().length > 0 && principalDrops && interestRate !== null && termErrors.length === 0 && busy === null;
 
@@ -341,7 +341,7 @@ function OriginateSection({ vault, brokers, onOriginate, busy }: { vault: VaultS
           <Info />
           <AlertTitle>Borrower signing seed (demo only)</AlertTitle>
           <AlertDescription>
-            In a product the borrower signs this in their own wallet. On this network no wallet supports the LoanSet counterparty signature, so the demo asks for the borrower&apos;s test seed here. Used once, in this browser, never stored.
+            This operator demo asks for the borrower&apos;s test seed to co-sign LoanSet in this browser. Used once and never stored. Separate borrower approval is not yet connected in this console; the marketplace sale uses separate buyer and seller wallets.
           </AlertDescription>
         </Alert>
 

@@ -9,6 +9,7 @@ import { routes } from "@/lib/network";
 import { Button } from "@/components/ui/button";
 import { NetworkBadge } from "@/components/network-badge";
 import { WalletButton } from "@/components/wallet-button";
+import { SubmissionRecovery } from "@/components/submission-recovery";
 
 // Every screen is reachable from here. Screens never build their own navigation.
 const NAV = [
@@ -22,7 +23,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex min-h-[100dvh] flex-col">
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-6 px-4 sm:px-6">
           <Link href={routes.home} className="flex items-center gap-2 font-semibold tracking-tight">
@@ -40,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            <NetworkBadge />
+            <div className="hidden sm:block"><NetworkBadge /></div>
             <Button size="icon" variant="ghost" aria-label="Toggle theme" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
               <Sun className="dark:hidden" /><Moon className="hidden dark:block" />
             </Button>
@@ -53,7 +54,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6"><SubmissionRecovery />{children}</main>
       <footer className="border-t">
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-muted-foreground sm:px-6">
           <span>Raise · XRPL Lending Protocol Hackathon · Track 1, Loaded</span>
