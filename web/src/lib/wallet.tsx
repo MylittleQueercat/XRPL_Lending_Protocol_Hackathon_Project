@@ -7,6 +7,13 @@
 // leg — are not exposed by Xaman, Crossmark or GemWallet, and none of them speaks to a custom
 // devnet with network ID 4001. So signing happens here, in the browser, with xrpl.js.
 //
+// This is the frontend of the wallet boundary defined at the repo root (src/wallet.ts,
+// docs/WALLET.md, issue #18): same decision, same network guard, same rule that no seed ever
+// reaches a server. The root module enumerates the required signing surface
+// (REQUIRED_SIGNING_SURFACE) and the error codes DISCONNECTED / WRONG_NETWORK /
+// UNSUPPORTED_TRANSACTION / SIGNING_REJECTED / SIGNING_FAILED; the messages thrown below map onto
+// them one for one so a future connector can be swapped in behind the same UI.
+//
 // Rules the provider enforces:
 //   - the seed lives in sessionStorage only and is never sent anywhere; the app has no server
 //   - every signature is refused unless the connected node reports network ID 4001

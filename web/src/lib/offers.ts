@@ -1,9 +1,18 @@
 // Offer model and lifecycle for the secondary market.
 //
-// This is the seam for issue #16. Persistence is a browser store for now so the screens can be
-// built and demonstrated; the interface below is what #16 should implement against a shared
-// backend. Nothing here is a source of truth for ownership: the ledger is. Before any execution the
-// buyer flow must re-read the seller's live share balance (see ledger.ts) and refuse stale offers.
+// This is the browser-side seam for issue #16, whose service implementation lives at the repo
+// root (src/offers.ts, src/offer-store.ts, docs/OFFERS.md): a SQLite-backed offer service with the
+// same draft/open/cancelled/expired/settling/settled lifecycle. Persistence here is a browser store
+// so the screens can run without a server; wiring them to that service is the next step.
+//
+// Field mapping to the root model: `network` ↔ `networkId`, `shares` ↔ `sharesRaw`, price asset is
+// implicitly XRP here (`priceAsset` there), and the root model adds an optimistic `revision`.
+// One deliberate difference: this store allows `settling → open` when a settlement provably did not
+// execute (nothing moved on the validated ledger), where the root service fails closed instead.
+// Both are defensible; the buy screen documents which it relies on.
+//
+// Nothing here is a source of truth for ownership: the ledger is. Before any execution the buyer
+// flow must re-read the seller's live share balance (see ledger.ts) and refuse stale offers.
 
 export type OfferState = "draft" | "open" | "cancelled" | "expired" | "settling" | "settled";
 
