@@ -148,7 +148,7 @@ export function SellFlow() {
         </Alert>
       )}
 
-      {blocked && (
+      {wallet.networkError && (
         <Alert variant="destructive">
           <Info />
           <AlertTitle>Offers are paused</AlertTitle>

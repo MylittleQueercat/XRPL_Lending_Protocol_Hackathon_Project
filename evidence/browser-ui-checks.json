@@ -1,25 +1,39 @@
 {
-  "checkedAt": "2026-09-12T16:35:42.284423+00:00",
+  "checkedAt": "2026-09-12T18:01:25.391Z",
   "applicationOrigin": "http://127.0.0.1:3100",
-  "offerId": "49fd109d-7123-49d2-9730-9e5931ecdd7b",
+  "offerId": "a581437e-0c48-49dd-8335-c76699f76aa9",
   "scope": "Observed browser interactions; lending fixture supplies broker and borrower. Not external customer research.",
   "observed": [
-    "Separate faucet-funded seller and buyer browser sessions with different addresses",
-    "Wallet restoration after browser reload without another faucet request",
-    "Seller deposits 100 test XRP through Position",
-    "100 XRP withdrawal is refused with 100000000 shares unchanged and 50 XRP available",
-    "Seller publishes 100000000 shares for 95 XRP; buyer sees the same offer",
-    "Buyer authorizes holding and signs payment; seller only sees seller approval",
-    "Seller reload preserves exact buyer signature and attempt",
-    "Seller submits once; pending exact hash survives switch from development to production server using same SQLite file",
-    "Buyer clicks read-only Check recorded transaction and receives validated both-leg proof",
-    "Buyer redeems 100.000635 XRP through Position after fixture repayment; final share supply and holding are zero",
-    "Desktop page visually inspected; mobile Position has labelled inputs and no document-level horizontal overflow (487 CSS pixel viewport at existing browser zoom)"
+    "Separate faucet-funded seller and buyer browser sessions with different addresses; wallets restored after reload.",
+    "Seller deposits 100 test XRP through Position.",
+    "100 XRP withdrawal is refused with shares unchanged and 50 XRP available.",
+    "Seller publishes 100000000 raw share units for 95 XRP; the buyer opens the same shared offer.",
+    "Buyer authorizes the issuance and signs payment; the seller approves and submits from their own session.",
+    "Buyer uses read-only Check recorded transaction to verify both exchange legs.",
+    "After fixture repayment, buyer withdraws 100.00024 test XRP through Position; final vault assets and share supply are zero.",
+    "Publishing keeps the button disabled without displaying a spurious network-paused alert."
   ],
   "verification": {
-    "saleHash": "A5741277F63D465D6161AAEF94BF52F3137D2E8A1C0AFA171DD01E47466997E0",
-    "saleLedger": 70172,
-    "redemptionHash": "BC5E99388A5DD86F1657C53E695D136CCD57AF09E111D2A5C6225D079BEFAC7E",
-    "redemptionLedger": 70221
+    "saleHash": "D9C1E0353B9B60F4A7DD7F1A71BCD11E0323DB83E27617012EE8AF7FAEA0B934",
+    "saleLedger": 71976,
+    "redemptionHash": "CCB5F47DD4A338F9E12CF83FAC33D133B7F564B7B38B87415D35728156BE3C96",
+    "redemptionLedger": 71995
+  },
+  "recoveryRecheck": {
+    "offerId": "d1e1c334-682b-4826-a575-713ae600017f",
+    "saleHash": "E6CAF121B100803E42A73E38AD3D0D7D552BEA7963460BB23976C14A198D31F2",
+    "saleLedger": 71868,
+    "observed": [
+      "Production server stopped and restarted with the same SQLite database while the attempt was pending.",
+      "Buyer reload restored the same attempt and hash; Check recorded transaction verified both exchange legs without rebroadcast.",
+      "Browser fixture stopped before repayment because RPC presentation fields failed its strict Batch field check. Read-only verification of the same hash passed after stripping ctid, date and ledger_index. A distinct vault fixture was started to complete the full journey; the original trade was never resent."
+    ]
+  },
+  "operatorAlignment": {
+    "observed": "Seed-liquidity input and Deposit button share the same vertical center after the requested layout correction. Desktop screenshot inspected.",
+    "inputHeightCssPx": 44,
+    "buttonHeightCssPx": 40,
+    "centerOffsetCssPx": 0,
+    "horizontalOverflow": false
   }
 }

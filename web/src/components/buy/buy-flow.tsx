@@ -19,6 +19,7 @@ import { performMarketAction } from "@/lib/market-client";
 import { signBuyerSale, signSellerSale } from "@/lib/market-signing";
 import type { MarketAction, MarketAttempt } from "@/lib/market-contract";
 import { useWallet } from "@/lib/wallet";
+import { browserJournal, SUBMISSION_EVENT, SUBMISSION_JOURNAL_KEY } from "@/lib/submission-journal";
 import { cn } from "@/lib/utils";
 
 const STATUS: Record<MarketAttempt["status"], { title: string; description: string }> = {
@@ -33,6 +34,15 @@ const STATUS: Record<MarketAttempt["status"], { title: string; description: stri
 export function BuyFlow({ offerId }: { offerId: string }) {
   const wallet = useWallet();
   const market = useOffer(offerId);
+  const scope = `${wallet.account?.address ?? "disconnected"}:${offerId}:${market.offer?.shareMptId ?? "loading"}`;
+  return <ScopedBuyFlow key={scope} offerId={offerId} wallet={wallet} market={market} />;
+}
+
+function ScopedBuyFlow({ offerId, wallet, market }: {
+  offerId: string;
+  wallet: ReturnType<typeof useWallet>;
+  market: ReturnType<typeof useOffer>;
+}) {
   const { offer, attempt } = market;
   const [vault, setVault] = React.useState<VaultState | null>(null);
   const [live, setLive] = React.useState<{ sellerShares: string; authorized: boolean } | null>(null);
@@ -41,22 +51,46 @@ export function BuyFlow({ offerId }: { offerId: string }) {
   const [busy, setBusy] = React.useState(false);
   const lock = React.useRef(false);
   const [authorization, setAuthorization] = React.useState<Submitted | null>(null);
-  const [authorizationUnknown, setAuthorizationUnknown] = React.useState(false);
+  const [authorizationBlock, setAuthorizationBlock] = React.useState<string | null>("Checking transaction recovery storage…");
+  const mounted = React.useRef(false);
   const generation = React.useRef(0);
   const address = wallet.account?.address;
   const vaultId = offer?.vaultId, issuanceId = offer?.shareMptId, sellerAddress = offer?.seller;
+  const refreshAuthorization = React.useCallback(() => {
+    let reason: string | null = null;
+    try { if (address) browserJournal().assertClear(address); }
+    catch (cause) { reason = cause instanceof Error && cause.message ? cause.message : "Transaction recovery storage cannot be read safely."; }
+    if (mounted.current) setAuthorizationBlock(reason);
+    return reason;
+  }, [address]);
   const refreshLedger = React.useCallback(async () => {
+    if (!mounted.current) return;
     const current = ++generation.current;
+    refreshAuthorization();
     setLedgerError(null); setLive(null);
     if (!vaultId || !issuanceId || !sellerAddress) return;
     try {
       const [nextVault, sellerShares, authorized] = await Promise.all([readVault(vaultId), readShareBalance(sellerAddress, issuanceId), address ? hasShareHolder(address, issuanceId) : Promise.resolve(false)]);
       if (current !== generation.current) return;
       setVault(nextVault); setLive({ sellerShares, authorized });
-      if (authorized) setAuthorizationUnknown(false);
     } catch (cause) { if (current === generation.current) setLedgerError((cause as Error).message); }
-  }, [vaultId, issuanceId, sellerAddress, address]);
-  React.useEffect(() => { void refreshLedger(); return () => { generation.current++; }; }, [refreshLedger]);
+  }, [vaultId, issuanceId, sellerAddress, address, refreshAuthorization]);
+  React.useEffect(() => {
+    mounted.current = true;
+    // Recovery can create the holding. Invalidate its cached state together with
+    // the journal so authorization cannot be repeated before the ledger is read.
+    const read = () => { void refreshLedger(); };
+    const storage = (event: StorageEvent) => { if (event.key === null || event.key === SUBMISSION_JOURNAL_KEY) read(); };
+    read();
+    window.addEventListener(SUBMISSION_EVENT, read);
+    window.addEventListener("storage", storage);
+    return () => {
+      mounted.current = false;
+      generation.current++;
+      window.removeEventListener(SUBMISSION_EVENT, read);
+      window.removeEventListener("storage", storage);
+    };
+  }, [refreshLedger]);
 
   async function act(action: MarketAction | (() => Promise<MarketAction>)) {
     if (lock.current) return;
@@ -66,14 +100,25 @@ export function BuyFlow({ offerId }: { offerId: string }) {
     finally { await market.refresh(); lock.current = false; setBusy(false); }
   }
   async function authorizeHolding() {
-    if (!offer || lock.current) return;
+    if (!offer || !address || lock.current || refreshAuthorization()) return;
     lock.current = true; setBusy(true); setActionError(null);
     try {
       const signer = await wallet.requireSigner();
-      setAuthorization(await signAndSubmit({ TransactionType: "MPTokenAuthorize", Account: signer.classicAddress, MPTokenIssuanceID: offer.shareMptId } as never, signer));
+      if (!mounted.current) return;
+      if (signer.classicAddress !== address) throw new Error("Reconnect the account that requested this authorization.");
+      const result = await signAndSubmit({ TransactionType: "MPTokenAuthorize", Account: address, MPTokenIssuanceID: offer.shareMptId } as never, signer);
+      if (!mounted.current) return;
+      setAuthorization(result);
       await refreshLedger();
-    } catch (cause) { setAuthorizationUnknown(true); setActionError(`${(cause as Error).message} Authorization may have been submitted. Re-check your holding before signing again.`); }
-    finally { lock.current = false; setBusy(false); }
+    } catch (cause) {
+      if (mounted.current) {
+        const pending = refreshAuthorization();
+        setActionError(`${(cause as Error).message} ${pending ? "Check transaction recovery before signing again." : "No authorization is recorded as pending. You can try again."}`);
+      }
+    } finally {
+      lock.current = false;
+      if (mounted.current) { refreshAuthorization(); setBusy(false); }
+    }
   }
   if (!market.ready) return <><PageHeader title="Buy shares" /><div className="grid gap-4 md:grid-cols-2"><Skeleton className="h-72" /><Skeleton className="h-72" /></div></>;
   if (!offer) return <><PageHeader title={market.error ? "Marketplace unavailable" : "Offer not found"} description={market.error ?? "This offer is not present in the shared marketplace."} /><Button variant="outline" onClick={() => void market.refresh()} disabled={market.refreshing}><RefreshCw /> Refresh marketplace</Button></>;
@@ -115,10 +160,10 @@ export function BuyFlow({ offerId }: { offerId: string }) {
         </> : offer.state === "open" ? <>
           {seller ? <p className="text-sm">This is your offer. A buyer opens this link with their wallet to request a purchase. You then return here to approve it.</p> : <>
             {live && <p className="text-sm">Seller currently holds {formatShares(live.sellerShares)} raw share units. {available ? "Listed quantity is covered." : "Not enough shares to deliver this offer."}</p>}
-            {!!address && live && !live.authorized && <><p className="text-sm">Authorize your account to receive this issuance before requesting the purchase.</p><Button variant="outline" className="w-full" disabled={blocked || authorizationUnknown} onClick={() => void authorizeHolding()}>{busy ? "Checking authorization…" : "Authorize receiving shares"}</Button></>}
-            {authorizationUnknown && <p role="status" className="text-sm text-muted-foreground">Authorization outcome is uncertain. Refresh saved state to check your holding. No repeat is sent automatically.</p>}
+            {!!address && live && !live.authorized && <><p className="text-sm">Authorize your account to receive this issuance before requesting the purchase.</p><Button variant="outline" className="w-full" disabled={blocked || !!authorizationBlock} onClick={() => void authorizeHolding()}>{busy ? "Checking authorization…" : "Authorize receiving shares"}</Button></>}
+            {authorizationBlock && <p role="status" className="text-sm text-muted-foreground">{authorizationBlock} No repeat is sent automatically.</p>}
             {authorization && <TxResult result={authorization} />}
-            <Button className="w-full" disabled={blocked || seller || !live?.authorized || !available} onClick={() => void act({ type: "prepare", offerId })}>{busy ? "Preparing request…" : "Request purchase"}</Button>
+            <Button className="w-full" disabled={blocked || !!authorizationBlock || seller || !live?.authorized || !available} onClick={() => void act({ type: "prepare", offerId })}>{busy ? "Preparing request…" : "Request purchase"}</Button>
           </>}
         </> : offer.state === "settling" && !attempt && reservedBuyer === address ? <>
           <p className="text-sm">Your purchase reservation was saved before its unsigned transaction was prepared. You can finish preparing the same request. No signed transaction is rebuilt.</p>

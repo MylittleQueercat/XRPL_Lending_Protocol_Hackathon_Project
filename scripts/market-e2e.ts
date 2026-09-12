@@ -88,7 +88,7 @@ try {
     const issuance = (await client.request({ command: 'ledger_entry', mpt_issuance: shareMptId, ledger_index: ledgerIndex })).result;
     assert.equal(issuance.validated, true);
     const [sellerShares, buyerShares, sellerXrp, buyerXrp, borrowerXrp] = await Promise.all([shares(seller.address, shareMptId, ledgerIndex), shares(buyer.address, shareMptId, ledgerIndex), readBalance(client, seller.address, ledgerIndex), readBalance(client, buyer.address, ledgerIndex), readBalance(client, borrower.address, ledgerIndex)]);
-    const value = { label, ledgerIndex, sellerShares, buyerShares, sellerXrp, buyerXrp, borrowerXrp, assetsAvailableDrops: String(state.AssetsAvailable), assetsTotalDrops: String(state.AssetsTotal), totalShares: String(record(issuance.node, 'issuance').OutstandingAmount ?? '0') };
+    const value = { label, ledgerIndex, sellerShares, buyerShares, sellerXrp, buyerXrp, borrowerXrp, assetsAvailableDrops: String(state.AssetsAvailable ?? '0'), assetsTotalDrops: String(state.AssetsTotal ?? '0'), totalShares: String(record(issuance.node, 'issuance').OutstandingAmount ?? '0') };
     snapshots.push(value); return value;
   }
   const funded = await snapshot('after-deposit', deposit.ledgerIndex);
@@ -142,6 +142,7 @@ try {
   const redeemed = await submit('buyer-redeem', { TransactionType: 'VaultWithdraw', Account: buyer.address, VaultID: vaultId, Amount: repaid.assetsAvailableDrops }, buyer);
   const final = await snapshot('after-buyer-redemption', redeemed.ledgerIndex);
   assert.equal(final.totalShares, '0'); assert.equal(final.buyerShares, '0');
+  assert.equal(final.assetsAvailableDrops, '0'); assert.equal(final.assetsTotalDrops, '0');
   assert.equal(BigInt(final.buyerXrp) - BigInt(repaid.buyerXrp) + BigInt(redeemed.feeDrops), BigInt(repaid.assetsAvailableDrops));
   const evidence = { checkedAt: new Date().toISOString(), sdk: 'xrpl@5.2.0-beta.1', node: process.version, networkId: 4001, origin, scope: 'Real HTTP API + SQLite + production client signing helpers + event ledger; separate actor wallets. Browser clicks are verified separately.', network, actors: { broker: broker.address, seller: seller.address, borrower: borrower.address, buyer: buyer.address }, vaultId, loanId, shareMptId, offerId: offer.id, settlementProof: proof, transactions, snapshots, result: 'passed' };
   await writeFile('evidence/market-e2e.json', `${JSON.stringify(evidence, null, 2)}\n`);

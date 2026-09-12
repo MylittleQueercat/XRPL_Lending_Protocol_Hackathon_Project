@@ -10,7 +10,7 @@ This repository contains a reproducible TypeScript environment, network checks, 
 - [Project concept — English team discussion document](docs/PROJECT_CONCEPT.md)
 - [Shared team board](https://github.com/users/MylittleQueercat/projects/1)
 - [Detailed roadmap](docs/ROADMAP.md)
-- [32 unassigned project issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues?q=is%3Aissue+label%3Aroadmap)
+- [Shared project issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues?q=is%3Aissue+label%3Aroadmap)
 - [Six milestones](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/milestones)
 - [How teammates can contribute](CONTRIBUTING.md)
 - [Validated positions and exact valuation](docs/READ_MODEL.md)
@@ -147,16 +147,16 @@ The deposit created **10,000,000 raw share units** and 10 XRP of available vault
 
 This proves **XLS-65 only**. It does not prove a loan, the guardrail or a completed secondary sale. Event ledgers may reset; the checked reports retain hashes and ledger indexes even if an explorer later loses history.
 
-## Next steps
+## Current delivery and next steps
 
-1. Connect the wallet boundary to the investor, market, seller, buyer and operator screens (#18–23).
-2. Connect local offers, validated positions and the real settlement executor. Bind each persisted attempt to its submitted hash and verify both exchange legs before reporting a settled offer.
-3. Verify the complete user journey and recovery behavior (#24–25), then finish the presentation and submission (#27–28).
-4. Consider partial fills, multiple vaults and embedding after the complete journey works. Loaded with Batch is already the team's selected scope.
+The local V1 connects the investor, market, seller, buyer and operator screens to a shared SQLite marketplace. The complete deposit, loan, unavailable withdrawal, share sale, repayment and buyer redemption journey has recorded API and two-browser evidence. See [INTEGRATION.md](docs/INTEGRATION.md) for reproduction and the distinction between current and historical checks.
 
-The lending, share-transfer and Batch-sale proofs are implemented. The local offer database and the wallet boundary are foundations for the application; they do not yet form a browser marketplace or an authenticated public service.
+1. Prepare the mentor presentation and reproducible demonstration (#27), then complete team submission sign-off (#28).
+2. Prepare and validate the deployment separately (#45), preserving the single-host database and exact public origin.
+3. Collect buyer/seller and integrator feedback for multiple vaults, bids/RFQs and embedding (#31–32). The current product sells shares; a new borrowing product has not been selected or implemented.
+4. Partial-fill modules are tested exploration code, not an exposed live-trading flow.
 
-The [roadmap](docs/ROADMAP.md) gives acceptance criteria and dependency links through repository issues. All issues are initially unassigned. Teammates can add proposals from **Issues → New issue**. The [shared board](https://github.com/users/MylittleQueercat/projects/1) is linked to this repository and contains all 32 roadmap issues. All four current repository collaborators have Project access. Use Backlog, Ready, In progress, In review, Blocked and Done; check dependencies before moving a task to Ready.
+The [roadmap](docs/ROADMAP.md) links repository issues and acceptance criteria. Teammates can add proposals from **Issues → New issue** and organize them on the [shared board](https://github.com/users/MylittleQueercat/projects/1). Coordinate ownership before starting; pull the latest main before continuing. A complete local demo does not establish production custody, multi-host support or customer demand.
 
 ## Official references
 

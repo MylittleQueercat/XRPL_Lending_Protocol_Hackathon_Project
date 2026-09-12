@@ -7,6 +7,7 @@ import type { MarketAction, MarketSnapshot, StoredAttempt } from './market-types
 export type MarketVerification = {status:'pending'|'failed';message:string} | {status:'settled';proof:SettlementProof};
 export interface MarketGateway {
   checkMaster(account:string):Promise<void>;
+  checkBuyerReceive(offer:Offer,buyer:string):Promise<void>;
   readPosition(input:PositionInput):Promise<PositionSnapshot>;
   prepareBatch(offer:Offer):Promise<Record<string,unknown>>;
   submit(blob:string):Promise<void>;
@@ -27,7 +28,8 @@ export class MarketService {
       const attempt=this.store.getAttempt(offer.id);
       if(!attempt)return [];
       const {revision:_revision,blob:_blob,...publicAttempt}=attempt;
-      return [publicAttempt];
+      const needsSignatures=attempt.status==='awaiting-buyer' || attempt.status==='awaiting-seller';
+      return [{...publicAttempt,batch:needsSignatures?publicAttempt.batch:null}];
     });
     return {offers,attempts};
   }
@@ -41,6 +43,7 @@ export class MarketService {
   private async prepare(offer:Offer,buyer:string):Promise<void> {
     // A retry may finish unsigned preparation after a process stopped between the
     // offer reservation and attempt creation. Existing signed terms are never rebuilt.
+    if(offer.state==='open')await this.gateway.checkBuyerReceive(offer,buyer);
     const reserved=offer.state==='open'?await this.offers.prepareSettlement(offer.id,buyer):offer;
     this.actor(reserved,buyer,'buyer');
     if(reserved.state!=='settling' || !reserved.settlement)throw new Error('Offer cannot prepare a settlement.');
@@ -92,6 +95,12 @@ export class MarketService {
         if(attempt.status!=='awaiting-seller' || !attempt.batch)throw new Error('Settlement is not awaiting seller approval.');
         if(this.now()>=Date.parse(offer.expiresAt))throw new Error('Offer expired; signed authorization is not revoked.');
         const signed=acceptSellerSignature(attempt.batch,action.txBlob,account);
+        await this.gateway.checkBuyerReceive(offer,attempt.buyer);
+        // Another request may have claimed submission while the ledger read awaited.
+        const refreshed=this.store.getAttempt(offer.id)!;
+        if(refreshed.hash)return this.snapshot();
+        if(refreshed.revision!==attempt.revision)throw new Error('Settlement changed during receipt preflight.');
+        if(this.now()>=Date.parse(offer.expiresAt))throw new Error('Offer expired during receipt preflight; signed authorization is not revoked.');
         // Exact blob and hash are durable before the single network call. A crash
         // here is unknown and must be recovered by read-only hash lookup.
         const claimed=this.save(attempt,{batch:signed.batch,blob:signed.blob,hash:signed.hash,status:'submitting',message:'Submission claimed; outcome not yet known.'});

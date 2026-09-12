@@ -1,5 +1,5 @@
 import { Client, hashes, type Request, type Transaction } from 'xrpl';
-import { LedgerReader, type PositionInput } from './ledger-reader.js';
+import { LedgerReader, type PositionInput, type PositionSnapshot } from './ledger-reader.js';
 import type { Offer } from './offers.js';
 import { buildSaleBatch } from './settlement.js';
 import { asObject, canonical, type StoredAttempt } from './market-types.js';
@@ -50,6 +50,29 @@ export async function verifyBatchSettlement(offer:Offer,attempt:StoredAttempt,re
   }catch{return pending();}
 }
 
+// Ledger flags, verified against the protocol reference. xrpl.js 5.2.0-beta.1
+// declares the issuance enum internally but does not export it from its public entry.
+// https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/mptokenissuance
+const shareIssuanceFlags={locked:0x00000001,requireAuth:0x00000004,canTransfer:0x00000020};
+const shareHolderFlags={locked:0x00000001,authorized:0x00000002};
+
+/** Receipt eligibility is read before reservation and checked again before broadcast.
+ * LedgerReader pins the vault, issuance and holder to one fresh validated ledger. */
+export async function checkBuyerReceipt(offer:Offer,buyer:string,readPosition:(input:PositionInput)=>Promise<PositionSnapshot>):Promise<void> {
+  const snapshot=await readPosition({vaultId:offer.vaultId,holder:buyer});
+  if(snapshot.networkId!==TRACK1.networkId || snapshot.networkId!==offer.networkId || snapshot.vaultId!==offer.vaultId || snapshot.shareMptId!==offer.shareMptId || snapshot.holderAddress!==buyer)throw new Error('Buyer receipt snapshot belongs to another network, vault, issuance or account.');
+  const holder=snapshot.holder;
+  if(!holder)throw new Error('Authorize this vault share issuance on the validated ledger before requesting the offer.');
+  if(holder.LedgerEntryType!=='MPToken' || holder.Account!==buyer || holder.MPTokenIssuanceID!==offer.shareMptId)throw new Error('Buyer holding does not match this vault share issuance.');
+  const issuanceFlags=snapshot.issuance.Flags,holderFlags=holder.Flags;
+  if(typeof issuanceFlags!=='number' || !Number.isInteger(issuanceFlags) || issuanceFlags<0 || issuanceFlags>0xffffffff || typeof holderFlags!=='number' || !Number.isInteger(holderFlags) || holderFlags<0 || holderFlags>0xffffffff)throw new Error('Invalid share issuance or holder permission flags.');
+  if((issuanceFlags & shareIssuanceFlags.canTransfer)===0)throw new Error('This vault share issuance does not permit transfers between holders.');
+  // MPToken flags differ from issuance flags: Locked=1 and Authorized=2.
+  // https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/mptoken
+  if((issuanceFlags & shareIssuanceFlags.locked)!==0 || (holderFlags & shareHolderFlags.locked)!==0)throw new Error('Vault shares or the buyer holding are locked.');
+  if((issuanceFlags & shareIssuanceFlags.requireAuth)!==0 && (holderFlags & shareHolderFlags.authorized)===0)throw new Error('Buyer requires explicit issuer authorization; domain-based eligibility is not verified by this marketplace.');
+}
+
 /** Fixed event network; each business action verifies a fresh validated server state. */
 export class XrplMarketGateway implements MarketGateway {
   private readonly client=new Client(TRACK1.wsUrl,{connectionTimeout:10_000,timeout:12_000});
@@ -70,6 +93,7 @@ export class XrplMarketGateway implements MarketGateway {
     if(result.validated!==true || data.Account!==account || typeof data.Flags!=='number' || (data.Flags & 0x00100000)!==0)throw new Error('This demo requires an enabled account master key on network 4001.');
   }
   readPosition(input:PositionInput){return this.reader.readPosition(input);}
+  checkBuyerReceive(offer:Offer,buyer:string){return checkBuyerReceipt(offer,buyer,input=>this.readPosition(input));}
   async prepareBatch(offer:Offer):Promise<Record<string,unknown>> {
     if(!offer.settlement)throw new Error('Missing settlement reservation.');
     await this.checkMaster(offer.seller);await this.checkMaster(offer.settlement.buyer);

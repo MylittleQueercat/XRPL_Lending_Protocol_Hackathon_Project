@@ -11,7 +11,7 @@ const cleanup:Array<()=>void>=[];
 afterEach(()=>cleanup.splice(0).forEach(fn=>fn()));
 function fixture(){
   const store=new MarketStore(':memory:'),offers=new SqliteOfferStore(':memory:');cleanup.push(()=>store.close(),()=>offers.close());
-  const service=new MarketService(store,offers,{checkMaster:async()=>{},readPosition:async()=>{throw new Error('Not required');},prepareBatch:async()=>{throw new Error('Not required');},submit:async()=>{throw new Error('Not allowed');},verify:async()=>({status:'pending',message:'Unknown'})});
+  const service=new MarketService(store,offers,{checkMaster:async()=>{},checkBuyerReceive:async()=>{throw new Error('Not required');},readPosition:async()=>{throw new Error('Not required');},prepareBatch:async()=>{throw new Error('Not required');},submit:async()=>{throw new Error('Not allowed');},verify:async()=>({status:'pending',message:'Unknown'})});
   return {origin,auth:new MarketAuth(store,origin),service};
 }
 function request(body:unknown,headers:Record<string,string>={}){return new Request(`${origin}/api/market`,{method:'POST',headers:{origin,'content-type':'application/json',...headers},body:JSON.stringify(body)});}

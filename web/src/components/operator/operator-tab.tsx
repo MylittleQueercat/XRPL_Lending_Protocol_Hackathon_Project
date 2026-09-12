@@ -208,11 +208,13 @@ function VaultsSection({ vaults, selected, onSelect, onCreate, onDeposit, onRefr
           </div>
         )}
         {selected && (
-          <form className="flex flex-wrap items-end gap-3 rounded-lg bg-muted/40 p-3" onSubmit={(e) => { e.preventDefault(); if (depositDrops) onDeposit(depositDrops); }}>
-            <Field id="seed-liquidity" label="Seed liquidity (optional)" hint="Deposit your own XRP so the selected vault has something to lend. In a product this is the lenders' capital." className="min-w-56 flex-1">
-              <XrpInput id="seed-liquidity" value={depositXrp} onChange={setDepositXrp} />
+          <form className="rounded-lg bg-muted/40 p-3" onSubmit={(e) => { e.preventDefault(); if (depositDrops) onDeposit(depositDrops); }}>
+            <Field id="seed-liquidity" label="Seed liquidity (optional)" hint="Deposit your own XRP so the selected vault has something to lend. In a product this is the lenders' capital.">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="min-w-0 flex-1 basis-56"><XrpInput id="seed-liquidity" value={depositXrp} onChange={setDepositXrp} /></div>
+                <Button type="submit" variant="outline" disabled={!depositDrops || busy !== null}>{busy === "VaultDeposit" ? "Depositing…" : "Deposit"}</Button>
+              </div>
             </Field>
-            <Button type="submit" variant="outline" disabled={!depositDrops || busy !== null}>{busy === "VaultDeposit" ? "Depositing…" : "Deposit"}</Button>
           </form>
         )}
       </CardContent>

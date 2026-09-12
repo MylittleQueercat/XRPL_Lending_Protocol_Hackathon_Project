@@ -1,22 +1,22 @@
 {
-  "checkedAt": "2026-09-12T16:14:12.324Z",
+  "checkedAt": "2026-09-12T17:50:30.596Z",
   "sdk": "xrpl@5.2.0-beta.1",
   "node": "v24.11.1",
   "networkId": 4001,
   "origin": "http://127.0.0.1:3100",
   "scope": "Real HTTP API + SQLite + production client signing helpers + event ledger; separate actor wallets. Browser clicks are verified separately.",
   "network": {
-    "checkedAt": "2026-09-12T16:12:44.062Z",
+    "checkedAt": "2026-09-12T17:49:12.615Z",
     "networkId": 4001,
     "reachable": true,
     "http": {
       "build": "3.4.0-rc1",
-      "ledgerIndex": 69822,
-      "ledgerAgeSeconds": 0
+      "ledgerIndex": 71750,
+      "ledgerAgeSeconds": 3
     },
     "websocket": {
       "build": "3.4.0-rc1",
-      "ledgerIndex": 69821,
+      "ledgerIndex": 71750,
       "ledgerAgeSeconds": 3
     },
     "vaultReady": true,
@@ -44,30 +44,30 @@
     ]
   },
   "actors": {
-    "broker": "rNU6kZuNsdD3kUA7wp6KweQ6xnowfSb989",
-    "seller": "rJfdsXkrEaFJcDG3NyLD5hHy6wN16BhniT",
-    "borrower": "r9L6NMLin2V73ijoNjcg7a4qC3taFRR4fH",
-    "buyer": "rGohqZRJS1TGJcybWLCHyck4jwYpRoGk2e"
+    "broker": "rPA71yiQNDCeNmkv9Ygaiq4G2Kmo71QMdh",
+    "seller": "r4CTBqUEVZHaEXTNCLFE18R13hERya5cuZ",
+    "borrower": "rMvfbAnxNY9m6hYNuNvF87ZS2wtEcuvh1z",
+    "buyer": "rwFozLY7TyqQW2ptupU18Mdo4Mt9A3ow8X"
   },
-  "vaultId": "E3ECCD2A920CBFA8618C4ED33786114D6ECD6B3A5DAB4502064E19E18BB7C69E",
-  "loanId": "0DF53E98E5EA125B7643EE836C6C14203B3274675CB23781D4E6413C220C3573",
-  "shareMptId": "000000016151B1A158ABFF415AB6EF10A2459B0A1631F43B",
-  "offerId": "84bb521c-bab9-46f3-a758-9c3d0553a14b",
+  "vaultId": "B2A34311216751B3B33B0AC4B57E8A5DA0CAC45AC74DCD86531309006F951C69",
+  "loanId": "96263160897E9FB64B793B47410AA2F4190F659A4368DBA4065313CD2B376F7B",
+  "shareMptId": "00000001B9677226EA6C5EF19ACAF3B58EBCF141D521BF46",
+  "offerId": "0db780bb-9b47-429a-913c-5cf611df4eb3",
   "settlementProof": {
-    "attemptId": "fe238eba-0a01-4ca1-9297-b59df3a3b8ec",
+    "attemptId": "00d249d6-6445-45d7-80a3-24e1086f2784",
     "networkId": 4001,
-    "transactionHash": "35F492056EC5FD39B29C6D82DFE9259A20FB7A14504C4DE8F253FFD3F9D98B2B",
-    "ledgerHash": "DB0907660CCEB4DC7E2BC8346E234AC4F18F79CFCF3A983E6715B89E53037D6C",
-    "ledgerIndex": 69847,
+    "transactionHash": "A651D9CF466D4275E6985603D6DA3B127444AB9C1B44EBAC3C8BE785EB692016",
+    "ledgerHash": "537B51186A7EF29CD1FE0F8D68B0F7A73CAD6978BDCF088D7C16B1DF9DC75106",
+    "ledgerIndex": 71774,
     "shares": {
-      "from": "rJfdsXkrEaFJcDG3NyLD5hHy6wN16BhniT",
-      "to": "rGohqZRJS1TGJcybWLCHyck4jwYpRoGk2e",
-      "shareMptId": "000000016151B1A158ABFF415AB6EF10A2459B0A1631F43B",
+      "from": "r4CTBqUEVZHaEXTNCLFE18R13hERya5cuZ",
+      "to": "rwFozLY7TyqQW2ptupU18Mdo4Mt9A3ow8X",
+      "shareMptId": "00000001B9677226EA6C5EF19ACAF3B58EBCF141D521BF46",
       "sharesRaw": "100000000"
     },
     "payment": {
-      "from": "rGohqZRJS1TGJcybWLCHyck4jwYpRoGk2e",
-      "to": "rJfdsXkrEaFJcDG3NyLD5hHy6wN16BhniT",
+      "from": "rwFozLY7TyqQW2ptupU18Mdo4Mt9A3ow8X",
+      "to": "r4CTBqUEVZHaEXTNCLFE18R13hERya5cuZ",
       "asset": {
         "currency": "XRP"
       },
@@ -78,97 +78,97 @@
     {
       "label": "create-vault",
       "transactionType": "VaultCreate",
-      "hash": "B364F46755ED3E2B6BE83908FCBE8E255569576FFE7FCD771DCDC6CF0B2E58B0",
-      "ledgerIndex": 69832,
+      "hash": "A3E9C40CDF880DF839D78E07655E7D8D35B48DF34524162938F371498B2F8BCA",
+      "ledgerIndex": 71760,
       "resultCode": "tesSUCCESS",
       "feeDrops": "2000000",
-      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/B364F46755ED3E2B6BE83908FCBE8E255569576FFE7FCD771DCDC6CF0B2E58B0"
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/A3E9C40CDF880DF839D78E07655E7D8D35B48DF34524162938F371498B2F8BCA"
     },
     {
       "label": "deposit",
       "transactionType": "VaultDeposit",
-      "hash": "E5318F02EADA1E30A8A141A9155BF6479C5160DB242B8F02568324E84D3C57E5",
-      "ledgerIndex": 69834,
+      "hash": "F4BE5D7188908E93C1CA2F35240A0E63F32483D134B4B58A2B3AC0219642E699",
+      "ledgerIndex": 71762,
       "resultCode": "tesSUCCESS",
       "feeDrops": "12",
-      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/E5318F02EADA1E30A8A141A9155BF6479C5160DB242B8F02568324E84D3C57E5"
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/F4BE5D7188908E93C1CA2F35240A0E63F32483D134B4B58A2B3AC0219642E699"
     },
     {
       "label": "create-broker",
       "transactionType": "LoanBrokerSet",
-      "hash": "3D54D72B0F105BF517E0362D099002B49C72EAA1B17D17F653944B6A91B8664A",
-      "ledgerIndex": 69836,
+      "hash": "8E5B52AE8862FA766109F016E507F375BAAD9E158D7B787F0069B65883CAF824",
+      "ledgerIndex": 71764,
       "resultCode": "tesSUCCESS",
       "feeDrops": "12",
-      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/3D54D72B0F105BF517E0362D099002B49C72EAA1B17D17F653944B6A91B8664A"
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/8E5B52AE8862FA766109F016E507F375BAAD9E158D7B787F0069B65883CAF824"
     },
     {
       "label": "cover",
       "transactionType": "LoanBrokerCoverDeposit",
-      "hash": "14A192F33E8A9AAB46641CCA55F8F66A713F6215C8FF6150EDF5F592C44EFB05",
-      "ledgerIndex": 69838,
+      "hash": "F641D852A1F665B935C3EAC6B073858714677E6027C000C7511D8DB42AF92BBD",
+      "ledgerIndex": 71765,
       "resultCode": "tesSUCCESS",
       "feeDrops": "12",
-      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/14A192F33E8A9AAB46641CCA55F8F66A713F6215C8FF6150EDF5F592C44EFB05"
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/F641D852A1F665B935C3EAC6B073858714677E6027C000C7511D8DB42AF92BBD"
     },
     {
       "label": "originate-loan",
       "transactionType": "LoanSet",
-      "hash": "BDB50E1402BFEA47A4C16B54891C974C0737A82A662AAD18F20273A2A1AB8848",
-      "ledgerIndex": 69840,
+      "hash": "CB305FB6B4BDC859EB9C7278C9739DA8A6C998111F55BC92FB6CC4650A3A4A86",
+      "ledgerIndex": 71767,
       "resultCode": "tesSUCCESS",
       "feeDrops": "24",
-      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/BDB50E1402BFEA47A4C16B54891C974C0737A82A662AAD18F20273A2A1AB8848"
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/CB305FB6B4BDC859EB9C7278C9739DA8A6C998111F55BC92FB6CC4650A3A4A86"
     },
     {
       "label": "unavailable-withdrawal",
       "transactionType": "VaultWithdraw",
-      "hash": "D3DDFEED20F28AB1EDC51590D519EE223C22138E4EB33A9B2EF752D7EED1AB84",
-      "ledgerIndex": 69842,
+      "hash": "96937913430C8102FC712046086A5DB427121EDD5AE829704F423FF8F61475EB",
+      "ledgerIndex": 71769,
       "resultCode": "tecINSUFFICIENT_FUNDS",
       "feeDrops": "12",
-      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/D3DDFEED20F28AB1EDC51590D519EE223C22138E4EB33A9B2EF752D7EED1AB84"
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/96937913430C8102FC712046086A5DB427121EDD5AE829704F423FF8F61475EB"
     },
     {
       "label": "buyer-authorize",
       "transactionType": "MPTokenAuthorize",
-      "hash": "BC374DB953ACE23547CA41C7A725E709AEE2A35D01CBCE171471088DF19793EE",
-      "ledgerIndex": 69844,
+      "hash": "C83A84814CB4838BD11D8551EAD33A914D6E5F6A7844AB17DC5061BD5A74FB68",
+      "ledgerIndex": 71771,
       "resultCode": "tesSUCCESS",
       "feeDrops": "12",
-      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/BC374DB953ACE23547CA41C7A725E709AEE2A35D01CBCE171471088DF19793EE"
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/C83A84814CB4838BD11D8551EAD33A914D6E5F6A7844AB17DC5061BD5A74FB68"
     },
     {
       "label": "shared-market-sale",
       "transactionType": "Batch",
-      "hash": "35F492056EC5FD39B29C6D82DFE9259A20FB7A14504C4DE8F253FFD3F9D98B2B",
-      "ledgerIndex": 69847,
+      "hash": "A651D9CF466D4275E6985603D6DA3B127444AB9C1B44EBAC3C8BE785EB692016",
+      "ledgerIndex": 71774,
       "resultCode": "tesSUCCESS",
-      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/35F492056EC5FD39B29C6D82DFE9259A20FB7A14504C4DE8F253FFD3F9D98B2B"
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/A651D9CF466D4275E6985603D6DA3B127444AB9C1B44EBAC3C8BE785EB692016"
     },
     {
       "label": "borrower-repay",
       "transactionType": "LoanPay",
-      "hash": "AA5372B46A74502539AEBD4DD3E278A629DC004A14C3851987623A0808829B58",
-      "ledgerIndex": 69849,
+      "hash": "D5E49235BC2017D36352572A0AA1F030218FCC3A0232A92AF340A2A9F6341EF0",
+      "ledgerIndex": 71776,
       "resultCode": "tesSUCCESS",
       "feeDrops": "12",
-      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/AA5372B46A74502539AEBD4DD3E278A629DC004A14C3851987623A0808829B58"
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/D5E49235BC2017D36352572A0AA1F030218FCC3A0232A92AF340A2A9F6341EF0"
     },
     {
       "label": "buyer-redeem",
       "transactionType": "VaultWithdraw",
-      "hash": "413AF6CF95872A3EE8D2324552256067EDBA6F155CD63A12B6227A58C4486D97",
-      "ledgerIndex": 69851,
+      "hash": "9B061C5065ED93F760D682CC5E34FE2510A0BAB870DF85401C3B3C56A1F75085",
+      "ledgerIndex": 71777,
       "resultCode": "tesSUCCESS",
       "feeDrops": "12",
-      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/413AF6CF95872A3EE8D2324552256067EDBA6F155CD63A12B6227A58C4486D97"
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/9B061C5065ED93F760D682CC5E34FE2510A0BAB870DF85401C3B3C56A1F75085"
     }
   ],
   "snapshots": [
     {
       "label": "after-deposit",
-      "ledgerIndex": 69834,
+      "ledgerIndex": 71762,
       "sellerShares": "100000000",
       "buyerShares": "0",
       "sellerXrp": "899999988",
@@ -180,7 +180,7 @@
     },
     {
       "label": "after-loan",
-      "ledgerIndex": 69840,
+      "ledgerIndex": 71767,
       "sellerShares": "100000000",
       "buyerShares": "0",
       "sellerXrp": "899999988",
@@ -192,7 +192,7 @@
     },
     {
       "label": "after-refusal",
-      "ledgerIndex": 69842,
+      "ledgerIndex": 71769,
       "sellerShares": "100000000",
       "buyerShares": "0",
       "sellerXrp": "899999976",
@@ -204,7 +204,7 @@
     },
     {
       "label": "before-sale",
-      "ledgerIndex": 69844,
+      "ledgerIndex": 71771,
       "sellerShares": "100000000",
       "buyerShares": "0",
       "sellerXrp": "899999976",
@@ -216,7 +216,7 @@
     },
     {
       "label": "after-sale",
-      "ledgerIndex": 69847,
+      "ledgerIndex": 71774,
       "sellerShares": "0",
       "buyerShares": "100000000",
       "sellerXrp": "994999916",
@@ -228,26 +228,26 @@
     },
     {
       "label": "after-repayment",
-      "ledgerIndex": 69849,
+      "ledgerIndex": 71776,
       "sellerShares": "0",
       "buyerShares": "100000000",
       "sellerXrp": "994999916",
       "buyerXrp": "904999988",
-      "borrowerXrp": "994999958",
-      "assetsAvailableDrops": "100000030",
-      "assetsTotalDrops": "100000030",
+      "borrowerXrp": "994999969",
+      "assetsAvailableDrops": "100000019",
+      "assetsTotalDrops": "100000019",
       "totalShares": "100000000"
     },
     {
       "label": "after-buyer-redemption",
-      "ledgerIndex": 69851,
+      "ledgerIndex": 71777,
       "sellerShares": "0",
       "buyerShares": "0",
       "sellerXrp": "994999916",
-      "buyerXrp": "1005000006",
-      "borrowerXrp": "994999958",
-      "assetsAvailableDrops": "undefined",
-      "assetsTotalDrops": "undefined",
+      "buyerXrp": "1004999995",
+      "borrowerXrp": "994999969",
+      "assetsAvailableDrops": "0",
+      "assetsTotalDrops": "0",
       "totalShares": "0"
     }
   ],

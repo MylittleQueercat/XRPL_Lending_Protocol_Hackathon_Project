@@ -24,7 +24,7 @@ const cleanup:Array<()=>void>=[];
 afterEach(()=>cleanup.splice(0).reverse().forEach(fn=>fn()));
 function setup(gatewayPatch:Partial<MarketGateway>={},path=':memory:') {
   const store=new MarketStore(path),offers=new SqliteOfferStore(path); cleanup.push(()=>store.close(),()=>offers.close());
-  const gateway:MarketGateway={checkMaster:async()=>{},readPosition:async()=>structuredClone(position),prepareBatch:async offer=>prepared(offer),submit:vi.fn(async()=>{}),verify:async()=>({status:'pending',message:'Awaiting validation.'}),...gatewayPatch};
+  const gateway:MarketGateway={checkBuyerReceive:async()=>{},checkMaster:async()=>{},readPosition:async()=>structuredClone(position),prepareBatch:async offer=>prepared(offer),submit:vi.fn(async()=>{}),verify:async()=>({status:'pending',message:'Awaiting validation.'}),...gatewayPatch};
   const service=new MarketService(store,offers,gateway,()=>now);
   return {service,gateway,store};
 }
@@ -41,6 +41,30 @@ async function buyerSigns(service:MarketService) {
   return {id,blob:seller.sign(ready.attempts[0]!.batch as unknown as Batch).tx_blob};
 }
 describe('shared durable marketplace coordinator',()=>{
+  it('leaves an offer open with no attempt when buyer receipt preflight fails',async()=>{
+    const {service,gateway,store}=setup({checkBuyerReceive:vi.fn(async()=>{throw new Error('Authorize this share issuance first.');})});
+    const created=await service.execute(seller.address,{type:'create',input});const id=created.offers[0]!.id;
+    await expect(service.execute(buyer.address,{type:'prepare',offerId:id})).rejects.toThrow(/Authorize/);
+    expect(service.snapshot().offers[0]!.state).toBe('open');expect(store.getAttempt(id)).toBeNull();
+    expect(gateway.checkBuyerReceive).toHaveBeenCalledWith(expect.objectContaining({id}),buyer.address);
+  });
+  it('rechecks buyer receipt before submission without replacing signed terms',async()=>{
+    const {service,gateway,store}=setup();const {id,blob}=await buyerSigns(service);
+    const saved=store.getAttempt(id);
+    gateway.checkBuyerReceive=async()=>{throw new Error('Buyer holding locked.');};
+    await expect(service.execute(seller.address,{type:'seller-submit',offerId:id,txBlob:blob})).rejects.toThrow(/locked/);
+    expect(gateway.submit).not.toHaveBeenCalled();expect(store.getAttempt(id)).toEqual(saved);
+  });
+  it.each(['submitting','pending','settled','failed'] as const)('omits fully signed batches in public %s snapshots but preserves durable records',async(status)=>{
+    const {service,store}=setup();const {id,blob}=await buyerSigns(service);
+    await service.execute(seller.address,{type:'seller-submit',offerId:id,txBlob:blob});
+    const saved=store.getAttempt(id)!;
+    store.updateAttempt({...saved,status,revision:saved.revision+1},saved.revision);
+    expect(service.snapshot().attempts[0]).toMatchObject({status,batch:null,hash:saved.hash});
+    expect(service.snapshot().attempts[0]).not.toHaveProperty('blob');
+    expect(store.getAttempt(id)).toMatchObject({batch:saved.batch,blob,hash:saved.hash});
+  });
+
   it('shares offers across processes and enforces actor ownership',async()=>{
     const dir=mkdtempSync(join(tmpdir(),'raise-market-'));cleanup.push(()=>rmSync(dir,{recursive:true,force:true}));
     const path=join(dir,'market.sqlite');const first=setup({},path),second=setup({},path);

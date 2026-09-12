@@ -120,11 +120,19 @@ try{
   stage='waiting-for-browser-market-sale';await progress();print({instruction:'Seller: verify withdrawal limitation and list all 100000000 shares for 95 XRP. Buyer and seller approve separately in their browsers.'});
   const sold=await waitFor(s=>s.buyerShares==='100000000' && s.sellerShares==='0');
   const current=await market();const offer=current.offers.find(o=>o.vaultId===vaultId && o.seller===seller && o.settlement?.buyer===buyer);assert(offer,'No matching browser marketplace offer.');
-  const attempt=current.attempts.find(a=>a.offerId===offer.id);assert(attempt?.hash && attempt.batch,'No exact browser settlement hash.');
-  const proofResult=await verifyBatchSettlement(offer,{...attempt,revision:0,blob:null} as StoredAttempt,request=>client.request(request as Parameters<typeof client.request>[0]));
+  const attempt=current.attempts.find(a=>a.offerId===offer.id);assert(attempt?.hash,'No exact browser settlement hash.');
+  // Submitted signatures are private in Raise snapshots. Read the exact validated
+  // transaction from the ledger to independently verify the public settlement.
+  const outer=(await client.request({command:'tx',transaction:attempt.hash})).result;
+  assert.equal(outer.validated,true);assert.equal(outer.hash,attempt.hash);
+  // These RPC presentation fields are not serialized transaction fields.
+  const {ctid:_ctid,date:_date,ledger_index:_ledgerIndex,...batch}=record(outer.tx_json,'validated browser Batch');
+  const proofResult=await verifyBatchSettlement(offer,{...attempt,batch,revision:0,blob:null} as StoredAttempt,request=>client.request(request as Parameters<typeof client.request>[0]));
   assert.equal(proofResult.status,'settled','Both browser sale legs must verify before borrower repayment.');if(proofResult.status!=='settled')throw new Error('Browser sale is not verified.');
   transactions.push({label:'browser-shared-market-sale',transactionType:'Batch',hash:proofResult.proof.transactionHash,ledgerIndex:proofResult.proof.ledgerIndex,resultCode:'tesSUCCESS',explorer:`${TRACK1.explorerUrl}/transactions/${proofResult.proof.transactionHash}`});
   await collectBrowserTransactions(seller,created.ledgerIndex,sold.ledgerIndex);await collectBrowserTransactions(buyer,created.ledgerIndex,sold.ledgerIndex);
+  assert(transactions.some(t=>t.account===seller && t.transactionType==='VaultDeposit' && t.resultCode==='tesSUCCESS'),'Seller browser deposit must be validated.');
+  assert(transactions.some(t=>t.account===seller && t.transactionType==='VaultWithdraw' && t.resultCode==='tecINSUFFICIENT_FUNDS'),'Seller browser withdrawal must demonstrate unavailable vault cash.');
   stage='repaying-fixture-loan';await submit('fixture-full-repayment',{TransactionType:'LoanPay',Account:borrower.address,LoanID:loanId,Amount:'200000000',Flags:LoanPayFlags.tfLoanFullPayment} as SubmittableTransaction,borrower);
   const repaid=await snapshot();assert(BigInt(repaid.assetsAvailableDrops)>=100000000n);snapshots.push({label:'after-repayment',...repaid});
   stage='waiting-for-buyer-ui-redemption';await progress();print({instruction:'Buyer: refresh the position and withdraw the entire available amount using the browser UI.',availableDrops:repaid.assetsAvailableDrops});
