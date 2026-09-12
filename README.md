@@ -152,7 +152,7 @@ This proves **XLS-65 only**. It does not prove a loan, the guardrail or a comple
 The local V1 connects the investor, market, seller, buyer and operator screens to a shared SQLite marketplace. The complete deposit, loan, unavailable withdrawal, share sale, repayment and buyer redemption journey has recorded API and two-browser evidence. See [INTEGRATION.md](docs/INTEGRATION.md) for reproduction and the distinction between current and historical checks.
 
 1. Prepare the mentor presentation and reproducible demonstration (#27), then complete team submission sign-off (#28).
-2. Prepare and validate the deployment separately (#45), preserving the single-host database and exact public origin.
+2. Deploy through the versioned [Sunny / Dokploy runbook](docs/DEPLOYMENT.md) (#45), preserving the single-host database and exact public origin. Public availability is a separate verification from the local E2E evidence.
 3. Collect buyer/seller and integrator feedback for multiple vaults, bids/RFQs and embedding (#31–32). The current product sells shares; a new borrowing product has not been selected or implemented.
 4. Partial-fill modules are tested exploration code, not an exposed live-trading flow.
 
