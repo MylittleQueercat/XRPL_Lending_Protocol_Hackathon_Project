@@ -1,2 +1,12 @@
 .xrpl-devex/
-.codex/hooks.json
+# Local editor/agent installation state. Shared DevEx workflow evidence lives
+# in docs/DEVEX.md and devfeedback/, not in these machine-specific links.
+.claude/
+.codex/
+.cursor/
+.grok/
+# Separate local DevEx hook checkout; its runtime config contains an ingest key.
+xrpl-devex-hook/
+node_modules/
+scripts/vault-baseline/wallets.json
+scripts/vault-baseline/fresh-results.json

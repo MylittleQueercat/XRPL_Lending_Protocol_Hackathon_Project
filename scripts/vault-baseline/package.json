@@ -1,0 +1,13 @@
+{
+  "name": "xrpl-vault-baseline",
+  "private": true,
+  "type": "module",
+  "description": "Read-only verifier for the Track 1 XLS-65 XRP vault baseline",
+  "scripts": {
+    "verify": "node verify.mjs",
+    "run": "node run.mjs"
+  },
+  "dependencies": {
+    "xrpl": "5.2.0"
+  }
+}
