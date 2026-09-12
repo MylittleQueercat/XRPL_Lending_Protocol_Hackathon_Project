@@ -135,9 +135,9 @@ export function SellFlow() {
   return (
     <div className="space-y-6">
       {published && (
-        <Alert variant="success">
+        <Alert className="raise-state" variant="success">
           <CheckCircle2 />
-          <AlertTitle>Offer published</AlertTitle>
+          <AlertTitle>Offer published, waiting for a buyer</AlertTitle>
           <AlertDescription>
             <p>
               {formatShares(published.shares)} units for {formatXrp(published.priceDrops)}.{" "}
