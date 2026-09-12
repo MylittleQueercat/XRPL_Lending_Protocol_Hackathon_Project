@@ -43,12 +43,21 @@ export function assessNetwork(httpInfo: unknown, wsInfo: unknown, featuresValue:
   const enabled = (name: string) => features.some((feature) => feature.name === name && feature.enabled);
   const vaultReady = enabled('SingleAssetVault');
   const blockers: string[] = [];
+  const notes: string[] = [];
   if (!vaultReady) blockers.push('SingleAssetVault is not confirmed enabled.');
   if (!enabled('LendingProtocol')) blockers.push('LendingProtocol is not confirmed enabled.');
-  if (enabled('LendingProtocolV1_1')) blockers.push('LendingProtocolV1_1 is enabled: new loans require closed-ended vaults, incompatible with this Track 1 open-ended plan.');
+  // LendingProtocolV1_1 is enabled on the event network. It was expected to block open-ended
+  // lending; measured on 2026-09-12 it does not. The full Track 1 open-ended flow was validated
+  // on ledger: VaultCreate, VaultDeposit, LoanBrokerSet, LoanBrokerCoverDeposit, LoanSet
+  // (tesSUCCESS, 06990570A9F48B138C4B4E98C1085DC8D30331CB17BD175E6924578E2D7094A0), the
+  // insufficient-liquidity guardrail, LoanPay and VaultWithdraw. What the amendment does change is
+  // accounting: a 400 XRP loan carrying 244.19 XRP of scheduled interest left AssetsTotal at
+  // exactly 800.000000 XRP at origination, so interest is recognised on payment (cash basis),
+  // not whole-life as V1 would. That is a reporting caveat, not a reason to refuse to run.
+  if (enabled('LendingProtocolV1_1')) notes.push('LendingProtocolV1_1 is enabled: open-ended loan origination works, but interest is recognised on payment (cash basis), not at origination. Document yield on that basis.');
   return {
     checkedAt: new Date().toISOString(), networkId: TRACK1.networkId, reachable: true,
-    http, websocket, vaultReady, vanillaReady: blockers.length === 0, blockers,
+    http, websocket, vaultReady, vanillaReady: blockers.length === 0, blockers, notes,
     amendments: features.filter((feature) => ['SingleAssetVault', 'LendingProtocol', 'LendingProtocolV1_1'].includes(feature.name)),
   };
 }

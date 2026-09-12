@@ -20,11 +20,19 @@ describe('Track 1 network safety', () => {
   it('fails closed when amendment support is unknown', () => {
     expect(assessNetwork(info, info, {}).vaultReady).toBe(false);
   });
-  it('allows the XLS-65 smoke but blocks open-ended lending on V1.1', () => {
+  it('treats V1.1 as an accounting caveat, not a blocker', () => {
+    // Measured on the event network: open-ended origination succeeds with V1.1 enabled.
+    // Only interest recognition changes, so the flow must stay runnable.
     const result = assessNetwork(info, info, { ...features, v11: { name: 'LendingProtocolV1_1', enabled: true } });
     expect(result.vaultReady).toBe(true);
+    expect(result.vanillaReady).toBe(true);
+    expect(result.blockers).toEqual([]);
+    expect(result.notes.join(' ')).toMatch(/cash basis/);
+  });
+  it('still blocks when a required amendment is missing', () => {
+    const result = assessNetwork(info, info, { vault: { name: 'SingleAssetVault', enabled: true } });
     expect(result.vanillaReady).toBe(false);
-    expect(result.blockers.join(' ')).toMatch(/closed-ended/);
+    expect(result.blockers.join(' ')).toMatch(/LendingProtocol/);
   });
   it('rejects stale ledgers before faucet funding or signing', () => {
     expect(() => assessNetwork({ ...info, validated_ledger: { seq: 100, age: 90 } }, info, features)).toThrow(/stale/i);
