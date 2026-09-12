@@ -2,7 +2,7 @@
 
 All tasks live in this repository, are intentionally unassigned, and have acceptance criteria and dependencies. There are no duration estimates. Add ideas using [New issue](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/new/choose), or propose changes in an existing issue.
 
-Use [Issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues) for current status and [Milestones](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/milestones) for phase progress. This document is an index, not an automatically synchronized Kanban board.
+Use [Issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues) for current status and [Milestones](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/milestones) for phase progress. Use the [shared Kanban board](https://github.com/users/MylittleQueercat/projects/1) to move and organize cards; this document remains the phase index.
 
 ## 01 — Shared foundation
 
@@ -66,18 +66,23 @@ Use [Issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon
 | [#31](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/31) | Explore multiple vaults, bids and requests for quotes |
 | [#32](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/32) | Explore an embeddable exit module and notifications |
 
-## GitHub board activation
+## Shared board workflow
 
-GitHub Projects are owned by an account or organization and can be linked to a repository. The repository belongs to `MylittleQueercat`; the current contributor account has repository WRITE access but GitHub rejected creation of a Project under that owner. No unrelated personal Project was created.
+The [Raise team board](https://github.com/users/MylittleQueercat/projects/1) is linked to this repository and uses it as the default repository for new issues. All 32 existing roadmap issues have been imported without duplicates or assignees.
 
-Repository-owner action:
+| Status | Meaning |
+|---|---|
+| Backlog | Planned work; check dependencies before starting. |
+| Ready | Can be started now with clear acceptance criteria. |
+| In progress | Actively being implemented. |
+| In review | Implementation ready for review or validation. |
+| Blocked | Waiting on an external dependency or decision. |
+| Done | Acceptance criteria verified and evidence attached. |
 
-1. Open the repository **Projects** tab, create a Project under the repository owner, and link it to this repository.
-2. Give the team explicit Project Write access and `vgtray` Project Admin access to configure it. Repository access does not automatically grant Project access.
-3. Use a **Board** view grouped by Status: Backlog, Ready, In progress, In review, Blocked, Done.
-4. Import the issues with the `roadmap` label from this repository. Leave Assignees empty.
-5. Use the repository as the default source for new issues, and enable automatic addition from the repository if the account supports that workflow.
+Initial organization: #1 Done; #2 Blocked; #3, #4 and #5 Ready; the remaining 27 tasks Backlog. These are the bootstrap states, not a live status report. Read the board for current progress.
 
-Once the owner grants access, the already-created issues can be imported without duplication. Any teammate with Project Write access can add and organize tasks. An organization-owned Project would require placing the repository in a team organization; no repository ownership transfer is included in this bootstrap.
+All four current repository collaborators have Project access. New teammates require separate access to the repository and Project. Existing teammates can create proposals, add issues, update acceptance criteria and move cards. Do not assign another teammate without coordination.
 
-Sources: [Creating a Project](https://docs.github.com/en/issues/planning-and-tracking-with-projects/creating-projects/creating-a-project), [linking it to a repository](https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-your-project/adding-your-project-to-a-repository).
+For new tasks, create a repository issue with the task template: it adds the `roadmap` and `status:backlog` labels. The enabled auto-add workflow imports new or updated open issues with `roadmap` from this repository into the Project. Existing issues can also be added manually. Review dependencies before setting Ready. Status and the `status:*` labels are not automatically synchronized; keep them consistent when changing readiness. There are no time estimates. The existing Auto-close issue workflow closes an issue when its card is marked Done; use In review while verification is pending.
+
+Sources: [GitHub Projects](https://docs.github.com/en/issues/planning-and-tracking-with-projects/creating-projects/creating-a-project), [repository linking](https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-your-project/adding-your-project-to-a-repository).

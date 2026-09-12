@@ -5,7 +5,8 @@ Raise proposes a secondary market where an investor can sell existing vault shar
 **This repository is Step 1: the shared technical foundation targeting Track 1 Vanilla.** It includes a reproducible TypeScript environment, network checks, a real XLS-65 vault smoke test, automated tests and the team roadmap. Full XLS-66 lending and the marketplace are subsequent milestones, not implemented features.
 
 - [Project concept — English team discussion document](docs/PROJECT_CONCEPT.md)
-- [Shared roadmap and board setup](docs/ROADMAP.md)
+- [Shared team board](https://github.com/users/MylittleQueercat/projects/1)
+- [Detailed roadmap](docs/ROADMAP.md)
 - [32 unassigned project issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues?q=is%3Aissue+label%3Aroadmap)
 - [Six milestones](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/milestones)
 - [How teammates can contribute](CONTRIBUTING.md)
@@ -87,7 +88,7 @@ This proves **XLS-65 only**. It does not prove a loan, earned yield, the insuffi
 5. Verify the integrated flow and prepare the manual DevEx report, presentation and submission.
 6. Consider Loaded and broader market features after the core flow works.
 
-The [roadmap](docs/ROADMAP.md) gives acceptance criteria and dependency links through repository issues. All issues are initially unassigned. Teammates can add proposals from **Issues → New issue**. GitHub denied Project creation under the repository owner with the current contributor's permissions; the owner must create/link the shared Project and grant team access before the Kanban board can be configured. No separate personal board has been created.
+The [roadmap](docs/ROADMAP.md) gives acceptance criteria and dependency links through repository issues. All issues are initially unassigned. Teammates can add proposals from **Issues → New issue**. The [shared board](https://github.com/users/MylittleQueercat/projects/1) is linked to this repository and contains all 32 roadmap issues. All four current repository collaborators have Project access. Use Backlog, Ready, In progress, In review, Blocked and Done; check dependencies before moving a task to Ready.
 
 ## Official references
 
