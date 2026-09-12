@@ -1,13 +1,16 @@
 import { PageHeader } from "@/components/page-header";
+import { MarketTable } from "@/components/market/market-table";
 
-// TODO(#20): screen not yet built. Owned by the #20 ticket.
 export const metadata = { title: "Market" };
 
-export default function Page() {
+export default function MarketPage() {
   return (
     <>
-      <PageHeader title="Market" description="Open offers on vault shares, with price against accounting value." />
-      <p className="text-sm text-muted-foreground">Coming with #20.</p>
+      <PageHeader
+        title="Market"
+        description="Vault-share positions offered by investors who want out before the vault can pay them. Prices are compared with the position's accounting value, read from the ledger — a discount is a price, not a yield."
+      />
+      <MarketTable />
     </>
   );
 }
