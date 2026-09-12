@@ -29,7 +29,7 @@ RAISE_VOLUME_NAME=raise-market-data
 
 All seven variables are mandatory. Use a unique image tag for each code release and record its source commit and image ID. Keep the volume name unchanged. Compose explicitly passes `RAISE_MARKET_ORIGIN=https://raise.vgtray.fr` and `RAISE_MARKET_DB_PATH=/data/market.sqlite` to the container. There are no public build-time environment variables or wallet credentials to enter.
 
-The DNS A record must target Sunny, or a correctly configured proxy in front of Sunny. Any AAAA record must reach the same application. DNS is managed separately from Compose. HTTP-01 validation and HTTP-to-HTTPS routing require the existing proxy to remain reachable on ports 80 and 443.
+Create a **proxied Cloudflare A record** for `raise.vgtray.fr` targeting Sunny (`217.182.199.158`, orange cloud). The existing host firewall permits web ingress from Cloudflare only; a DNS-only record will time out. Any AAAA record must reach the same application. DNS is managed separately from Compose. HTTP-01 validation and HTTP-to-HTTPS routing require the existing proxy to remain reachable on ports 80 and 443. Keep end-to-end TLS validation enabled; do not switch to Flexible mode or disable certificate verification to hide a pending certificate.
 
 ## Image and readiness
 
@@ -78,6 +78,24 @@ For an application rollback, retain the same database volume and use the recorde
 If the schema is incompatible, do not start old code against the new database; use the tested paired image/database restore procedure. This first deployment has no historical production release, so its rollback rehearsal targets the first validated image and a disposable verification volume.
 
 Use the service Deployments and Logs tabs for build/start errors, Containers for health, and Preview Compose for routing. If HTTPS returns a proxy error, check DNS, the certificate, Host rule, `websecure`, port 3000 and `dokploy-network`. Do not solve routing problems by exposing the app port or disabling TLS validation.
+
+## Verification record — 12 September 2026
+
+Deployment is running on Sunny; **public HTTPS acceptance is pending DNS creation**. Do not present the public URL as verified yet.
+
+- Source: [`391219d8ecd21a58a41a377ef450749145fa0d97`](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/commit/391219d8ecd21a58a41a377ef450749145fa0d97), merged in [PR #46](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/pull/46).
+- Release tag: `raise-web:e9db2dc` (the reviewed PR head; its tree matches the main merge). Retained rollback alias: `raise-web:rollback-e9db2dc`.
+- Docker image ID: `sha256:205ceba52b1b1ba4a4af2ee0af9efe050f8f7f8851783dc961a62cffd467675f`.
+- Dokploy reports two successful deployments from that main commit. Auto-deploy is disabled. Preview Compose and actual container labels match the versioned configuration; Domains is empty.
+- Current container: healthy, UID 1000, only an unbound `3000/tcp`, attached to `dokploy-network`, with `raise-market-data` mounted at `/data`.
+- Local checks: root 281 tests and web 119 tests pass, including type checks; GitHub CI passes. Production build succeeds on Sunny.
+- Trivy `0.74.0` scans of both the candidate and Dokploy-built release report **zero HIGH/CRITICAL vulnerabilities**. The scanner warns that Alpine 3.24 is absent from its EOL list; this result is a dated vulnerability check, not a claim of complete security coverage.
+- All eight application/API routes in the deploy procedure return HTTP 200 from inside the released container using the public Host header. Eleven referenced JS/CSS assets were verified in the candidate container. Public-origin browser checks remain outstanding.
+- SQLite integrity checks and an online backup succeed. The actual volume marker and database inode survive service restart and Dokploy redeploy. An isolated image replacement preserves a database marker; a consistent backup restores into a separate volume and starts healthy with the retained image.
+- The existing Traefik returns HTTP 308 to `https://raise.vgtray.fr/` from Sunny. Direct public-IP access times out as expected under the existing Cloudflare-only ingress policy.
+- DNS returns `NXDOMAIN` from the authoritative nameserver and public resolvers. Traefik's ACME log reports the same missing A/AAAA records; certificate issuance, public HTTPS, mixed-content inspection, WSS/ledger reads and faucet use from the deployed origin remain unchecked.
+
+Finish [#45](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/45) after the proxied DNS record exists: verify TLS, all public pages/assets, network 4001 and a fresh faucet-funded browser wallet, then update this record and link the verified URL from demo/submission tickets #27–28. Do not repeatedly trigger certificate requests while DNS is absent.
 
 ## References
 
