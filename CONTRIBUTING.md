@@ -9,7 +9,7 @@ Use English for shared documentation, issues and pull requests. Everyone can pro
 5. Run `npm run check`. For ledger changes, attach sanitized proof from a validated ledger; submission alone is not success.
 6. Open a pull request referencing the issue. Get teammate review before merging changes that affect signing, amounts or settlement.
 
-The initial roadmap intentionally has no assignees. Coordinate before taking a task; do not assign other teammates without agreement. Use issue comments for changes to scope, and add new proposals freely. GitHub Projects permissions are separate from repository permissions; until the repository owner enables the shared board, repository issues and milestones are the shared source of truth.
+The initial roadmap intentionally has no assignees. Coordinate before taking a task; do not assign other teammates without agreement. Use issue comments for changes to scope, and add new proposals freely. The [shared Project](https://github.com/users/MylittleQueercat/projects/1) is linked to the repository. Its Status field tracks workflow; milestones track the six phases. GitHub Projects permissions are separate from repository permissions, so new teammates need access to both. Current collaborators can add and organize tasks. The task template adds the `roadmap` label; the enabled workflow automatically adds matching open issues to the board. Marking a card Done closes the issue through the existing Auto-close workflow. Keep readiness labels aligned manually when changing Status.
 
 ## Local credentials and evidence
 
