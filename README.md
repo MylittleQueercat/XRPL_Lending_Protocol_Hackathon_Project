@@ -14,6 +14,7 @@ This repository contains a reproducible TypeScript environment, network checks, 
 - [Six milestones](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/milestones)
 - [How teammates can contribute](CONTRIBUTING.md)
 - [Validated positions and exact valuation](docs/READ_MODEL.md)
+- [Offer lifecycle and local persistence](docs/OFFERS.md)
 
 ## Current network finding
 
@@ -62,6 +63,7 @@ The refreshed Notion copy still listed stable xrpl.js for Track 1 and beta.0 for
 | `npm run vanilla` | Run the complete Track 1 Vanilla baseline end to end: vault, deposit, broker, cover, origination, guardrail, repayment and redemption. Creates three faucet wallets and sends test-network transactions. Holds the loan open for `RAISE_LOAN_HOLD_SECONDS` (default 120) so interest accrues measurably. |
 | `npm run position -- --vault ID --account ADDRESS` | Read a validated XRP vault position and exact accounting estimates; optional broker/loan and sale-price comparison. |
 | `npm run transaction -- --hash HASH` | Read transaction finality without submitting or resubmitting anything. |
+| `npm run offers -- list` | Discover locally published offers; create, show, publish, cancel and prepare commands are documented in the offer guide. |
 | `npm audit` | Check installed dependencies for known advisories. |
 
 Run the smoke explicitly when you want new test accounts and ledger objects:

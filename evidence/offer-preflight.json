@@ -1,0 +1,159 @@
+{
+  "purpose": "Local offer lifecycle with read-only ledger preflight; no wallet authentication, signing or transaction submission.",
+  "networkId": 4001,
+  "xrplVersion": "5.2.0-beta.1",
+  "observedAt": "2026-09-12T14:28:38.365492+00:00",
+  "checks": [
+    {
+      "command": "create",
+      "exitCode": 0,
+      "output": {
+        "id": "9b359b81-a96f-445a-b870-ff054a28e259",
+        "revision": 0,
+        "state": "draft",
+        "sharesRaw": "9000000",
+        "priceDrops": "950000",
+        "settlement": null
+      }
+    },
+    {
+      "command": "publish",
+      "exitCode": 0,
+      "output": {
+        "id": "9b359b81-a96f-445a-b870-ff054a28e259",
+        "revision": 1,
+        "state": "open",
+        "sharesRaw": "9000000",
+        "priceDrops": "950000",
+        "settlement": null
+      }
+    },
+    {
+      "command": "prepare",
+      "exitCode": 1,
+      "output": {
+        "status": "error",
+        "message": "Insufficient validated seller shares or invalid supply."
+      }
+    },
+    {
+      "command": "show",
+      "exitCode": 0,
+      "output": {
+        "id": "9b359b81-a96f-445a-b870-ff054a28e259",
+        "revision": 1,
+        "state": "open",
+        "sharesRaw": "9000000",
+        "priceDrops": "950000",
+        "settlement": null
+      }
+    },
+    {
+      "command": "cancel",
+      "exitCode": 0,
+      "output": {
+        "id": "9b359b81-a96f-445a-b870-ff054a28e259",
+        "revision": 2,
+        "state": "cancelled",
+        "sharesRaw": "9000000",
+        "priceDrops": "950000",
+        "settlement": null
+      }
+    },
+    {
+      "command": "create",
+      "exitCode": 0,
+      "output": {
+        "id": "0771531d-1aea-491f-ada1-552262f84af1",
+        "revision": 0,
+        "state": "draft",
+        "sharesRaw": "1000000",
+        "priceDrops": "950000",
+        "settlement": null
+      }
+    },
+    {
+      "command": "publish",
+      "exitCode": 0,
+      "output": {
+        "id": "0771531d-1aea-491f-ada1-552262f84af1",
+        "revision": 1,
+        "state": "open",
+        "sharesRaw": "1000000",
+        "priceDrops": "950000",
+        "settlement": null
+      }
+    },
+    {
+      "command": "prepare",
+      "exitCode": 0,
+      "output": {
+        "id": "0771531d-1aea-491f-ada1-552262f84af1",
+        "revision": 2,
+        "state": "settling",
+        "sharesRaw": "1000000",
+        "priceDrops": "950000",
+        "settlement": {
+          "id": "c546be2d-e0a3-4b0f-a3a8-ef276e2ccaad",
+          "buyer": "rKqW5QpW4LfGfRzDAjEv2cpAkDnS2Utin5",
+          "preparedAt": "2026-09-12T14:28:41.720Z",
+          "ledger": {
+            "hash": "E366829FACCA24B6FDF5C4466AAD83EE1BA403E44A5B738271136930D864B011",
+            "index": 67742,
+            "ageSeconds": 2,
+            "readAt": "2026-09-12T14:28:41.362Z"
+          },
+          "proof": null
+        }
+      }
+    },
+    {
+      "command": "prepare",
+      "exitCode": 1,
+      "output": {
+        "status": "error",
+        "message": "Only an open offer can prepare settlement."
+      }
+    },
+    {
+      "command": "show",
+      "exitCode": 0,
+      "output": {
+        "id": "0771531d-1aea-491f-ada1-552262f84af1",
+        "revision": 2,
+        "state": "settling",
+        "sharesRaw": "1000000",
+        "priceDrops": "950000",
+        "settlement": {
+          "id": "c546be2d-e0a3-4b0f-a3a8-ef276e2ccaad",
+          "buyer": "rKqW5QpW4LfGfRzDAjEv2cpAkDnS2Utin5",
+          "preparedAt": "2026-09-12T14:28:41.720Z",
+          "ledger": {
+            "hash": "E366829FACCA24B6FDF5C4466AAD83EE1BA403E44A5B738271136930D864B011",
+            "index": 67742,
+            "ageSeconds": 2,
+            "readAt": "2026-09-12T14:28:41.362Z"
+          },
+          "proof": null
+        }
+      }
+    },
+    {
+      "command": "list",
+      "exitCode": 0,
+      "output": []
+    }
+  ],
+  "source": {
+    "vaultId": "84953AA75CEBE50930F987E969D7918308B7C1471253DB0BD5E55CF3334C66DF",
+    "shareMptId": "000000016D8E5748CD5FA882BDFF41D6619F430CF479D096",
+    "seller": "rHmFRk6rLPAbWzDXaH1nUvxbhHgQiMxXag",
+    "buyer": "rKqW5QpW4LfGfRzDAjEv2cpAkDnS2Utin5"
+  },
+  "storage": "Temporary local SQLite file shared across separate CLI processes; removed after verification.",
+  "limitations": [
+    "Actor addresses are local assertions, not wallet authentication.",
+    "No transaction was signed or submitted and no economic settlement was claimed.",
+    "The default completion verifier is absent and fails closed."
+  ]
+}

@@ -17,6 +17,7 @@
     "vault:smoke": "tsx src/cli.ts vault-smoke",
     "position": "tsx src/read-cli.ts position",
     "transaction": "tsx src/read-cli.ts transaction",
+    "offers": "tsx src/offer-cli.ts",
     "settlement": "tsx src/cli.ts settlement"
   },
   "dependencies": {
