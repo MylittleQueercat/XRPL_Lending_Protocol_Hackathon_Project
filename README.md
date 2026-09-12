@@ -13,6 +13,7 @@ This repository contains a reproducible TypeScript environment, network checks, 
 - [32 unassigned project issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues?q=is%3Aissue+label%3Aroadmap)
 - [Six milestones](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/milestones)
 - [How teammates can contribute](CONTRIBUTING.md)
+- [Validated positions and exact valuation](docs/READ_MODEL.md)
 
 ## Current network finding
 
@@ -59,6 +60,8 @@ The refreshed Notion copy still listed stable xrpl.js for Track 1 and beta.0 for
 | `npm run vault:smoke` | Create two fresh faucet wallets, create a transferable XRP vault, deposit 10 XRP, withdraw 10 XRP, and verify validated results and balances. Sends test-network transactions. |
 | `npm run settlement` | Verify the settlement guarantees under failure: an unpayable buyer, a seller who no longer holds the offered shares, a reference sale, and a replay of the identical signed `Batch`. Creates four faucet wallets and sends test-network transactions. |
 | `npm run vanilla` | Run the complete Track 1 Vanilla baseline end to end: vault, deposit, broker, cover, origination, guardrail, repayment and redemption. Creates three faucet wallets and sends test-network transactions. Holds the loan open for `RAISE_LOAN_HOLD_SECONDS` (default 120) so interest accrues measurably. |
+| `npm run position -- --vault ID --account ADDRESS` | Read a validated XRP vault position and exact accounting estimates; optional broker/loan and sale-price comparison. |
+| `npm run transaction -- --hash HASH` | Read transaction finality without submitting or resubmitting anything. |
 | `npm audit` | Check installed dependencies for known advisories. |
 
 Run the smoke explicitly when you want new test accounts and ledger objects:
