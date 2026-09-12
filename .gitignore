@@ -15,7 +15,10 @@ dist/
 .codex/
 .cursor/
 .grok/
-# Separate local DevEx hook checkout; its runtime config contains an ingest key.
+# Personal DevEx capture install: carries individual identities, an event invite
+# code, and an ingest key.
 xrpl-devex-hook/
 scripts/vault-baseline/wallets.json
 scripts/vault-baseline/fresh-results.json
+# Local working material (slide renders, scratch files).
+tmp/

@@ -140,3 +140,6 @@ export function parseFaucetWallet(value: unknown): Wallet {
   if (wallet.address !== account.address) throw new Error('Faucet account address does not match its signing seed.');
   return wallet;
 }
+
+// Reused by the XLS-66 lending flow, which shares this module's funding, submission and balance rules.
+export { fund as fundWallet, submit as submitValidated, balance as readBalance };
