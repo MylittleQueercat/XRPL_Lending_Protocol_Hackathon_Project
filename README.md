@@ -4,7 +4,7 @@ Raise proposes a secondary market where an investor can sell existing vault shar
 
 **Flavour: Loaded.** The Track 1 Vanilla baseline — XLS-65 and XLS-66 — is complete and verified on the event ledger, and reproducible on its own with `npm run vanilla`. On top of it, Raise settles a share sale with an atomic `Batch`, a ledger primitive beyond that baseline, which is what makes this a Loaded submission rather than a Vanilla one.
 
-This repository contains a reproducible TypeScript environment, network checks, the full lending flow, the settlement guarantees under failure, automated tests, the manual DevEx report and the team roadmap. The marketplace interface is a subsequent milestone, not an implemented feature.
+This repository contains a reproducible TypeScript environment, network checks, the full lending flow, the settlement guarantees under failure, automated tests, the manual DevEx report, the team roadmap, and the Raise web application under [`web/`](web/README.md) — investor position, market, sell, buy and operator screens built in the idiom of Ripple's reference lending application, signing in the browser against the Track 1 ledger.
 
 - [Manual developer-feedback report](DEVEX_FEEDBACK.md) — curated from the [team findings pool](devfeedback/findings/)
 - [Project concept — English team discussion document](docs/PROJECT_CONCEPT.md)
@@ -62,6 +62,7 @@ Historical standalone evidence projects under `scripts/` retain their recorded S
 | `npm run doctor` | Read HTTP/WebSocket server information and amendments; check network, synchronization and ledger freshness. Exit 0 when compatible, 2 when reachable but incompatible, 1 on error. |
 | `npm run vault:smoke` | Create two fresh faucet wallets, create a transferable XRP vault, deposit 10 XRP, withdraw 10 XRP, and verify validated results and balances. Sends test-network transactions. |
 | `npm run settlement` | Verify the settlement guarantees under failure: an unpayable buyer, a seller who no longer holds the offered shares, a reference sale, and a replay of the identical signed `Batch`. Creates four faucet wallets and sends test-network transactions. |
+| `cd web && npm run dev` | Run the Raise web application locally on http://localhost:3000. See [`web/README.md`](web/README.md). |
 | `npm run vanilla` | Run the complete Track 1 Vanilla baseline end to end: vault, deposit, broker, cover, origination, guardrail, repayment and redemption. Creates three faucet wallets and sends test-network transactions. Holds the loan open for `RAISE_LOAN_HOLD_SECONDS` (default 120) so interest accrues measurably. |
 | `npm run position -- --vault ID --account ADDRESS` | Read a validated XRP vault position and exact accounting estimates; optional broker/loan and sale-price comparison. |
 | `npm run transaction -- --hash HASH` | Read transaction finality without submitting or resubmitting anything. |

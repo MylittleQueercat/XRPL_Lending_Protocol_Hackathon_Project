@@ -22,3 +22,8 @@ scripts/vault-baseline/wallets.json
 scripts/vault-baseline/fresh-results.json
 # Local working material (slide renders, scratch files).
 tmp/
+
+# Next.js build output (web/)
+.next/
+out/
+next-env.d.ts

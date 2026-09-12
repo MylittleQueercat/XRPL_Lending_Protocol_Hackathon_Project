@@ -92,8 +92,11 @@ We verified that the two apparent workarounds do not work. `LoanPay` with `tfLoa
 
 ## Also in the evidence pool
 
+- **[No wallet can provide the second signature a `LoanSet` or a settlement `Batch` needs](devfeedback/findings/008-no-wallet-can-cosign-batch-or-loanset.md).** Neither `xrpl-connect` nor the wallets it wraps speaks to network 4001, and none exposes counterparty or inner-`Batch` signing; both signatures must land on the same autofilled object. The web app ships a browser-held local wallet instead, verified with a real validated payment (`evidence/web-wallet-signing.json`), and asks for the counterparty's test seed for two-party demos — acceptable for a demonstration, not for a product. The protocol's two defining transactions cannot yet be signed by two independent wallets.
 - **[Non-standard ports break restricted networks](devfeedback/findings/001-network-path-connectivity-timeout.md).** Ports 51233/51234 timed out while port 443 worked, on three unrelated networks plus a neutral control host. Mainnet failing on 51234 and succeeding on 443 proved the access path, not any XRPL service, was filtering. TCP connected and then nothing arrived, so it reads exactly like a node outage. One diagnostic line in the event instructions — *if the faucet works but RPC times out, test `xrplcluster.com` on 443 and on 51234* — would save every affected team an hour.
 - **[Vault-share recipients need an explicit MPT holder setup](devfeedback/findings/002-vault-share-holder-setup.md).** The buyer must submit `MPTokenAuthorize` before shares can be delivered. Worth stating in the share-transfer prerequisites.
+
+- **[Loan amounts are fractional drop strings, and payoff cannot be derived from chain state](devfeedback/findings/009-loan-object-amounts-fractional-and-close-fee.md).** `PeriodicPayment` and `TotalValueOutstanding` arrive as `6710290.955601783635`-style strings while every other amount is an integer; `ClosePaymentFee` is omitted when zero and accrued interest is not a field. Consumers must special-case two fields and offer an upper bound for early payoff, safe only because the ledger caps the charge.
 
 ## What worked well
 

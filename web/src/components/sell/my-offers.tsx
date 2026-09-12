@@ -1,0 +1,120 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useWallet } from "@/lib/wallet";
+import { listOffers, subscribeOffers, transitionOffer, unitPriceDrops, type Offer, type OfferState } from "@/lib/offers";
+import { formatRelativeTime, formatShares, formatXrp, shortHash } from "@/lib/format";
+import { explorerTx, routes } from "@/lib/network";
+
+const STATE_VARIANT: Record<OfferState, React.ComponentProps<typeof Badge>["variant"]> = {
+  draft: "outline",
+  open: "success",
+  settling: "warning",
+  settled: "default",
+  cancelled: "secondary",
+  expired: "secondary",
+};
+
+export function MyOffers() {
+  const { account } = useWallet();
+  const [offers, setOffers] = React.useState<Offer[]>([]);
+  const [confirming, setConfirming] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const refresh = React.useCallback(() => {
+    if (!account) return setOffers([]);
+    setOffers(listOffers().filter((o) => o.seller === account.address));
+  }, [account]);
+
+  React.useEffect(() => {
+    refresh();
+    return subscribeOffers(refresh);
+  }, [refresh]);
+
+  // Expiry is derived on read, so re-render periodically to let an open offer turn expired.
+  React.useEffect(() => {
+    const t = setInterval(refresh, 30_000);
+    return () => clearInterval(t);
+  }, [refresh]);
+
+  if (!account) return null;
+
+  const cancel = (id: string) => {
+    setError(null);
+    try {
+      transitionOffer(id, "cancelled");
+      setConfirming(null);
+    } catch (cause) {
+      setError((cause as Error).message);
+      setConfirming(null);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Your offers</CardTitle>
+        <CardDescription>Stored in this browser. Cancellation takes effect in Raise immediately; the ledger only sees an offer when it settles.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
+        {offers.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No offers yet.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Created</TableHead>
+                <TableHead>Vault</TableHead>
+                <TableHead className="text-right">Shares</TableHead>
+                <TableHead className="text-right">Price</TableHead>
+                <TableHead className="text-right">Unit</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Expires</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {offers.map((o) => (
+                <TableRow key={o.id}>
+                  <TableCell className="text-muted-foreground">{formatRelativeTime(o.createdAt)}</TableCell>
+                  <TableCell><Link href={routes.offer(o.id)} className="font-mono text-primary hover:underline">{o.vaultId.slice(0, 8)}…</Link></TableCell>
+                  <TableCell className="text-right tabular-nums">{formatShares(o.shares)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{formatXrp(o.priceDrops)}</TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">{unitPriceDrops(o)}</TableCell>
+                  <TableCell>
+                    <Badge variant={STATE_VARIANT[o.state]}>{o.state}</Badge>
+                    {o.settlement && (
+                      <a href={explorerTx(o.settlement.hash)} target="_blank" rel="noreferrer" className="ml-2 inline-flex items-center gap-1 font-mono text-xs text-primary hover:underline">
+                        {shortHash(o.settlement.hash)} <ExternalLink className="size-3" />
+                      </a>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{o.state === "open" ? formatRelativeTime(o.expiresAt) : "—"}</TableCell>
+                  <TableCell className="text-right">
+                    {o.state === "open" && (
+                      confirming === o.id ? (
+                        <span className="inline-flex gap-1">
+                          <Button size="sm" variant="destructive" onClick={() => cancel(o.id)}>Confirm cancel</Button>
+                          <Button size="sm" variant="ghost" onClick={() => setConfirming(null)}>Keep</Button>
+                        </span>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={() => setConfirming(o.id)}>Cancel</Button>
+                      )
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
