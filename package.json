@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "npm run typecheck && npm test",
-    "vault:smoke": "tsx src/cli.ts vault-smoke"
+    "vault:smoke": "tsx src/cli.ts vault-smoke",
+    "settlement": "tsx src/cli.ts settlement"
   },
   "dependencies": {
     "xrpl": "5.2.0-beta.1"
