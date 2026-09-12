@@ -1,5 +1,7 @@
 # Complete payment-for-shares sale (Issue #14)
 
+> Historical standalone evidence. SDK versions and transaction results below describe the original reproduction project and are intentionally preserved. For the current beta.1 application, shared marketplace and complete browser journey, start with [INTEGRATION.md](INTEGRATION.md).
+
 ## Result
 
 The validated sale reused from the Raise feasibility run is a complete

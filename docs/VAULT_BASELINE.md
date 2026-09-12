@@ -1,5 +1,7 @@
 # XLS-65 XRP Vault Baseline (Issue #5)
 
+> Historical standalone evidence. SDK versions and transaction results below describe the original reproduction project and are intentionally preserved. For the current beta.1 application, shared marketplace and complete browser journey, start with [INTEGRATION.md](INTEGRATION.md).
+
 ## Result
 
 Issue #5 is satisfied by the existing validated Track 1 feasibility chain. This document keeps the vault-only proof separate from the broader Raise secondary-market spike; no duplicate Devnet transactions were submitted.

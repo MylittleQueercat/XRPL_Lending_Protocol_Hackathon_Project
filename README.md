@@ -1,171 +1,133 @@
-# Raise — XRPL vault-share liquidity
+# Raise — liquidity for XRPL vault shares
 
-Raise proposes a secondary market where an investor can sell existing vault shares to another investor when the vault has insufficient cash for a withdrawal. The buyer pays the seller and takes over the share exposure; the underlying loans continue. A buyer and an agreed price are required: liquidity and returns are not guaranteed.
+[Open the demo](https://raise.vgtray.fr) · [Team board](https://github.com/users/MylittleQueercat/projects/1) · [Product concept](docs/PROJECT_CONCEPT.md) · [Deployment](docs/DEPLOYMENT.md)
 
-**Flavour: Loaded.** The Track 1 Vanilla baseline — XLS-65 and XLS-66 — is complete and verified on the event ledger, and reproducible on its own with `npm run vanilla`. On top of it, Raise settles a share sale with an atomic `Batch`, a ledger primitive beyond that baseline, which is what makes this a Loaded submission rather than a Vanilla one.
+Raise is a secondary marketplace for existing XRPL vault shares. When outstanding loans leave a vault without enough cash for a withdrawal, an investor can offer shares to another investor at an agreed price. The buyer pays the seller; the underlying loans continue. An exit requires a willing buyer, and a discount does not guarantee profit.
 
-This repository contains a reproducible TypeScript environment, network checks, the full lending flow, the settlement guarantees under failure, automated tests, the manual DevEx report, the team roadmap, and the Raise web application under [`web/`](web/README.md) — investor position, market, sell, buy and operator screens built in the idiom of Ripple's reference lending application, signing in the browser against the Track 1 ledger.
+**Track 1 · Loaded · network 4001 · faucet-funded test XRP.** XLS-65/XLS-66 provide the independently reproducible lending baseline. Batch (XLS-56) adds atomic XRP payment against vault-share delivery. Native vault shares alone are not the claimed Loaded extension.
 
-- [Manual developer-feedback report](DEVEX_FEEDBACK.md) — curated from the [team findings pool](devfeedback/findings/)
-- [Project concept — English team discussion document](docs/PROJECT_CONCEPT.md)
-- [Shared team board](https://github.com/users/MylittleQueercat/projects/1)
-- [Detailed roadmap](docs/ROADMAP.md)
-- [Shared project issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues?q=is%3Aissue+label%3Aroadmap)
-- [Six milestones](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/milestones)
-- [How teammates can contribute](CONTRIBUTING.md)
-- [Validated positions and exact valuation](docs/READ_MODEL.md)
-- [Offer lifecycle and shared persistence](docs/OFFERS.md)
+## Current state
 
-## Shared marketplace integration
+Updated September 12, 2026. This is a working hackathon application, with separate evidence for local E2E and hosted operation.
 
-The web application now uses a durable server API: seller and buyer see the same offer and sign separately from their own browser sessions. The server authenticates single-use wallet intents, persists the exact signed transaction hash before submission, and confirms both exchange legs from validated metadata. Reloads and ambiguous network responses never authorize another payment.
+| Area | Implemented and verified |
+|---|---|
+| Lending | Open-ended vault, deposit, broker and cover, borrower-accepted loan, unavailable-withdrawal guardrail, repayment and redemption. |
+| Marketplace | Shared fixed-price, full-lot offers; separate buyer/seller signatures; atomic settlement and exact transaction reconciliation. |
+| Interface | Position, market, sell, offer detail, purchase and operator screens; Apple/system typography, light/dark themes and reduced-motion support. |
+| Persistence | One Next.js Node server with SQLite; offers, reservations and submission state survive restarts. |
+| Verification | 281 root + 119 web tests; type checks, production build and CI passed. Recorded real API/ledger and two-browser E2E journeys include buyer redemption. |
+| Hosting | Running on Sunny through Dokploy, persistent volume, Cloudflare and HTTPS. See the dated [deployment checks and remaining acceptance work](docs/DEPLOYMENT.md#verification-record--12-september-2026). |
 
-The complete API-to-ledger run, including **buyer redemption after borrower repayment**, is recorded in [market-e2e.json](evidence/market-e2e.json). A separate [two-browser run](evidence/browser-market-e2e.json) verifies the actual seller and buyer interface, including recovery after a server restart. Setup, two-account usage, recovery behavior and current limitations are in [INTEGRATION.md](docs/INTEGRATION.md). Both root and web dependencies must be installed.
+The local E2E evidence is not a claim that the entire trade has been repeated on the public domain. Public deployment checks and their limits are recorded separately.
 
-## Current network finding
+## Run locally
 
-On September 12, 2026, the event endpoint reported network **4001**, rippled **3.4.0-rc1**, and **SingleAssetVault, LendingProtocol and LendingProtocolV1_1 enabled**.
-
-We initially read the [V1.1 documentation](https://opensource.ripple.com/docs/lending-protocol-v1-1) as restricting new loans to closed-ended vaults, and treated that as a blocker. **Measurement on the ledger shows it is not one.** Open-ended origination succeeds: see `LoanSet` [AD028082…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/AD0280823EBD6910BC95F95E726D46C3542C645B9392AD3A058436A64598EE87) (hash `AD028082…`) and the complete run in [`evidence/vanilla-flow.json`](evidence/vanilla-flow.json).
-
-What V1.1 does change is **accounting**. A 400 XRP loan carrying 244.19 XRP of scheduled interest left the vault's `AssetsTotal` at exactly 800.000000 XRP at origination, so interest is realised when a payment delivers it, not at origination as V1 would. `npm run doctor` therefore exits **0** and reports this in `notes` rather than `blockers`: it is a reporting caveat, documented in [`DEVEX_FEEDBACK.md`](DEVEX_FEEDBACK.md) §1, not a reason to refuse to run.
-
-Do not silently substitute public Testnet, public Devnet or mainnet. Network configuration is deliberately fixed in `src/core.ts`; conflicting `XRPL_*` environment overrides are rejected. If event guidance changes, update configuration, evidence and tests together through review.
-
-## Setup
-
-Install Node.js **24** and Git. Verification used Node **24.11.1**. If you use nvm, `nvm install` and `nvm use` read `.nvmrc`.
+Use **Node 24, at least 24.11.1 and below 25**, and Git. `.nvmrc` selects Node 24. The deployed image uses Node 24.21.0. Install both committed lockfiles:
 
 ```sh
 git clone https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project.git
 cd XRPL_Lending_Protocol_Hackathon_Project
 npm ci
+npm ci --prefix web
 npm run check
-npm run doctor
+npm --prefix web run check
+npm --prefix web run dev
 ```
 
-No API key or `.env` file is required. The active root application SDK is pinned to **xrpl.js 5.2.0-beta.1** with a committed lockfile, following the September 12 event update supplied to the team. `npm run check` runs strict type checking and offline tests; it does not contact the network or create wallets. CI repeats these checks and dependency auditing.
-
-| Target | Value |
-|---|---|
-| Track | 1: open-ended vault, Lending Protocol V1 target |
-| Flavour | **Loaded**: XLS-65 + XLS-66 baseline, plus `Batch` (XLS-56) for atomic payment-versus-shares settlement |
-| Network ID | 4001, event network |
-| JSON-RPC | `https://lending-hackathon.dev.ripplex.io:51234` |
-| WebSocket | `wss://lending-hackathon.dev.ripplex.io:51233` |
-| Faucet | `https://lending-hackathon-faucet.dev.ripplex.io/accounts` |
-| Asset | Faucet-funded test XRP |
-
-The refreshed Notion copy still listed stable xrpl.js for Track 1 and beta.0 for Track 2 when this pin was updated; the explicit team update points to [5.2.0-beta.1 on npm](https://www.npmjs.com/package/xrpl/v/5.2.0-beta.1). Updating the client library does not change the selected track or the amendments enabled on the ledger.
-
-Historical standalone evidence projects under `scripts/` retain their recorded SDK pins, including `5.2.0`. They are separate reproduction environments; new application code uses the root package and `5.2.0-beta.1`. Recorded transaction evidence keeps the version that produced it.
-
-## Commands
-
-| Command | Behavior |
-|---|---|
-| `npm run check` | Typecheck and offline tests. |
-| `npm run market:e2e` | With the web server running, verify the complete shared marketplace journey with fresh test actors, exact transaction proof, repayment and buyer redemption. See [integration guide](docs/INTEGRATION.md). |
-| `npm run doctor` | Read HTTP/WebSocket server information and amendments; check network, synchronization and ledger freshness. Exit 0 when compatible, 2 when reachable but incompatible, 1 on error. |
-| `npm run vault:smoke` | Create two fresh faucet wallets, create a transferable XRP vault, deposit 10 XRP, withdraw 10 XRP, and verify validated results and balances. Sends test-network transactions. |
-| `npm run settlement` | Verify the settlement guarantees under failure: an unpayable buyer, a seller who no longer holds the offered shares, a reference sale, and a replay of the identical signed `Batch`. Creates four faucet wallets and sends test-network transactions. |
-| `cd web && npm run dev` | Run the Raise web application locally on http://localhost:3000. See [`web/README.md`](web/README.md). |
-| `npm run vanilla` | Run the complete Track 1 Vanilla baseline end to end: vault, deposit, broker, cover, origination, guardrail, repayment and redemption. Creates three faucet wallets and sends test-network transactions. Holds the loan open for `RAISE_LOAN_HOLD_SECONDS` (default 120) so interest accrues measurably. |
-| `npm run position -- --vault ID --account ADDRESS` | Read a validated XRP vault position and exact accounting estimates; optional broker/loan and sale-price comparison. |
-| `npm run transaction -- --hash HASH` | Read transaction finality without submitting or resubmitting anything. |
-| `npm run offers -- list` | Discover locally published offers; create, show, publish, cancel and prepare commands are documented in the offer guide. |
-| `npm audit` | Check installed dependencies for known advisories. |
-
-Run the smoke explicitly when you want new test accounts and ledger objects:
+Open **http://localhost:3000**. No API key or environment file is needed for that exact local origin. The server creates `web/.local/market.sqlite`. For another origin, set it explicitly; do not mix `localhost` and `127.0.0.1`:
 
 ```sh
-npm run vault:smoke
+RAISE_MARKET_ORIGIN=http://127.0.0.1:3100 npm --prefix web run dev -- --hostname 127.0.0.1 --port 3100
 ```
 
-Every invocation creates fresh test wallets. It leaves the empty vault and test accounts on the event ledger after verification. It does not remove objects or reclaim account reserves. The checked run charged 2 test XRP for `VaultCreate`, plus 12 drops each for deposit and withdrawal; current fees are autofilled from the network.
+`RAISE_MARKET_DB_PATH` optionally selects an absolute database path. Production uses the required Compose variables in [.env.example](.env.example); follow [DEPLOYMENT.md](docs/DEPLOYMENT.md), not the local development command.
 
-The event faucet returns its own `account.address` and `account.secret`; it does not honor a destination address as expected by the usual funding flow. The adapter verifies that the returned seed derives the returned address, saves the wallet locally, and checks the funded balance on the selected network. It never logs the faucet response or seeds.
+Create a funded test wallet from **Connect wallet**. Use two independent browser sessions for seller and buyer. Test seeds stay in their own browser session; the marketplace receives public data and signatures. The operator LoanSet form still uses a clearly labelled local borrower test-seed co-signing mode. See [wallet boundaries](docs/WALLET.md).
 
-Secrets and run details are stored under ignored `.local/` directories with directory mode `0700` and file mode `0600` on Unix. Keep these files local. For an ambiguous submission, inspect the saved transaction-intent hash and query its outcome before retrying; the CLI does not blindly resubmit signed transactions. A new smoke invocation creates a separate run rather than resuming the previous one.
+## The complete journey
 
-## Verified ledger evidence
+1. The operator creates a transferable XRP vault and loan broker, with sufficient cover.
+2. The investor deposits XRP into the vault and receives shares.
+3. A borrower-accepted loan uses part of the vault's cash. A withdrawal beyond the remaining cash is rejected even when the investor owns enough shares.
+4. The investor publishes an offer with a share quantity, total XRP price and expiry.
+5. A buyer authorizes receipt when required and signs the prepared exchange. The seller approves the same exchange from their own session.
+6. The server records the signed transaction before broadcasting. It confirms both inner payment legs against their exact hashes and validated metadata.
+7. After repayment replenishes vault liquidity, the buyer can redeem shares. Buying and redeeming are separate operations.
 
-### Track 1 Vanilla baseline — complete
+The two trading accounts are additional to the operator/borrower roles needed for the lending fixture. The [integration guide](docs/INTEGRATION.md) explains setup, recovery and the controlled browser fixture.
 
-The [sanitized run report](evidence/vanilla-flow.json) records the full flow on network 4001. Every minimum-bar item is covered by a validated transaction.
+## Network and stack
 
-| # | Minimum-bar item | Transaction | Result | Ledger |
-|---|---|---|---|---:|
-| 1 | Open-ended Single Asset Vault | [`VaultCreate` DBCEFF63…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/DBCEFF6317172C7EB3765A82B31A5F04344A4ABBA396E1583D0FA85B08E32C79) | `tesSUCCESS` | 66914 |
-| 2 | Lender deposits capital | [`VaultDeposit` D5C81BC3…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/D5C81BC3074A49E678221510DAC9A294D9988D42C18B0F46259DB5A2C9E89A74) | `tesSUCCESS` | 66915 |
-| 3 | Loan broker and first-loss cover | [`LoanBrokerSet` 45846261…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/45846261C0DF7D39EBF776438EF729944709946EA6A74DA504E7581BC0587416) | `tesSUCCESS` | 66917 |
-| 3–4 | Borrower-accepted origination and drawdown | [`LoanSet` AD028082…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/AD0280823EBD6910BC95F95E726D46C3542C645B9392AD3A058436A64598EE87) | `tesSUCCESS` | 66919 |
-| 7 | Guardrail: withdrawal beyond available liquidity | [`VaultWithdraw` A35CB5DC…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/A35CB5DC2235104B54F6B29DB48118013F836F9F96DA319ED103CCA846A1A028) | **`tecINSUFFICIENT_FUNDS`** | 66920 |
-| 5 | Repayment | [`LoanPay` CE8D8C80…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/CE8D8C80F2270A004E8BA61239DBE60875F9965B40846C4D843B32B88AA21F69) | `tesSUCCESS` | 66961 |
-| 6 | Capital plus accrued yield redeemed | [`VaultWithdraw` 2D427603…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/2D4276038162C1B1A75E0460BFAC4FB13A02319588E13860980E3CA8D56B2EFC) | `tesSUCCESS` | 66962 |
+| Setting | Value |
+|---|---|
+| Application SDK | `xrpl@5.2.0-beta.1` in root and web packages |
+| UI | Next.js 16.3.5, React 19.2.8, Tailwind CSS 4 |
+| Server/storage | Node 24, Next route handlers, built-in `node:sqlite`, one host |
+| Track / asset | Track 1 open-ended vault / test XRP |
+| Network ID | **4001**, dedicated hackathon network |
+| RPC | `https://lending-hackathon.dev.ripplex.io:51234` |
+| WSS | `wss://lending-hackathon.dev.ripplex.io:51233` |
+| Faucet | `https://lending-hackathon-faucet.dev.ripplex.io/accounts` |
 
-**The guardrail is the point, not an accident.** The lender held **100,000,000 share units before the rejection and exactly the same after it**, while the vault held 50 XRP against a 100 XRP request. The refusal is therefore about vault liquidity, not about an insufficient personal holding — the distinction that matters, because it is precisely the problem Raise exists to solve.
+The recorded ledger enables **LendingProtocolV1_1** and **BatchV1_1**. Open-ended origination succeeds there; realized interest is credited on payment, so the original V1 accounting assumption is not used. Run `npm run doctor` to verify current network readiness. The endpoints are fixed in `src/core.ts`; conflicting network overrides are rejected. Do not substitute public Testnet, public Devnet or mainnet.
 
-**Yield is reported exactly.** The lender deposited 100.000000 XRP and redeemed 100.000188 XRP. Those **188 drops sit against 190 predicted by the contract formula**: 50 XRP of principal at 100 % annualised over a 120 second hold, the gap being ledger close timing. With `InterestRate` capped at 100 % and no time acceleration on this network, a demo loan cannot yield more — see [`DEVEX_FEEDBACK.md`](DEVEX_FEEDBACK.md) §4. We reconcile the mechanism rather than presenting a simulated figure.
+Standalone reproduction projects under `scripts/` retain the SDK versions that produced their historical evidence, including 5.2.0. They are separate from the beta.1 application. Network state and explorer history may change or reset after a recorded run.
 
-**Redemption burns shares.** Share supply went from 100,000,000 to 0 and the lender's holding from 100,000,000 to 0, so the redeemed capital is matched by destroyed shares rather than left outstanding.
+## Commands and evidence
 
-**The ledger caps repayment at what is owed.** We offered 241.570476 XRP against 80.523492 XRP of outstanding value; the borrower was charged 55.000188 XRP, of which the vault received 50.000188 XRP and the broker kept the 5 XRP prepayment fee.
+| Command | Scope |
+|---|---|
+| `npm run check` | Root type checks and offline tests. |
+| `npm --prefix web run check` | Web type checks and offline tests. |
+| `npm --prefix web run build` | Production UI/server build. |
+| `npm run doctor` | Read-only RPC/WSS network, amendment and freshness checks. |
+| `npm run vanilla` | Fresh test actors and full lending baseline, including repayment and redemption. Sends ledger transactions. |
+| `npm run market:e2e` | Complete real HTTP/SQLite/ledger journey against a running **localhost** server. Sends test-network transactions; see the integration guide. |
+| `npm run settlement` | Fresh test actors; successful sale, failed-delivery scenarios and identical-transaction replay. |
+| `npm run vault:smoke` | Fresh wallets, vault creation, 10 XRP deposit and withdrawal. |
+| `npm run wallet:live-test` | Historical signing-boundary opt-in check on the event ledger. |
+| `npm run position -- --vault ID --account ADDRESS` | Read a validated position. |
+| `npm run transaction -- --hash HASH` | Read finality without resubmission. |
+| `npm run offers -- list` | Local CLI offer store, separate from the shared web marketplace. |
 
-Interest is realised on payment, not at origination, because V1.1 is enabled. Item 8 of the minimum bar, the credible use case, is covered by [`docs/PROJECT_CONCEPT.md`](docs/PROJECT_CONCEPT.md).
+Live scripts are explicit opt-ins, create ledger objects and consume test XRP fees. They do not resume an ambiguous payment automatically. Wallets and private run files remain in ignored `.local/` storage. Never commit them.
 
-### Settlement guarantees under failure
+| Recorded proof | What it establishes |
+|---|---|
+| [API/ledger E2E](evidence/market-e2e.json) | Lending, shared offer, two-party atomic purchase, repayment and buyer redemption. |
+| [Two-browser E2E](evidence/browser-market-e2e.json) | Actual seller/buyer screens and separate signing sessions; validated sale and buyer redemption. |
+| [Browser recovery/UI](evidence/browser-ui-checks.json) | Pending-transaction recovery after server restart and UI checks. |
+| [Vanilla lending](evidence/vanilla-flow.json) | XLS-65/66 baseline and liquidity guardrail. |
+| [Settlement failures](evidence/settlement-failures.json) | Failed economic legs despite outer success, successful reference sale and replay rejection. |
+| [Beta.1 vault smoke](evidence/vault-smoke-beta.1.json) | Vault creation, deposit and withdrawal using the active application SDK version. |
+| [Deployment record](docs/DEPLOYMENT.md) | Image/source identity, runtime, TLS, persistence and hosted acceptance status. |
 
-Atomic settlement is what makes a share sale safe, so the failure cases matter more than the happy path. The [sanitized report](evidence/settlement-failures.json) records all four, reproducible with `npm run settlement`.
+An outer Batch `tesSUCCESS` is insufficient evidence of an exchange. The integrated verifier requires the exact inner hashes, parent Batch ID, ledger and delivered amounts. Full hashes and ledger indexes remain in the linked reports; historical transaction results are not rewritten when documentation changes.
 
-| Case | Outer result | XRP moved | Shares moved |
-|---|---|---|---|
-| Buyer cannot pay the price | [`tesSUCCESS`](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/8155367EF715682A7152BF3B3774D03BCC7B2421CCB45068CAA155016D037107) | none | none |
-| Seller no longer holds the shares offered | [`tesSUCCESS`](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/9565A21235F69AD8B822EB050255D479218D7F2CD33C5892DD14FA7B10F570AF) | none | none |
-| Reference sale, both legs fundable | [`tesSUCCESS`](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/C21A5EA5EA3460915E8CFA5C8F30611EFA36D613995F5DEC2DB606F9563E432A) | 5 XRP | 1,000,000 units |
-| Identical signed `Batch` resubmitted | `tefPAST_SEQ` | none | none |
+## Limits and remaining work
 
-**The guarantee held in every case.** In particular the buyer was never debited for shares the seller had already moved away, and the replay changed nothing — the outer account sequence prevents it.
+- Full-lot, seller-posted asks are the current trading flow. Partial fills are a tested domain/storage exploration, not a live partial-trading feature. Bids, RFQs and order-book matching are not implemented.
+- The embed route is a launch/handoff prototype, not a production partner SDK. Customer and integrator validation remain open in #31–32.
+- Demo master-key wallets only; no verified external connector for the complete custom-network signing flow. No account multisigning or independent server replicas.
+- Signed failures remain locked for investigation. Offer cancellation/expiry cannot revoke a previously signed Batch. There is no general recovery administration console.
+- Slides, demo rehearsal and final submission/team sign-off remain #27–28. Deployment acceptance is tracked in #45. Current states live on the [board](https://github.com/users/MylittleQueercat/projects/1).
 
-**Three of those four rows share the same outer result while differing completely in economic effect.** An application reading the engine result alone would report two sales that never happened. The historical failure harness measured validated balance changes. The integrated marketplace now verifies the exact inner transaction hashes, parent Batch ID and delivered amounts, and [`DEVEX_FEEDBACK.md`](DEVEX_FEEDBACK.md) §3 reports this as a documentation gap.
+## Documentation map
 
-**Offer expiry and cancellation are enforced locally before preparation.** They do not revoke a previously signed Batch. The unavailable-share scenario proves a failed delivery when shares are missing; it is not a general cancellation mechanism. See the [offer lifecycle](docs/OFFERS.md) for the boundary between local state and ledger execution.
-
-### XLS-65 vault smoke — standalone
-
-The SDK update was also checked with a fresh [xrpl.js 5.2.0-beta.1 smoke report](evidence/vault-smoke-beta.1.json): creation, a 10 XRP deposit and full withdrawal all validated successfully. Exact SDK version, transaction hashes, ledger indexes and balance snapshots are in the report. The original evidence below is retained with its actual 5.2.0 version.
-
-The original [sanitized smoke report](evidence/vault-smoke.json), produced with xrpl.js 5.2.0, records three validated `tesSUCCESS` transactions and exact before/after values:
-
-| Operation | Ledger | Transaction |
-|---|---:|---|
-| `VaultCreate` | 65163 | [70740BF4…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/70740BF4500A9E37C5AFAAA0706FB74F2D5EE38787EC150404088E62A473BF56) |
-| `VaultDeposit` | 65165 | [76F408DE…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/76F408DE062E73ABD5738AB733F952599045694A7C720A13ADC5E476A7D2390B) |
-| `VaultWithdraw` | 65167 | [DD1BCC04…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/DD1BCC04E48B181A18DFC260F109076FCE77808DA27E97076001CA5D35746D63) |
-
-The deposit created **10,000,000 raw share units** and 10 XRP of available vault assets. Withdrawal returned 10 XRP and left share supply and vault assets at zero. This standalone smoke reads transferability flags but does not exercise a buyer transfer; the separate [share-transfer proof](docs/SHARE_TRANSFER.md) verifies that flow. The raw unit ratio in this empty-vault example is not a universal pricing rule.
-
-This proves **XLS-65 only**. It does not prove a loan, the guardrail or a completed secondary sale. Event ledgers may reset; the checked reports retain hashes and ledger indexes even if an explorer later loses history.
-
-## Current delivery and next steps
-
-The local V1 connects the investor, market, seller, buyer and operator screens to a shared SQLite marketplace. The complete deposit, loan, unavailable withdrawal, share sale, repayment and buyer redemption journey has recorded API and two-browser evidence. See [INTEGRATION.md](docs/INTEGRATION.md) for reproduction and the distinction between current and historical checks.
-
-1. Prepare the mentor presentation and reproducible demonstration (#27), then complete team submission sign-off (#28).
-2. Deploy through the versioned [Sunny / Dokploy runbook](docs/DEPLOYMENT.md) (#45), preserving the single-host database and exact public origin. Public availability is a separate verification from the local E2E evidence.
-3. Collect buyer/seller and integrator feedback for multiple vaults, bids/RFQs and embedding (#31–32). The current product sells shares; a new borrowing product has not been selected or implemented.
-4. Partial-fill modules are tested exploration code, not an exposed live-trading flow.
-
-The [roadmap](docs/ROADMAP.md) links repository issues and acceptance criteria. Teammates can add proposals from **Issues → New issue** and organize them on the [shared board](https://github.com/users/MylittleQueercat/projects/1). Coordinate ownership before starting; pull the latest main before continuing. A complete local demo does not establish production custody, multi-host support or customer demand.
+| Need | Guide |
+|---|---|
+| Understand the product and buyer incentive | [Project concept](docs/PROJECT_CONCEPT.md), [accepted scope](docs/PRODUCT_SCOPE.md) |
+| Run seller/buyer and recover pending operations | [Integration](docs/INTEGRATION.md), [web application](web/README.md) |
+| Understand signing, pricing and execution | [Wallet](docs/WALLET.md), [read model](docs/READ_MODEL.md), [offers](docs/OFFERS.md), [settlement](docs/SETTLEMENT.md) |
+| Deploy, back up, restore or roll back | [Sunny / Dokploy](docs/DEPLOYMENT.md) |
+| Inspect standalone historical proofs | [Vault](docs/VAULT_BASELINE.md), [broker](docs/BROKER_BASELINE.md), [transfer](docs/SHARE_TRANSFER.md), [sale](docs/SALE.md) |
+| Evaluate possible extensions | [Discovery](docs/DISCOVERY.md), [partial fills](docs/PARTIAL_FILLS.md), [embed](docs/EMBED.md) |
+| Coordinate work | [Roadmap](docs/ROADMAP.md), [contribution guide](CONTRIBUTING.md) |
+| Review developer feedback | [Manual report](DEVEX_FEEDBACK.md), [findings pool](devfeedback/README.md), [individual capture process](docs/DEVEX.md) |
 
 ## Official references
 
-- [Hackathon instructions](https://app.notion.com/p/adam-hn/XRPL-Lending-Protocol-Hackathon-5cc7508f4cdc83a7991e01f90528e490)
-- [XLS-65 Single Asset Vault](https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0065-single-asset-vault)
-- [XLS-66 Lending Protocol](https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0066-lending-protocol)
-- [Lending Protocol V1.1](https://opensource.ripple.com/docs/lending-protocol-v1-1)
-- [VaultCreate reference](https://xrpl.org/docs/references/protocol/transactions/types/vaultcreate)
-- [Reference lending application](https://github.com/ripple/xrpl-reference-app-lending-sav)
-- [JavaScript/Python examples](https://github.com/RippleDevRel/xrpl-js-python-simple-scripts)
+[Event instructions](https://app.notion.com/p/adam-hn/XRPL-Lending-Protocol-Hackathon-5cc7508f4cdc83a7991e01f90528e490) · [XLS-65](https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0065-single-asset-vault) · [XLS-66](https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0066-lending-protocol) · [Batch](https://xrpl.org/docs/references/protocol/transactions/types/batch) · [V1.1 accounting reference](https://opensource.ripple.com/docs/lending-protocol-v1-1)
 
-Use the documentation that matches the actual network amendments and SDK, not just a similarly named tutorial. The official DevEx hook must be installed individually by each teammate with their own consent; this repository excludes personal capture identities and invitation credentials.
+Use the specification matching the actual network amendments. The project documents its Track 1 + Loaded interpretation; it does not claim private mentor approval. Each teammate configures DevEx capture independently with consent. The hook supplements the manual report and its presence in one checkout proves nothing about another teammate's setup.

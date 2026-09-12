@@ -1,5 +1,7 @@
 # Raise secondary-market feasibility spike
 
+> Historical feasibility record. This preserves the original plan/results and SDK context. The selected Batch mechanism is now integrated in the application; see [current integration and evidence](../../docs/INTEGRATION.md).
+
 ## Scope and guardrails
 
 - Track 1 only: the custom Hackathon Devnet at the supplied RPC and WSS endpoints.

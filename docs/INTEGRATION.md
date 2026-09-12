@@ -2,7 +2,7 @@
 
 ## Runtime
 
-Use Node 24.11.1 or a compatible Node 24 release. Install the committed root and web lockfiles. The application uses `xrpl@5.2.0-beta.1`, network 4001, the event lending endpoint and faucet-funded test XRP. Both actors connect to one Next.js Node server with persistent SQLite storage.
+Use Node `>=24.11.1 <25`; the recorded local E2E runs used 24.11.1. Install the committed root and web lockfiles. The application uses `xrpl@5.2.0-beta.1`, network 4001, the event lending endpoint and faucet-funded test XRP. Both actors connect to one Next.js Node server with persistent SQLite storage.
 
 ```sh
 npm ci
@@ -17,7 +17,7 @@ The default URL is `http://localhost:3000`. For another origin, set `RAISE_MARKE
 RAISE_MARKET_ORIGIN=http://127.0.0.1:3100 npm run dev -- --hostname 127.0.0.1 --port 3100
 ```
 
-Do not mix `localhost` and `127.0.0.1` between browser and server configuration. `RAISE_MARKET_DB_PATH` may select an absolute persistent database path; by default it is `web/.local/market.sqlite`. This is a single-host deployment with enabled master-key test wallets. It does not support independent replicas, regular-key authentication or account multisigning. Restart the server after changes to core/server modules so its long-lived runtime uses the new code. Production builds use the same Webpack Node externals.
+Do not mix `localhost` and `127.0.0.1` between browser and server configuration. `RAISE_MARKET_DB_PATH` may select an absolute persistent database path; by default it is `web/.local/market.sqlite`. This is a single-host deployment with enabled master-key test wallets. It does not support independent replicas, regular-key authentication or account multisigning. Restart the server after changes to core/server modules so its long-lived runtime uses the new code. Production builds use the same Webpack Node externals. Public hosting, the Docker runtime version, persistent volume and deployment checks are documented separately in [DEPLOYMENT.md](DEPLOYMENT.md). The local evidence below does not certify the deployed origin.
 
 ## Buyer and seller on localhost
 
@@ -29,15 +29,30 @@ Do not mix `localhost` and `127.0.0.1` between browser and server configuration.
 6. If validation is pending, use **Check recorded transaction**. Only verified outer and inner transaction metadata changes the offer to settled. A refresh never sends another payment.
 7. After the borrower repays, the buyer refreshes Position and withdraws available cash. This burns the corresponding vault shares; it is a separate transaction from buying them.
 
-The operator and borrower exist in addition to the two marketplace actors. For a controlled browser verification, `scripts/browser-fixture.ts` creates those two fresh operator accounts in memory, waits for the seller's UI deposit, originates the test loan, waits for the browser sale, repays, and waits for the buyer's UI redemption. Its `--help` is read-only; `--start` explicitly sends test-network transactions. Keep the process alive throughout the journey. It does not load browser keys or resume financial operations automatically.
+The operator and borrower exist in addition to the two marketplace actors. For a controlled browser verification, `scripts/browser-fixture.ts` creates those two fresh operator accounts in memory, waits for the seller's UI deposit, originates the test loan, waits for the browser sale, repays, and waits for the buyer's UI redemption. Its `--help` is read-only; `--start` explicitly sends test-network transactions. Keep the process alive throughout the journey. It does not load browser keys or resume financial operations automatically. Both this fixture and the API harness reject application origins whose hostname is not `localhost` or `127.0.0.1`; they still send their ledger transactions to the dedicated event network. Do not point these harnesses at public hosting or remove their local-origin guard to imply a public E2E result.
 
 ## Verification boundaries
 
 `npm run check` at the root and in `web/` runs offline type checks and behavior tests. The suites cover exact NUMBER/scientific arithmetic and losses, origin/action/nonce binding, signature mutation, concurrent reservation and broadcast, restart/replay, missing or inconsistent ledger proof, transport cleanup, storage failure, faucet funding interruptions and wallet disconnect during preparation.
 
-With the server running, `npm run market:e2e` at the root runs the real HTTP API, SQLite, production client signing helpers and event ledger with four fresh actors. The complete verified result is [market-e2e.json](../evidence/market-e2e.json). It covers deposit, loan, rejected unavailable withdrawal, shared listing, buyer/seller signatures, atomic purchase, repayment and buyer redemption. Balances and holdings are pinned to validated ledgers. No simulated success substitutes for a missing transaction.
+With the local server running and `RAISE_MARKET_ORIGIN` matching its configured origin, `npm run market:e2e` at the root runs the real HTTP API, SQLite, production client signing helpers and event ledger with four fresh actors. The complete verified result is [market-e2e.json](../evidence/market-e2e.json). It covers deposit, loan, rejected unavailable withdrawal, shared listing, buyer/seller signatures, atomic purchase, repayment and buyer redemption. Balances and holdings are pinned to validated ledgers. No simulated success substitutes for a missing transaction.
 
 The browser fixture is a separate check: the seller and buyer operate the actual UI, with lending prepared by the fixture. The successful run is recorded in [browser-market-e2e.json](../evidence/browser-market-e2e.json): seller deposit, rejected withdrawal, shared listing, separate buyer/seller approvals, exact-hash reconciliation and buyer redemption. A separate production-server restart while pending is recorded in [browser-ui-checks.json](../evidence/browser-ui-checks.json). The buyer received 100.00024 test XRP on redemption and the remaining share supply became zero. This scope is distinct from the Node API harness and from `web/verify/wallet.verify.ts`, which uses explicit storage/Web Lock stand-ins while submitting a real ledger transaction.
+
+The browser fixture refuses to start while
+`evidence/browser-market-e2e.json` already exists, and writes the final evidence
+with exclusive creation (`wx`). Preserve the existing proof before deliberately
+starting a new run; do not treat a failed rerun as permission to overwrite it or
+resend an uncertain transaction. The API harness writes its own
+`evidence/market-e2e.json`, so preserve that earlier result before a new run too.
+Only public evidence belongs in Git; private local run directories stay ignored.
+
+The recorded complete browser journey and restart check are different fixtures.
+The restart fixture verified the sale and durable pending recovery but stopped
+before repayment after an RPC presentation-field mismatch. Read-only verification
+of that exact hash succeeded after the harness normalization fix. A distinct
+fixture then completed the full deposit-to-redemption journey; the earlier sale
+was not resubmitted. The evidence files preserve this distinction.
 
 ## Recovery guarantees and limitations
 
@@ -52,7 +67,7 @@ The browser fixture is a separate check: the seller and buyer operate the actual
 - Single-account browser submissions require Web Locks and a persistent public-hash journal before broadcasting. A timeout preserves that record and blocks a second transaction from the account. Read-only reconciliation clears only a validated matching identity.
 - Faucet wallets are saved in session storage before funding verification. A funding RPC failure does not lose the generated wallet or enable signing. Reload checks the same saved identity.
 - Disconnect/reconnect cancels old SDK reconnect timers; late completion of a cancelled connection cannot become the current client.
-- Local development wallet seeds remain in their own browser session. The marketplace API accepts no seed. The operator-only LoanSet screen still has a clearly labelled local borrower test-seed co-signing limitation; an external wallet handoff for that screen is future work.
+- Test-wallet seeds remain in their own browser sessionStorage and memory; the public-hash recovery journal uses localStorage. The marketplace API accepts no seed. The operator-only LoanSet screen still has a clearly labelled local borrower test-seed co-signing limitation; an external wallet handoff for that screen is future work.
 
 ## Failures actually found during integration
 
@@ -68,4 +83,6 @@ Partial-fill persistence/rounding and the embedding boundary are exploration pro
 
 ## Recorded verification outcome
 
-Root: 281 tests and typecheck passed. Web: 119 tests, typecheck and production build passed. Both npm audits reported zero known vulnerabilities. Independent QA ran 79 relevant cases and found no remaining blocking issue in the reviewed changes. The browser verification found and corrected invalid nested HTML in loading stats and a stale-share warning incorrectly shown after a successful sale; historical offers whose supply was fully redeemed now show unavailable current valuation. Final independent reviews covered the receipt preflight, concurrent submission and authorization UI recovery. The browser harness was also tightened to require a validated unavailable withdrawal and zero final assets; it strips only the known RPC presentation fields before checking the serialized Batch terms. These checks do not claim production certification or customer demand.
+The recorded integration review passed **400 offline tests**: 281 root tests and 119 web tests, with both typechecks and the web production build. Both npm audits reported zero known vulnerabilities. Independent QA ran 79 relevant cases and found no remaining blocking issue in the reviewed changes. The browser verification found and corrected invalid nested HTML in loading stats and a stale-share warning incorrectly shown after a successful sale; historical offers whose supply was fully redeemed now show unavailable current valuation. Final independent reviews covered the receipt preflight, concurrent submission and authorization UI recovery. The browser harness was also tightened to require a validated unavailable withdrawal and zero final assets; it strips only the known RPC presentation fields before checking the serialized Batch terms. These checks do not claim production certification or customer demand.
+
+No new test-network transactions or public-browser E2E were run for this documentation refresh. Consult the dated evidence and [DEPLOYMENT.md](DEPLOYMENT.md) for the scope of each verification.

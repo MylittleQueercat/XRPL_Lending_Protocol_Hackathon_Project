@@ -16,4 +16,4 @@ The curated report lives at [`DEVEX_FEEDBACK.md`](../DEVEX_FEEDBACK.md) in the r
 
 At report time, review all public findings and select the strongest ones: reproducible, clearly impactful, and specific enough to suggest an improvement. The manual report should summarize those selected findings; it is not a dump of automated capture events or raw logs.
 
-Use the capture-status language in `docs/DEVEX.md`: local buffering and remote delivery are separate claims. Do not claim remote delivery unless it is directly observable.
+Use the capture-status language in [docs/DEVEX.md](../docs/DEVEX.md): local buffering and remote delivery are separate claims. Do not claim remote delivery unless it is directly observable.

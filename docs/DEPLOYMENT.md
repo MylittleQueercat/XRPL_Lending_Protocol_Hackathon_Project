@@ -11,7 +11,7 @@ This deployment is a public demonstration on the hackathon network **4001**, usi
 - Mode: **Docker Compose**, not Swarm Stack. Automatic deployment is left disabled so a push alone does not replace the running service.
 - The external, attachable overlay network is `dokploy-network`. Existing Traefik entrypoints are `web` (80) and `websecure` (443); `letsencrypt` uses HTTP-01.
 
-Only the versioned Compose labels configure the application domain. Leave Dokploy's Domains list empty for this service. Do not change the global proxy or publish application ports on the host.
+**Dokploy Domains is the sole routing authority.** Adam added the domain through that tab; the Compose no longer duplicates its Traefik routers. Keep exactly one Domains entry: `raise.vgtray.fr`, service `web`, path `/`, container port `3000`, HTTPS, certificate `letsencrypt`. Dokploy injects the corresponding HTTP/HTTPS labels at deployment. The Compose still declares the external network explicitly. Do not change the global proxy or publish application ports on the host.
 
 ## Environment
 
@@ -19,15 +19,11 @@ Enter these non-secret values in the service Environment editor, with environmen
 
 ```dotenv
 RAISE_DOMAIN=raise.vgtray.fr
-RAISE_ROUTER_NAME=raise-marketplace
-TRAEFIK_HTTP_ENTRYPOINT=web
-TRAEFIK_HTTPS_ENTRYPOINT=websecure
-TRAEFIK_CERT_RESOLVER=letsencrypt
 RAISE_IMAGE_TAG=<immutable release identifier>
 RAISE_VOLUME_NAME=raise-market-data
 ```
 
-All seven variables are mandatory. Use a unique image tag for each code release and record its source commit and image ID. Keep the volume name unchanged. Compose explicitly passes `RAISE_MARKET_ORIGIN=https://raise.vgtray.fr` and `RAISE_MARKET_DB_PATH=/data/market.sqlite` to the container. There are no public build-time environment variables or wallet credentials to enter.
+All three variables are mandatory. The Domains hostname and `RAISE_DOMAIN` must match. Use a unique image tag for each code release and record its source commit and image ID. Keep the volume name unchanged. Compose explicitly passes `RAISE_MARKET_ORIGIN=https://raise.vgtray.fr` and `RAISE_MARKET_DB_PATH=/data/market.sqlite` to the container. There are no public build-time environment variables or wallet credentials to enter.
 
 Create a **proxied Cloudflare A record** for `raise.vgtray.fr` targeting Sunny (`217.182.199.158`, orange cloud). The existing host firewall permits web ingress from Cloudflare only; a DNS-only record will time out. Any AAAA record must reach the same application. DNS is managed separately from Compose. HTTP-01 validation and HTTP-to-HTTPS routing require the existing proxy to remain reachable on ports 80 and 443. Keep end-to-end TLS validation enabled; do not switch to Flexible mode or disable certificate verification to hide a pending certificate.
 
@@ -43,12 +39,12 @@ The healthcheck calls `/api/market` on loopback with the configured public Host.
 
 1. Validate the source and lockfiles, run `npm run check` and `npm --prefix web run check`, and build/scan the candidate image.
 2. Set a new `RAISE_IMAGE_TAG`, retaining the previous healthy tag and image ID for rollback. Save the environment.
-3. Use **Preview Compose**. Confirm one `web` service, `expose: 3000`, no `ports`, the stable volume and the expected labels/network. Do not print resolved configuration when future variables contain secrets.
+3. Use **Preview Compose**. Confirm one `web` service, `expose: 3000`, no `ports`, the stable volume and the labels injected by the single Domains entry and the expected network. Do not print resolved configuration when future variables contain secrets.
 4. Click **Deploy**. Confirm the deployment references the intended main commit, completes successfully and produces a healthy container.
 5. Check HTTPS, HTTP redirection, static assets, `/position`, `/market`, `/sell`, `/operator`, dynamic offer/buy pages and `/api/market`. Confirm the browser connects to network 4001 and can use the faucet with a fresh test wallet.
 6. Record source commit, image ID, deployment ID and checks in the deployment evidence. An image build or a green panel status alone does not prove the public route works.
 
-For a local configuration-only check, copy `.env.example` to an ignored file, populate the seven values and run:
+For a local configuration-only check, copy `.env.example` to an ignored file, populate the three values and run:
 
 ```sh
 docker compose --env-file .env.deployment-check config --quiet
@@ -81,21 +77,23 @@ Use the service Deployments and Logs tabs for build/start errors, Containers for
 
 ## Verification record — 12 September 2026
 
-Deployment is running on Sunny; **public HTTPS acceptance is pending DNS creation**. Do not present the public URL as verified yet.
+Deployment is running on Sunny. DNS and HTTPS now respond for [raise.vgtray.fr](https://raise.vgtray.fr). Hosted smoke checks pass; the complete local trading E2E is a separate proof, not a claim of a full trade repeated on the public origin.
 
 - Source: [`391219d8ecd21a58a41a377ef450749145fa0d97`](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/commit/391219d8ecd21a58a41a377ef450749145fa0d97), merged in [PR #46](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/pull/46).
 - Release tag: `raise-web:e9db2dc` (the reviewed PR head; its tree matches the main merge). Retained rollback alias: `raise-web:rollback-e9db2dc`.
 - Docker image ID: `sha256:205ceba52b1b1ba4a4af2ee0af9efe050f8f7f8851783dc961a62cffd467675f`.
-- Dokploy reports two successful deployments from that main commit. Auto-deploy is disabled. Preview Compose and actual container labels match the versioned configuration; Domains is empty.
+- Dokploy reports two successful deployments from that main commit. Auto-deploy is disabled. The initial release used versioned labels; the routing configuration is being aligned to the single Domains entry added by Adam. Verify the final effective labels after deploying that change.
 - Current container: healthy, UID 1000, only an unbound `3000/tcp`, attached to `dokploy-network`, with `raise-market-data` mounted at `/data`.
 - Local checks: root 281 tests and web 119 tests pass, including type checks; GitHub CI passes. Production build succeeds on Sunny.
 - Trivy `0.74.0` scans of both the candidate and Dokploy-built release report **zero HIGH/CRITICAL vulnerabilities**. The scanner warns that Alpine 3.24 is absent from its EOL list; this result is a dated vulnerability check, not a claim of complete security coverage.
-- All eight application/API routes in the deploy procedure return HTTP 200 from inside the released container using the public Host header. Eleven referenced JS/CSS assets were verified in the candidate container. Public-origin browser checks remain outstanding.
+- Eight public application/API routes return HTTP 200, including graceful empty states for unknown dynamic offer/buy IDs. Seventeen referenced JS/CSS assets pass. HTTP probes used `curl --resolve` against an authoritative Cloudflare address while the local OS DNS cache was stale; normal SNI and certificate verification remained enabled.
 - SQLite integrity checks and an online backup succeed. The actual volume marker and database inode survive service restart and Dokploy redeploy. An isolated image replacement preserves a database marker; a consistent backup restores into a separate volume and starts healthy with the retained image.
-- The existing Traefik returns HTTP 308 to `https://raise.vgtray.fr/` from Sunny. Direct public-IP access times out as expected under the existing Cloudflare-only ingress policy.
-- DNS returns `NXDOMAIN` from the authoritative nameserver and public resolvers. Traefik's ACME log reports the same missing A/AAAA records; certificate issuance, public HTTPS, mixed-content inspection, WSS/ledger reads and faucet use from the deployed origin remain unchecked.
+- The existing Traefik returns HTTP 308 to HTTPS from Sunny, and Cloudflare returns HTTP 301 to `https://raise.vgtray.fr/`. Public HTTPS returns 200. Direct origin HTTPS on Sunny also passes normal certificate verification and returns 200; no insecure TLS option was used. Direct public-IP access times out under the existing Cloudflare-only ingress policy.
+- Cloudflare authoritative DNS and Google/Cloudflare resolvers return proxied A/AAAA records. The initial NXDOMAIN/ACME failure was resolved after DNS creation and an application restart. The browser subsequently resolved the public domain normally. The origin certificate is issued by Let’s Encrypt YR1 for `raise.vgtray.fr`, expiring December 11, 2026.
 
-Finish [#45](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/45) after the proxied DNS record exists: verify TLS, all public pages/assets, network 4001 and a fresh faucet-funded browser wallet, then update this record and link the verified URL from demo/submission tickets #27–28. Do not repeatedly trigger certificate requests while DNS is absent.
+- A browser on the public HTTPS origin created a fresh faucet wallet with 1,000 test XRP, connected through WSS to network 4001 and read vault `87911A8C93AC413EA8A1035E5D0CD3BB26F60364F623C75BD8BA702B4DA54FF0` at validated ledger 73549. Home, Position, Market, Sell and Operator rendered; no console warning/error or HTTP resource URL was observed in those checks. No seed was exported.
+
+Machine-readable HTTP/browser smoke evidence is in [deployment-smoke.json](../evidence/deployment-smoke.json). This checks hosted loading, ledger reads and faucet access; it does not repeat the complete share sale/redemption E2E on the public domain. The final Domains-only effective configuration and source revision are recorded in [#45](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/45), which must remain open until that configuration check passes. Demo and submission still require their own sign-off in #27–28.
 
 ## References
 

@@ -22,21 +22,7 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=dokploy-network
-      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-http.rule=Host(`${RAISE_DOMAIN:?Set the public hostname}`)
-      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-http.entrypoints=${TRAEFIK_HTTP_ENTRYPOINT:?Set the existing HTTP entrypoint}
-      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-http.middlewares=${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https-redirect
-      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-http.service=${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}
-      - traefik.http.middlewares.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https-redirect.redirectscheme.permanent=true
-      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https.rule=Host(`${RAISE_DOMAIN:?Set the public hostname}`)
-      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https.entrypoints=${TRAEFIK_HTTPS_ENTRYPOINT:?Set the existing HTTPS entrypoint}
-      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https.tls=true
-      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https.tls.certresolver=${TRAEFIK_CERT_RESOLVER:?Set the existing certificate resolver}
-      - traefik.http.routers.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}-https.service=${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}
-      - traefik.http.services.${RAISE_ROUTER_NAME:?Set a unique Traefik router prefix}.loadbalancer.server.port=3000
+    # Public routing is managed by this service's Dokploy Domains entry.
 
 volumes:
   market-data:

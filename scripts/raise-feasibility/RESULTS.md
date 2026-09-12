@@ -1,5 +1,7 @@
 # Raise secondary-market feasibility spike — RESULTS
 
+> Historical feasibility record. This preserves the original plan/results and SDK context. The selected Batch mechanism is now integrated in the application; see [current integration and evidence](../../docs/INTEGRATION.md).
+
 ## Environment
 
 - SDK: xrpl.js 5.2.0 (pinned in `package.json`)

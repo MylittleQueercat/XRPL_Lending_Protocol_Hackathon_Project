@@ -1,73 +1,119 @@
 # Wallet integration and signing surface (Issue #18)
 
-## Decision
+## Current decision
 
-No external browser wallet was verified to support the Track 1 custom Devnet
-(network ID `4001`), its private RPC/WSS endpoints, XLS-65/XLS-66 transaction
-types, MPT payments, and multi-account Batch signing together. The selected
-integration is therefore an explicitly labelled **Track 1 hackathon/test-wallet
-mode** using `xrpl.js` `5.2.0-beta.1`/`Wallet` client-side. It is not a
-production wallet architecture and is not custodial: there is no server-side
-signer or seed API.
+Raise has a working browser frontend and uses an explicitly labelled **Track 1
+test-wallet mode** with `xrpl@5.2.0-beta.1`. An external connector supporting the
+custom network, lending transactions and multi-account Batch signing together
+has not been verified by this project. Only disposable, faucet-funded accounts
+on network **4001** belong in this mode. This is not a production wallet
+architecture.
 
-The wallet boundary is implemented in `src/wallet.ts`. It exposes only account,
-connection and network status to UI code, checks the connected wallet and the prepared transaction both use network ID `4001` before every
-signature, rejects unsupported transaction types, and never submits or sends
-seeds/private keys to a server. There is not yet a browser frontend in this
-repository, so actual on-screen display is **pending frontend integration**;
-`publicWalletStatus` is the safe data source the UI must render. A real application should replace this mode
-with an audited external connector once one supports the custom network.
+The browser implementation is [web/src/lib/wallet.tsx](../web/src/lib/wallet.tsx).
+It exposes public account/network state, creates or imports a test wallet, and
+checks the selected network and active account before returning a signer.
+[ledger.ts](../web/src/lib/ledger.ts) handles single-account submission and
+recovery; [market-signing.ts](../web/src/lib/market-signing.ts) checks and signs
+the exact prepared marketplace Batch terms. The older
+[src/wallet.ts](../src/wallet.ts) remains the connector-neutral signing contract
+and historical test seam. It is not the browser provider used at runtime.
 
-## Required signing surface
+## Storage and actor separation
 
-The current demo may require: XRP `Payment`; vault-share MPT `Payment`;
-`MPTokenAuthorize` (receiver opt-in); `VaultCreate`; `VaultDeposit`; `VaultWithdraw`;
-`LoanBrokerSet`; `LoanBrokerCoverDeposit`; `LoanSet` (broker and borrower
-signatures); `LoanPay`; and `Batch` with `tfAllOrNothing`. Batch signing follows
-Issue #13 evidence exactly: the buyer authorizes the XRP inner payment, while
-the seller authorizes the share-delivery side and outer Batch. The buyer must
-opt in with `MPTokenAuthorize` before receiving shares. The full list and roles
-are exported as `REQUIRED_SIGNING_SURFACE`.
+The browser provider keeps its test seed in memory and `sessionStorage` under
+`raise.wallet.local.v1`. Reload can restore that session; disconnect clears the
+active signer and attempts to remove the stored wallet. Storage is not encrypted
+or a production key vault. Import can remain memory-only when session storage
+is unavailable. Faucet creation requires verified storage retention before
+checking funding, so an interrupted funding read can recover the same identity.
+The faucet returns disposable wallet material to the browser; the Raise
+marketplace API never accepts a seed or private key.
 
-## Network and UX safety
+The submission journal in `localStorage` contains only public transaction
+identifiers, account, type, network, expiry ledger and creation time. It contains
+no seed, private key, signature or signed transaction blob. The server SQLite
+store contains offers, challenges, prepared signatures and submitted transaction
+blobs needed for durable settlement, but no wallet private keys.
 
-The UI must visibly show “Track 1 custom Devnet”, network ID `4001`, and the
-connected classic address. `assertWalletReady` blocks signing when disconnected,
-when the network ID is anything other than `4001` (including Mainnet, public
-Testnet or public Devnet), or when the account fails XRPL classic-address checksum validation. Reconnect is a
-recoverable state. `signTrack1` classifies user rejection separately from other
-signing failures; rejection explicitly means no submission occurred.
+Buyer and seller use **separate browser wallets** and independently approve the
+same sale. Neither marketplace actor enters the other actor's seed. Use distinct
+browser sessions or freshly created tabs; a duplicated tab can inherit session
+storage. Verify that the displayed public addresses differ.
 
-Unsupported transaction types are rejected before invoking the connector. Callers must autofill on the selected network before calling `signTrack1`; an absent or mismatched transaction `NetworkID` is rejected before signing. Submission remains a separate, validated-result step.
+The operator console has a separate limitation: its `LoanSet` form asks for a
+borrower's **test seed** to counter-sign locally in the broker's browser. That
+input lives in form memory and is not persisted or sent to the Raise API. A
+separate borrower approval handoff is not implemented in that console. Do not
+confuse this operator fixture with the two-wallet marketplace sale.
 
-## Real signed evidence
+## Signing and recovery behavior
 
-The newly implemented `src/wallet.ts` path has now been live-tested with one
-low-risk disposable-account transaction. The opt-in test account
-`rD3m…JpEg` signed `MPTokenAuthorize` for the existing share issuance; the
-transaction [`50EE8015…82E7`](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/50EE801562E331D70805E8528176B38DA74867315D0274346544203E1AFC82E7)
-validated on ledger `67737` with `tesSUCCESS` and a 12-drop fee. The seed was
-held only in the test process and was not written or logged. Earlier Bob
-evidence ([`D114AB7B…`](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/D114AB7BAB7A9F4997707E73024F591442C0FB27385AFCE497DA1DC707CBB48F),
-ledger `65182`) remains historical evidence. The historical Batch sale and multi-account signatures in `docs/SETTLEMENT.md` and `docs/SALE.md` used direct xrpl.js `Wallet.sign` and `signMultiBatch` calls. They prove the SDK mechanism, not Batch execution through the new `src/wallet.ts` boundary. Only the `MPTokenAuthorize` path above has live evidence through this boundary; browser and multi-party workflow integration remain to be verified.
+The header and wallet panel show the connected account and network state.
+`requireSigner` rejects a disconnected or changed wallet, a network other than
+4001, or a validated ledger older than 30 seconds. Single-account transactions
+must use the connected account; their autofilled `NetworkID` is checked again.
+The current ordinary fee ceiling is 1 XRP. `VaultCreate` alone permits up to
+2 XRP when both the requested and prepared types are `VaultCreate`, matching
+the recorded event-network creation cost. See
+[vault-create-fee-fix.json](../evidence/vault-create-fee-fix.json).
 
-## Reproduction and limitations
+Single-account submissions require Web Locks on localhost or HTTPS and a
+persisted public-hash journal entry before broadcast. An unresolved entry blocks
+another operation from that account. **Check transaction** reads the saved hash
+and verifies the validated transaction identity before clearing the entry.
+Timeouts, missing history and expired-but-unproven transactions do not silently
+clear it or trigger a retry.
+
+Marketplace signing uses the server's immutable reservation and prepared terms.
+The buyer approves the XRP side; the seller signs the outer Batch and share
+side. The server persists the exact signed blob/hash before its one broadcast
+attempt. **Check recorded transaction** reconciles the same hash; it never sends
+a second payment. See [SETTLEMENT.md](SETTLEMENT.md) and
+[INTEGRATION.md](INTEGRATION.md).
+
+The required signing surface includes XRP and vault-share MPT `Payment`,
+`MPTokenAuthorize`, `VaultCreate`, `VaultDeposit`, `VaultWithdraw`,
+`LoanBrokerSet`, `LoanBrokerCoverDeposit`, `LoanSet`, `LoanPay` and atomic `Batch`.
+The root contract exports `REQUIRED_SIGNING_SURFACE` and rejects unsupported
+transaction types in that contract. Browser actions use their own fixed builders
+and validation paths; do not assume every browser call routes through the root
+`signTrack1` helper.
+
+## Recorded evidence
+
+The historical root boundary live test signed one `MPTokenAuthorize`:
+[`50EE8015…82E7`](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/50EE801562E331D70805E8528176B38DA74867315D0274346544203E1AFC82E7),
+ledger `67737`, `tesSUCCESS`, fee 12 drops. That disposable seed remained in the
+test process. Earlier Bob authorization
+[`D114AB7B…BB48F`](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/D114AB7BAB7A9F4997707E73024F591442C0FB27385AFCE497DA1DC707CBB48F)
+at ledger `65182` and the feasibility Batch runs remain historical SDK evidence.
+
+The integrated browser path now has separate evidence:
+[browser-market-e2e.json](../evidence/browser-market-e2e.json) records the full
+seller deposit, unavailable withdrawal, independent buyer/seller signatures,
+verified sale and buyer redemption on September 12, 2026.
+[browser-ui-checks.json](../evidence/browser-ui-checks.json) records observed UI
+behavior and a separate pending-transaction recovery across a server restart.
+These local checks do not establish external-wallet compatibility or public
+hosting validation.
+
+## Verification and remaining boundary
 
 ```sh
 npm run check
-npm run wallet:live-test # opt-in: creates one disposable account/MPTokenAuthorize
+npm --prefix web run check
+# Explicit live root-contract test; creates a disposable account and sends a transaction:
+npm run wallet:live-test
 ```
 
-Tests cover matching/wrong network, displayed account state, disconnects,
-rejected signatures, unsupported transaction types, and the absence of secret
-fields in the public status object. This mode is for disposable Track 1
-accounts only; never place a seed in source, logs, analytics, browser storage,
-or an application API. Production should use a connector with explicit
-custom-network and multi-party-signature support, or disable the corresponding
-flow rather than silently falling back to an ordinary XRP Payment wallet.
+Offline tests cover network/account guards, signing-term mutation, fee limits,
+storage failure, pending-hash recovery and account changes during preparation.
+The live command is optional and is not part of ordinary offline checks. For the
+full local two-party journey, follow [INTEGRATION.md](INTEGRATION.md); public
+hosting checks belong to [DEPLOYMENT.md](DEPLOYMENT.md).
 
-## Acceptance status
-
-- [x] Safe public account/network status and Track 1 signing guards implemented.
-- [x] Live signed `MPTokenAuthorize` validated through `src/wallet.ts` (`50EE8015…82E7`, ledger `67737`).
-- [ ] On-screen network/account display: pending frontend integration because this repository currently has no browser UI.
+The browser account/network display and two-party marketplace integration are
+implemented and locally evidenced. An audited external connector, production
+key custody and a separate operator-console borrower approval flow remain
+outside this version. Never put real wallet material in this test UI, source,
+logs, analytics, issue reports or deployment configuration.
