@@ -1,12 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { WalletProvider } from "@/lib/wallet";
 import { AppShell } from "@/components/app-shell";
 import "./globals.css";
-
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: { default: "Raise", template: "%s · Raise" },
@@ -17,8 +13,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "hsl(210 20% 98%)" },
-    { media: "(prefers-color-scheme: dark)", color: "hsl(222 47% 6%)" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f5ec" },
+    { media: "(prefers-color-scheme: dark)", color: "#19271f" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -26,7 +22,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full`}>
+    <html lang="en" suppressHydrationWarning className="h-full">
       <body className="min-h-full">
         <ThemeProvider>
           <WalletProvider>

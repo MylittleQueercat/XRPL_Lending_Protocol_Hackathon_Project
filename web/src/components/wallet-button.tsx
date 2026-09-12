@@ -58,13 +58,13 @@ export function WalletButton() {
 
   return (
     <div className="relative" ref={panelRef}>
-      <Button variant={wallet.account ? "outline" : "default"} onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-haspopup="dialog">
+      <Button variant="secondary" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-haspopup="dialog">
         <WalletIcon />
-        {wallet.account ? <span className="font-mono">{shortAddress(wallet.account.address)}</span> : "Connect wallet"}
+        {wallet.account ? <span className="font-mono">{shortAddress(wallet.account.address)}</span> : <><span className="hidden sm:inline">Connect wallet</span><span className="sm:hidden">Connect</span></>}
       </Button>
 
       {open && (
-        <div role="dialog" aria-label="Wallet" className="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-xl bg-popover p-4 text-popover-foreground shadow-lg ring-1 ring-foreground/10">
+        <div role="dialog" aria-label="Wallet" className="absolute right-0 z-50 mt-3 w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-border bg-popover p-5 text-popover-foreground shadow-[0_10px_20px_rgba(0,0,0,0.08)]">
           {wallet.account ? (
             <div className="space-y-3">
               <div>
@@ -75,9 +75,9 @@ export function WalletButton() {
                   <a href={explorerAccount(wallet.account.address)} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground" aria-label="Open in explorer"><ExternalLink className="size-4" /></a>
                 </div>
               </div>
-              <div className="rounded-lg bg-muted/60 px-3 py-2">
+              <div className="rounded-md bg-surface px-4 py-3">
                 <p className="text-xs text-muted-foreground">Balance</p>
-                <p className="text-lg font-medium tabular-nums">{wallet.balanceDrops ? formatXrp(wallet.balanceDrops) : "—"}</p>
+                <p className="heading1 tabular-nums">{wallet.balanceDrops ? formatXrp(wallet.balanceDrops) : "—"}</p>
               </div>
               {wallet.networkError && (
                 <Alert variant="destructive"><AlertTitle>Signing blocked</AlertTitle><AlertDescription>{wallet.networkError}</AlertDescription></Alert>

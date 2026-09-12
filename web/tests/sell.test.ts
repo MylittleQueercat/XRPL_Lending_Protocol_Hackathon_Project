@@ -1,10 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { computeReview, expiryFromHours } from "@/components/sell/review";
 
 const vault = { vaultId: "A".repeat(64), shareMptId: "B".repeat(48), assetsTotalDrops: "100000188", sharesOutstanding: "100000000" };
 const ctx = { vault, seller: "rzqEAQrkcXMjaKUMYdV6DXT4ybeaDWWjd", balance: "100000000", networkId: 4001, now: Date.parse("2026-09-12T16:00:00Z") };
 
 describe("sell review", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(ctx.now);
+  });
+  afterEach(() => vi.useRealTimers());
+
   it("prices a valid offer exactly and reports the discount against accounting value", () => {
     const { errors, review } = computeReview({ shares: "50000000", priceXrp: "47.5", expiryHours: 24 }, ctx);
     expect(errors.general).toEqual([]);

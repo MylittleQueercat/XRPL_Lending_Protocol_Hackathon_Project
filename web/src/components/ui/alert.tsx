@@ -3,12 +3,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
-  "relative grid w-full grid-cols-[0_minmax(0,1fr)] items-start gap-y-0.5 rounded-lg border px-4 py-3 text-sm has-[>svg]:grid-cols-[calc(var(--spacing)*4)_minmax(0,1fr)] has-[>svg]:gap-x-3 [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
+  "relative grid w-full grid-cols-[0_minmax(0,1fr)] items-start gap-y-0.5 rounded-md border px-4 py-3 text-sm has-[>svg]:grid-cols-[calc(var(--spacing)*4)_minmax(0,1fr)] has-[>svg]:gap-x-3 [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
   {
     variants: {
       variant: {
         default: "bg-card text-card-foreground",
-        info: "border-primary/30 bg-primary/5 text-foreground [&>svg]:text-primary",
+        info: "border-primary/30 bg-accent text-foreground [&>svg]:text-primary",
         success: "border-success/30 bg-success/5 text-foreground [&>svg]:text-success",
         warning: "border-warning/40 bg-warning/10 text-foreground [&>svg]:text-warning",
         destructive: "border-destructive/30 bg-destructive/5 text-foreground [&>svg]:text-destructive",
@@ -22,7 +22,7 @@ function Alert({ className, variant, ...props }: React.ComponentProps<"div"> & V
   return <div role="alert" data-slot="alert" className={cn(alertVariants({ variant }), className)} {...props} />;
 }
 function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
-  return <div data-slot="alert-title" className={cn("col-start-2 min-w-0 min-h-4 [overflow-wrap:anywhere] font-medium tracking-tight", className)} {...props} />;
+  return <div data-slot="alert-title" className={cn("col-start-2 min-w-0 min-h-4 [overflow-wrap:anywhere] font-medium", className)} {...props} />;
 }
 function AlertDescription({ className, ...props }: React.ComponentProps<"div">) {
   return <div data-slot="alert-description" className={cn("col-start-2 grid min-w-0 [overflow-wrap:anywhere] justify-items-start gap-1 text-sm text-muted-foreground [&_p]:leading-relaxed", className)} {...props} />;
