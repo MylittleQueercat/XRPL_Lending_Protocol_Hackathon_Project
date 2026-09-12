@@ -4,7 +4,7 @@ Raise proposes a secondary market where an investor can sell existing vault shar
 
 **The Track 1 Vanilla baseline is complete and verified on the event ledger.** This repository contains a reproducible TypeScript environment, network checks, the full XLS-65 + XLS-66 lending flow, automated tests, the manual DevEx report and the team roadmap. The secondary marketplace is a subsequent milestone, not an implemented feature.
 
-- [Manual developer-feedback report](DEVEX_FEEDBACK.md)
+- [Manual developer-feedback report](DEVEX_FEEDBACK.md) — curated from the [team findings pool](devfeedback/findings/)
 - [Project concept — English team discussion document](docs/PROJECT_CONCEPT.md)
 - [Shared team board](https://github.com/users/MylittleQueercat/projects/1)
 - [Detailed roadmap](docs/ROADMAP.md)

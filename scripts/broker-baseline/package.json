@@ -1,0 +1,12 @@
+{
+  "name": "xrpl-broker-baseline",
+  "private": true,
+  "type": "module",
+  "description": "Read-only verifier for the Track 1 XLS-66 loan broker baseline",
+  "scripts": {
+    "verify": "node verify.mjs"
+  },
+  "dependencies": {
+    "xrpl": "5.2.0"
+  }
+}

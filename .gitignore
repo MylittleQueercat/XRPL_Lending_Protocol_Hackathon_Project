@@ -3,17 +3,22 @@ node_modules/
 .env
 .env.*
 !.env.example
-.xrpl-devex/
-.codex/
-.claude/
-.cursor/
 .DS_Store
 coverage/
 dist/
 *.log
 
-# Personal DevEx capture install: carries individual identities and the event invite code.
+.xrpl-devex/
+# Local editor/agent installation state. Shared DevEx workflow evidence lives
+# in docs/DEVEX.md and devfeedback/, not in these machine-specific links.
+.claude/
+.codex/
+.cursor/
+.grok/
+# Personal DevEx capture install: carries individual identities, an event invite
+# code, and an ingest key.
 xrpl-devex-hook/
+scripts/vault-baseline/wallets.json
+scripts/vault-baseline/fresh-results.json
 # Local working material (slide renders, scratch files).
 tmp/
-.grok/
