@@ -1,0 +1,13 @@
+node_modules/
+.local/
+.env
+.env.*
+!.env.example
+.xrpl-devex/
+.codex/
+.claude/
+.cursor/
+.DS_Store
+coverage/
+dist/
+*.log

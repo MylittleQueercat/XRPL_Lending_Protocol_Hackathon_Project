@@ -1,0 +1,114 @@
+{
+  "status": "verified",
+  "scope": "XLS-65 vault creation, deposit and withdrawal only; no loan or yield is demonstrated.",
+  "completedAt": "2026-09-12T12:19:49.780Z",
+  "network": {
+    "checkedAt": "2026-09-12T12:19:28.385Z",
+    "networkId": 4001,
+    "reachable": true,
+    "http": {
+      "build": "3.4.0-rc1",
+      "ledgerIndex": 65159,
+      "ledgerAgeSeconds": 3
+    },
+    "websocket": {
+      "build": "3.4.0-rc1",
+      "ledgerIndex": 65159,
+      "ledgerAgeSeconds": 3
+    },
+    "vaultReady": true,
+    "vanillaReady": false,
+    "blockers": [
+      "LendingProtocolV1_1 is enabled: new loans require closed-ended vaults, incompatible with this Track 1 open-ended plan."
+    ],
+    "amendments": [
+      {
+        "id": "565B90CA1AB2B9D42208ED10884188C64F9E19083DECB9634AAF06EB03299509",
+        "name": "LendingProtocol",
+        "enabled": true
+      },
+      {
+        "id": "81BD2619B6B3C8625AC5D0BC01DE17F06C3F0AB95C7C87C93715B87A4FD240D8",
+        "name": "SingleAssetVault",
+        "enabled": true
+      },
+      {
+        "id": "A360E2BFD775A5B0DCE1C36C16DF31B72735A57584FD163655D2F9564F8E7AC8",
+        "name": "LendingProtocolV1_1",
+        "enabled": true
+      }
+    ]
+  },
+  "accounts": {
+    "owner": "rHexAjbydm4HFS7cPuq8JfVRcu2L2Z3v4e",
+    "lender": "rBpRaCbGJGz4mD56Yu7pbXCUV69nz93qHj"
+  },
+  "depositDrops": "10000000",
+  "transactions": [
+    {
+      "hash": "70740BF4500A9E37C5AFAAA0706FB74F2D5EE38787EC150404088E62A473BF56",
+      "ledgerIndex": 65163,
+      "resultCode": "tesSUCCESS",
+      "transactionType": "VaultCreate",
+      "feeDrops": "2000000",
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/70740BF4500A9E37C5AFAAA0706FB74F2D5EE38787EC150404088E62A473BF56"
+    },
+    {
+      "hash": "76F408DE062E73ABD5738AB733F952599045694A7C720A13ADC5E476A7D2390B",
+      "ledgerIndex": 65165,
+      "resultCode": "tesSUCCESS",
+      "transactionType": "VaultDeposit",
+      "feeDrops": "12",
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/76F408DE062E73ABD5738AB733F952599045694A7C720A13ADC5E476A7D2390B"
+    },
+    {
+      "hash": "DD1BCC04E48B181A18DFC260F109076FCE77808DA27E97076001CA5D35746D63",
+      "ledgerIndex": 65167,
+      "resultCode": "tesSUCCESS",
+      "transactionType": "VaultWithdraw",
+      "feeDrops": "12",
+      "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/DD1BCC04E48B181A18DFC260F109076FCE77808DA27E97076001CA5D35746D63"
+    }
+  ],
+  "snapshots": {
+    "initial": {
+      "ledgerIndex": 65163,
+      "vaultId": "964A10DB7AE4E6E1EF53526C37E2FE23852A89A90A3948AEA5E37E7DA2C98889",
+      "shareMptId": "00000001BAAA59F9FF36F2C4B4987EB517E0B5DAC79561E0",
+      "assetsAvailableDrops": "0",
+      "assetsTotalDrops": "0",
+      "outstandingShares": "0",
+      "transferable": true
+    },
+    "deposited": {
+      "ledgerIndex": 65165,
+      "vaultId": "964A10DB7AE4E6E1EF53526C37E2FE23852A89A90A3948AEA5E37E7DA2C98889",
+      "shareMptId": "00000001BAAA59F9FF36F2C4B4987EB517E0B5DAC79561E0",
+      "assetsAvailableDrops": "10000000",
+      "assetsTotalDrops": "10000000",
+      "outstandingShares": "10000000",
+      "transferable": true
+    },
+    "withdrawn": {
+      "ledgerIndex": 65167,
+      "vaultId": "964A10DB7AE4E6E1EF53526C37E2FE23852A89A90A3948AEA5E37E7DA2C98889",
+      "shareMptId": "00000001BAAA59F9FF36F2C4B4987EB517E0B5DAC79561E0",
+      "assetsAvailableDrops": "0",
+      "assetsTotalDrops": "0",
+      "outstandingShares": "0",
+      "transferable": true
+    }
+  },
+  "lenderBalancesDrops": {
+    "before": "1000000000",
+    "afterDeposit": "989999988",
+    "afterWithdrawal": "999999976"
+  },
+  "fullVanillaComplete": false,
+  "environment": {
+    "node": "24.11.1",
+    "xrpl": "5.2.0",
+    "trackTarget": "Track 1 / Vanilla",
+    "proofScope": "XLS-65 only, executed while LendingProtocolV1_1 was enabled"
+  }
+}
