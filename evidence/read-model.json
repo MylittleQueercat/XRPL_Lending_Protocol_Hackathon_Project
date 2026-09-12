@@ -1,0 +1,250 @@
+{
+  "purpose": "Read-only integration evidence for issues #11 and #17; no wallets created or transactions submitted.",
+  "networkId": 4001,
+  "endpoint": "wss://lending-hackathon.dev.ripplex.io:51233",
+  "xrplVersion": "5.2.0-beta.1",
+  "observedDateUtc": "2026-09-12",
+  "positions": {
+    "redeemed": {
+      "snapshot": {
+        "networkId": 4001,
+        "ledger": {
+          "hash": "B0AF45825B3397D04B111DADB2437597ECEAE222AA0772BB8D098B167FE47C18",
+          "index": 67358,
+          "ageSeconds": 2,
+          "readAt": "2026-09-12T14:09:29.801Z"
+        },
+        "vaultId": "919E2B6F06793FA34516CBF6A6FBFD3F184C6C0D009290193980B479C7434C59",
+        "holderAddress": "rLNzsCg1LPnytzSdf4hLk7inC58BFzuX6J",
+        "shareMptId": "0000000161A20F6B9EA4A24BE20D61DF845A2214DA1E7875",
+        "assetsTotalDrops": "0",
+        "assetsAvailableDrops": "0",
+        "lossUnrealizedDrops": "0",
+        "totalSharesRaw": "0",
+        "heldSharesRaw": "0",
+        "shareScale": 0,
+        "vault": {
+          "Account": "r9uNgkWVwRnfdS5TBMJdN1L3xTmGTojAWZ",
+          "Asset": {
+            "currency": "XRP"
+          },
+          "Flags": 0,
+          "LEVersion": 1,
+          "LedgerEntryType": "Vault",
+          "Owner": "rHCh7tQEGUpcwFkAyzH4QRFd4s31DyVcti",
+          "OwnerNode": "0",
+          "PreviousTxnID": "2D4276038162C1B1A75E0460BFAC4FB13A02319588E13860980E3CA8D56B2EFC",
+          "PreviousTxnLgrSeq": 66962,
+          "Sequence": 66910,
+          "ShareMPTID": "0000000161A20F6B9EA4A24BE20D61DF845A2214DA1E7875",
+          "WithdrawalPolicy": 1,
+          "index": "919E2B6F06793FA34516CBF6A6FBFD3F184C6C0D009290193980B479C7434C59"
+        },
+        "issuance": {
+          "Flags": 56,
+          "Issuer": "r9uNgkWVwRnfdS5TBMJdN1L3xTmGTojAWZ",
+          "LedgerEntryType": "MPTokenIssuance",
+          "OutstandingAmount": "0",
+          "OwnerNode": "0",
+          "PreviousTxnID": "2D4276038162C1B1A75E0460BFAC4FB13A02319588E13860980E3CA8D56B2EFC",
+          "PreviousTxnLgrSeq": 66962,
+          "Sequence": 1,
+          "index": "DB34055D42612E9EB23C13282EA1165BEA10E140FC3E82D9CCD510F3A94AEFEB",
+          "mpt_issuance_id": "0000000161A20F6B9EA4A24BE20D61DF845A2214DA1E7875"
+        },
+        "holder": null,
+        "broker": {
+          "Account": "rJjAoGEFwJoCjxcwwqg1B34JXPNGFyzxD5",
+          "CoverAvailable": "20000000",
+          "CoverRateLiquidation": 10000,
+          "CoverRateMinimum": 10000,
+          "DebtMaximum": "1000000000",
+          "Flags": 0,
+          "LedgerEntryType": "LoanBroker",
+          "LoanSequence": 2,
+          "Owner": "rHCh7tQEGUpcwFkAyzH4QRFd4s31DyVcti",
+          "OwnerCount": 1,
+          "OwnerNode": "0",
+          "PreviousTxnID": "CE8D8C80F2270A004E8BA61239DBE60875F9965B40846C4D843B32B88AA21F69",
+          "PreviousTxnLgrSeq": 66961,
+          "Sequence": 66911,
+          "VaultID": "919E2B6F06793FA34516CBF6A6FBFD3F184C6C0D009290193980B479C7434C59",
+          "VaultNode": "0",
+          "index": "694ACA36028D94BB1D8E902009F9ACCA683DE212FB7796B6C90BC8A0E5168E6B"
+        },
+        "loan": {
+          "Borrower": "rJDP7VqdEJSq4UyUavaXp2m8wfyWLADCCs",
+          "ClosePaymentFee": "5000000",
+          "Flags": 0,
+          "GracePeriod": 86400,
+          "InterestRate": 100000,
+          "LedgerEntryType": "Loan",
+          "LoanBrokerID": "694ACA36028D94BB1D8E902009F9ACCA683DE212FB7796B6C90BC8A0E5168E6B",
+          "LoanBrokerNode": "0",
+          "LoanSequence": 1,
+          "OwnerNode": "0",
+          "PaymentInterval": 2592000,
+          "PeriodicPayment": "6710290.955601783635",
+          "PreviousPaymentDueDate": 845128052,
+          "PreviousTxnID": "CE8D8C80F2270A004E8BA61239DBE60875F9965B40846C4D843B32B88AA21F69",
+          "PreviousTxnLgrSeq": 66961,
+          "StartDate": 842536052,
+          "index": "67A5515AE007BDC3CE836D538D67E6296D41E83DE7ADBB981A901A19B40FD944"
+        }
+      },
+      "valuation": {
+        "netAssetValueDrops": "0",
+        "accountingClaimDrops": "0",
+        "withdrawalValueEstimateDrops": "0",
+        "liquidityLimitedWithdrawalEstimateDrops": "0",
+        "totalSharesDisplay": "0",
+        "heldSharesDisplay": "0",
+        "offeredAccountingClaimDrops": null,
+        "askingDiscountBps": null,
+        "soleHolderLossWaiverApplied": false,
+        "rounding": "floor",
+        "estimateOnly": true
+      }
+    },
+    "active": {
+      "snapshot": {
+        "networkId": 4001,
+        "ledger": {
+          "hash": "B0AF45825B3397D04B111DADB2437597ECEAE222AA0772BB8D098B167FE47C18",
+          "index": 67358,
+          "ageSeconds": 2,
+          "readAt": "2026-09-12T14:09:30.327Z"
+        },
+        "vaultId": "84953AA75CEBE50930F987E969D7918308B7C1471253DB0BD5E55CF3334C66DF",
+        "holderAddress": "rHmFRk6rLPAbWzDXaH1nUvxbhHgQiMxXag",
+        "shareMptId": "000000016D8E5748CD5FA882BDFF41D6619F430CF479D096",
+        "assetsTotalDrops": "8900000",
+        "assetsAvailableDrops": "8900000",
+        "lossUnrealizedDrops": "0",
+        "totalSharesRaw": "8900000",
+        "heldSharesRaw": "8450000",
+        "shareScale": 0,
+        "vault": {
+          "Account": "rwzHwAnge8aHZLyRiiuvLS6CzkozdAD3Lo",
+          "Asset": {
+            "currency": "XRP"
+          },
+          "AssetsAvailable": "8900000",
+          "AssetsTotal": "8900000",
+          "Flags": 0,
+          "LEVersion": 1,
+          "LedgerEntryType": "Vault",
+          "Owner": "rNBD9Fr2DirsjToHkpQcicpqx4wf9hz3uB",
+          "OwnerNode": "0",
+          "PreviousTxnID": "A36C0044D4CF5F5A346C1EFF5F7134E10D0E148A8B08DE3BE51BDCE9F00F5599",
+          "PreviousTxnLgrSeq": 66991,
+          "Sequence": 64954,
+          "ShareMPTID": "000000016D8E5748CD5FA882BDFF41D6619F430CF479D096",
+          "WithdrawalPolicy": 1,
+          "index": "84953AA75CEBE50930F987E969D7918308B7C1471253DB0BD5E55CF3334C66DF"
+        },
+        "issuance": {
+          "Flags": 56,
+          "Issuer": "rwzHwAnge8aHZLyRiiuvLS6CzkozdAD3Lo",
+          "LedgerEntryType": "MPTokenIssuance",
+          "OutstandingAmount": "8900000",
+          "OwnerNode": "0",
+          "PreviousTxnID": "A36C0044D4CF5F5A346C1EFF5F7134E10D0E148A8B08DE3BE51BDCE9F00F5599",
+          "PreviousTxnLgrSeq": 66991,
+          "Sequence": 1,
+          "index": "7662E1895D1709990EC6CF2D6143928B972F44166EC8400D9E6EB1DA279B0FC5",
+          "mpt_issuance_id": "000000016D8E5748CD5FA882BDFF41D6619F430CF479D096"
+        },
+        "holder": {
+          "Account": "rHmFRk6rLPAbWzDXaH1nUvxbhHgQiMxXag",
+          "Flags": 0,
+          "LedgerEntryType": "MPToken",
+          "MPTAmount": "8450000",
+          "MPTokenIssuanceID": "000000016D8E5748CD5FA882BDFF41D6619F430CF479D096",
+          "OwnerNode": "0",
+          "PreviousTxnID": "57A197B6FEBB91CF8AA477B03E76A41BB19ECB66702B7A4AF3B694C3E4EE9F0A",
+          "PreviousTxnLgrSeq": 66981,
+          "index": "FF502FDAE9F0AFD8076590A5D161BD4B93DF40F62382020C25640D09764795A3"
+        },
+        "broker": null,
+        "loan": null
+      },
+      "valuation": {
+        "netAssetValueDrops": "8900000",
+        "accountingClaimDrops": "8450000",
+        "withdrawalValueEstimateDrops": "8450000",
+        "liquidityLimitedWithdrawalEstimateDrops": "8450000",
+        "totalSharesDisplay": "8900000",
+        "heldSharesDisplay": "8450000",
+        "offeredAccountingClaimDrops": "1000000",
+        "askingDiscountBps": "500",
+        "soleHolderLossWaiverApplied": false,
+        "rounding": "floor",
+        "estimateOnly": true
+      }
+    }
+  },
+  "quoteInput": {
+    "offeredSharesRaw": "1000000",
+    "askingPriceDrops": "950000"
+  },
+  "transactions": {
+    "success": {
+      "trackingStarted": {
+        "hash": "AD0280823EBD6910BC95F95E726D46C3542C645B9392AD3A058436A64598EE87",
+        "status": "submitted",
+        "submissionSource": "caller-reported",
+        "economicSuccess": "unverified"
+      },
+      "current": {
+        "hash": "AD0280823EBD6910BC95F95E726D46C3542C645B9392AD3A058436A64598EE87",
+        "status": "validated-success",
+        "submissionSource": "caller-reported",
+        "economicSuccess": "unverified",
+        "resultCode": "tesSUCCESS",
+        "ledgerIndex": 66919,
+        "transactionType": "LoanSet"
+      }
+    },
+    "failure": {
+      "trackingStarted": {
+        "hash": "A35CB5DC2235104B54F6B29DB48118013F836F9F96DA319ED103CCA846A1A028",
+        "status": "submitted",
+        "submissionSource": "caller-reported",
+        "economicSuccess": "unverified"
+      },
+      "current": {
+        "hash": "A35CB5DC2235104B54F6B29DB48118013F836F9F96DA319ED103CCA846A1A028",
+        "status": "validated-failure",
+        "submissionSource": "caller-reported",
+        "economicSuccess": "unverified",
+        "resultCode": "tecINSUFFICIENT_FUNDS",
+        "ledgerIndex": 66920,
+        "transactionType": "VaultWithdraw"
+      }
+    },
+    "batch": {
+      "trackingStarted": {
+        "hash": "EC8802E7B6681977021E1778C6ABF89CDCBBA238031A4B01FCC237BB11918813",
+        "status": "submitted",
+        "submissionSource": "caller-reported",
+        "economicSuccess": "unverified"
+      },
+      "current": {
+        "hash": "EC8802E7B6681977021E1778C6ABF89CDCBBA238031A4B01FCC237BB11918813",
+        "status": "validated-success",
+        "submissionSource": "caller-reported",
+        "economicSuccess": "unverified",
+        "resultCode": "tesSUCCESS",
+        "ledgerIndex": 65194,
+        "transactionType": "Batch",
+        "note": "Outer Batch validation alone does not prove inner transfers or economic settlement; inspect inner results and balance changes."
+      }
+    }
+  },
+  "limitations": [
+    "Historical objects can disappear after a network reset.",
+    "Transaction observations confirm ledger finality only; Batch inner settlement is not inferred.",
+    "Valuations are estimates and do not prove withdrawal eligibility."
+  ]
+}

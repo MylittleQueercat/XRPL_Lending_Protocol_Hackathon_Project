@@ -10,10 +10,13 @@
   "scripts": {
     "doctor": "tsx src/cli.ts doctor",
     "vanilla": "tsx src/cli.ts vanilla",
+    "wallet:live-test": "tsx scripts/wallet/live-test.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "npm run typecheck && npm test",
     "vault:smoke": "tsx src/cli.ts vault-smoke",
+    "position": "tsx src/read-cli.ts position",
+    "transaction": "tsx src/read-cli.ts transaction",
     "settlement": "tsx src/cli.ts settlement"
   },
   "dependencies": {
