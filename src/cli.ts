@@ -3,6 +3,7 @@ import { executeCommand, shutdownClient } from './commands.js';
 import { createClient, inspectNetwork } from './network.js';
 import { createRunDirectory, writePrivateJson } from './storage.js';
 import { runVanillaFlow } from './lending.js';
+import { runSettlementFailures } from './settlement.js';
 import { runVaultSmoke } from './vault.js';
 
 const client = createClient();
@@ -16,6 +17,7 @@ try {
     },
     smoke: (report) => runVaultSmoke(client, report),
     vanilla: (report) => runVanillaFlow(client, report),
+    settlement: (report) => runSettlementFailures(client, report),
     output: (value) => console.log(JSON.stringify(value, null, 2)),
   });
 } catch (error) {
