@@ -5,7 +5,7 @@ export function RaiseMark({ className }: { className?: string }) {
   return (
     // Static brand artwork: preserve the approved bitmap without an optimization request.
     // eslint-disable-next-line @next/next/no-img-element
-    <img src="/brand/raise-mark.png" width={512} height={512} alt="" aria-hidden="true" className={cn(styles.mark, className)} />
+    <img src="/brand/raise-mark.png?v=2" width={512} height={512} alt="" aria-hidden="true" className={cn(styles.mark, className)} />
   );
 }
 

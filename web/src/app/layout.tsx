@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: { default: "Raise", template: "%s · Raise" },
   description: "A secondary market for XRPL vault shares. Sell your position when the vault cannot fund your withdrawal.",
   applicationName: "Raise",
-  icons: { icon: [{ url: "/brand/favicon-light.svg", type: "image/svg+xml" }] },
+  icons: { icon: [{ url: "/brand/favicon-light.svg?v=2", type: "image/svg+xml" }] },
   keywords: ["XRPL", "XRP Ledger", "XLS-65", "XLS-66", "Single Asset Vault", "Lending Protocol", "Batch"],
 };
 

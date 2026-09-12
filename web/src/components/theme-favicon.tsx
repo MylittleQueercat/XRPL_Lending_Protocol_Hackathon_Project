@@ -10,7 +10,7 @@ export function ThemeFavicon() {
     if (!resolvedTheme) return;
     const icons = document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]');
     icons.forEach((icon) => {
-      icon.href = `/brand/favicon-${resolvedTheme === "dark" ? "dark" : "light"}.svg`;
+      icon.href = `/brand/favicon-${resolvedTheme === "dark" ? "dark" : "light"}.svg?v=2`;
       icon.type = "image/svg+xml";
       icon.removeAttribute("media");
     });
