@@ -1,8 +1,9 @@
-import { BuyFlow } from "@/components/buy/buy-flow";
+import { redirect } from "next/navigation";
+import { routes } from "@/lib/network";
 
-export const metadata = { title: "Buy" };
-
+// The buy flow lives on the offer page now (one page per offer, sale ticket included).
+// Shared /buy/<id> links keep working through this redirect.
 export default async function Page(props: PageProps<"/buy/[offerId]">) {
   const { offerId } = await props.params;
-  return <BuyFlow offerId={offerId} />;
+  redirect(routes.offer(offerId));
 }

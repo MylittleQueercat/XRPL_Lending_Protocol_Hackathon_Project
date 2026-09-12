@@ -104,3 +104,29 @@ export function rememberVault(vaultId: string): string[] {
 }
 
 export const isVaultId = (value: string) => /^[A-F0-9]{64}$/i.test(value.trim());
+
+// ---------------------------------------------------------------------------------------------
+// Order-ticket quick fills: a price derived from the accounting value of the entered quantity.
+// ---------------------------------------------------------------------------------------------
+
+export const QUICK_FILLS = [
+  { label: "at NAV", bps: 0 },
+  { label: "−2 %", bps: 200 },
+  { label: "−5 %", bps: 500 },
+  { label: "−10 %", bps: 1000 },
+] as const;
+
+// Accounting value less `discountBps` basis points, rounded down to a whole drop. Never a float.
+export function priceAtDiscountDrops(accountingValueDrops: string, discountBps: number): string | null {
+  if (!/^\d+$/.test(accountingValueDrops) || !Number.isInteger(discountBps) || discountBps < 0 || discountBps >= 10_000) return null;
+  const drops = (BigInt(accountingValueDrops) * BigInt(10_000 - discountBps)) / 10_000n;
+  return drops > 0n ? drops.toString() : null;
+}
+
+// Drops as the plain decimal the price input accepts ("1234.5", no thousands separators).
+export function dropsToXrpInput(drops: string): string {
+  const value = BigInt(drops);
+  const whole = value / 1_000_000n;
+  const frac = (value % 1_000_000n).toString().padStart(6, "0").replace(/0+$/, "");
+  return frac ? `${whole}.${frac}` : whole.toString();
+}

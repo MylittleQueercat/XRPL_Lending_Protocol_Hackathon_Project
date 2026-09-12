@@ -1,0 +1,17 @@
+{
+  "vaultId": "69A5C989A6FFC1A3676C8B010BFF32F3EDC623BD3A392F92A608A343A12543BA",
+  "offerId": "d27faadc-952a-47b3-94fb-1326dff76240",
+  "balances": {
+    "op": 952.999952,
+    "borrower": 994.991985,
+    "alice": 784.999916,
+    "bob": 1014.999976
+  },
+  "bobShares": [
+    "4802"
+  ],
+  "aliceShares": [
+    "200000000"
+  ],
+  "errors": []
+}

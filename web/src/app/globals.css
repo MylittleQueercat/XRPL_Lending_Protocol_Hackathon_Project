@@ -28,6 +28,20 @@
   --border: #dcded0;
   --input: #c8cebd;
   --ring: #52723f;
+  /* Trading-terminal semantics (MetaTrader convention): up/long/profit is blue, down/short/loss is red. */
+  --up: #1e7be6;
+  --up-soft: #e3effc;
+  --down: #e0343c;
+  --down-soft: #fde8e8;
+  --neutral: #647166;
+  --chart-1: #1e7be6;
+  --chart-2: #e0343c;
+  --chart-3: #397044;
+  --chart-4: #d99a2b;
+  --chart-5: #7c5cd6;
+  --chart-grid: #dcded0;
+  --terminal: #fffef8;
+  --terminal-head: #f2f1e6;
   --motion-fast: 120ms;
   --motion-state: 200ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -57,6 +71,19 @@
   --border: #3b4d3f;
   --input: #53664f;
   --ring: #c5e6a4;
+  --up: #4da3ff;
+  --up-soft: #17304d;
+  --down: #ff6b6b;
+  --down-soft: #4a2222;
+  --neutral: #b3bfae;
+  --chart-1: #4da3ff;
+  --chart-2: #ff6b6b;
+  --chart-3: #b8dda0;
+  --chart-4: #e4bf83;
+  --chart-5: #b8a4ff;
+  --chart-grid: #3b4d3f;
+  --terminal: #1f2f26;
+  --terminal-head: #182620;
 }
 @theme inline {
   --color-background: var(--background);
@@ -84,7 +111,19 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-
+  --color-up: var(--up);
+  --color-up-soft: var(--up-soft);
+  --color-down: var(--down);
+  --color-down-soft: var(--down-soft);
+  --color-neutral: var(--neutral);
+  --color-terminal: var(--terminal);
+  --color-terminal-head: var(--terminal-head);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-grid: var(--chart-grid);
 
   --font-sans: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", sans-serif;
   --font-mono: "SFMono-Regular", Consolas, monospace;
@@ -125,6 +164,19 @@
   ::selection { background: #c5e6a4; color: #233d32; }
 }
 @layer components {
+  /* Terminal panels: dense, tabular, one-line headers, like a trading workstation. */
+  .terminal-panel { background: var(--terminal); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+  .terminal-head { background: var(--terminal-head); border-bottom: 1px solid var(--border); min-height: 2.25rem; padding: 0 .75rem; display: flex; align-items: center; gap: .5rem; font-size: .7rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-foreground); }
+  .terminal-table { font-size: .8125rem; font-variant-numeric: tabular-nums; }
+  .terminal-table th { font-size: .6875rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; height: 2rem; }
+  .terminal-table td { padding-top: .375rem; padding-bottom: .375rem; }
+  .terminal-table tr[data-active="true"] { background: var(--accent); }
+  .tick-up { color: var(--up); }
+  .tick-down { color: var(--down); }
+  .tick-flash-up { animation: tick-flash-up .9s ease-out; }
+  .tick-flash-down { animation: tick-flash-down .9s ease-out; }
+  .recharts-cartesian-grid line { stroke: var(--chart-grid); }
+  .recharts-tooltip-wrapper { outline: none; }
   .raise-focus:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
   .hover-arrow { stroke: currentColor; flex-shrink: 0; transition: transform var(--motion-state) var(--ease-out); }
   a:hover .hover-arrow, button:hover .hover-arrow { transform: translateX(3px); }
@@ -146,6 +198,8 @@
   from { opacity: .55; transform: translateY(-4px) scale(.99); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+@keyframes tick-flash-up { from { background: var(--up-soft); } to { background: transparent; } }
+@keyframes tick-flash-down { from { background: var(--down-soft); } to { background: transparent; } }
 @keyframes raise-state-in { from { opacity: .55; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes raise-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 @media (prefers-reduced-motion: reduce) {

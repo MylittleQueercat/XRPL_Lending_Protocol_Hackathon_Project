@@ -1,17 +1,8 @@
-import { Suspense } from "react";
-import { PageHeader } from "@/components/page-header";
-import { PositionView } from "@/components/position/position-view";
-import { Skeleton } from "@/components/ui/skeleton";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "My position" };
-
-export default function Page() {
-  return (
-    <>
-      <PageHeader title="My position" description="Your vault shares, what they are worth on the vault's books, and how much of that the vault could actually pay you today." />
-      <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-        <PositionView />
-      </Suspense>
-    </>
-  );
+// The position screen became the portfolio terminal. Old links and the embed prototype land here.
+export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
+  const vault = typeof params.vault === "string" ? params.vault : undefined;
+  redirect(vault ? `/portfolio?vault=${encodeURIComponent(vault)}` : "/portfolio");
 }

@@ -14,9 +14,8 @@ import { SubmissionRecovery } from "@/components/submission-recovery";
 
 // Every screen is reachable from here. Screens never build their own navigation.
 const NAV = [
-  { href: routes.position, label: "My position" },
+  { href: routes.portfolio, label: "Portfolio" },
   { href: routes.market, label: "Market" },
-  { href: routes.sell(), label: "Sell" },
   { href: routes.operator, label: "Operator" },
 ];
 
@@ -27,9 +26,9 @@ const FOOTER: { title: string; links: { label: string; href: string; external?: 
   {
     title: "Product",
     links: [
-      { label: "My position", href: routes.position },
+      { label: "Portfolio", href: routes.portfolio },
       { label: "Market", href: routes.market },
-      { label: "Sell shares", href: routes.sell() },
+      { label: "Sell a position", href: routes.sell() },
       { label: "Operator console", href: routes.operator },
     ],
   },
@@ -108,7 +107,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <main id="site-content" tabIndex={-1} className="relative z-0 flex-1 outline-none" role="main">
         <div className="mx-auto w-full max-w-layout px-4 md:px-6 lg:px-8"><SubmissionRecovery /></div>
-        {pathname === routes.home ? children : <div className="mx-auto w-full max-w-layout px-4 py-10 md:px-6 lg:px-8 lg:py-16">{children}</div>}
+        {pathname === routes.home ? children : <div className="mx-auto w-full max-w-layout-wide px-4 py-6 md:px-6 lg:px-8 lg:py-8">{children}</div>}
       </main>
 
       <footer id="site-footer" role="contentinfo" className="bg-[#233d32] py-14 text-white lg:py-16">

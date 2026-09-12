@@ -5,9 +5,9 @@ import { routes } from "@/lib/network";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { number: "01", icon: Layers3, title: "Start with a deposit.", body: "Deposit XRP into a vault whose loan broker manages lending. Receive shares and follow your position on the ledger.", href: routes.position, action: "Deposit XRP" },
-  { number: "02", icon: MoveUpRight, title: "Set your own terms.", body: "When capital is out on loan, list your shares at a price you choose. Give another investor a way in.", href: routes.sell(), action: "Create an offer" },
-  { number: "03", icon: ShieldCheck, title: "Move forward together.", body: "A buyer pays and receives your shares in one all-or-nothing settlement. The underlying loans keep running.", href: routes.market, action: "Discover the market" },
+  { number: "01", icon: Layers3, title: "Portfolio.", body: "One terminal for what you hold: balance, equity, what the vault can pay you today, the live NAV chart, deposit and withdraw tickets, and your sale orders.", href: routes.portfolio, action: "Open the portfolio" },
+  { number: "02", icon: MoveUpRight, title: "Market.", body: "Positions other investors are selling, quoted against their accounting value. Blue is a discount, red is a premium. One page per offer, with the sale ticket on it.", href: routes.market, action: "Watch the market" },
+  { number: "03", icon: ShieldCheck, title: "Operator.", body: "Run the lending side: vaults, brokers, loans, cover, repayments. Real asset and cash history, payment schedules and a live activity feed.", href: routes.operator, action: "Open the desk" },
 ];
 
 export default function HomePage() {
@@ -19,7 +19,7 @@ export default function HomePage() {
           <h1 className="editorial-title mt-7 text-[clamp(3.4rem,6.4vw,5.6rem)]">Capital at work.<br />Freedom to<br /><span className="italic text-success">move on.</span></h1>
           <p className="mt-7 max-w-md text-base leading-7 text-muted-foreground">Deposit XRP into a lending vault. Follow your shares and available cash. When you need an exit, offer your shares to another investor at a price you choose.</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href={routes.position} className={cn(buttonVariants({ size: "lg" }))}>Deposit XRP <ArrowUpRight /></Link>
+            <Link href={routes.portfolio} className={cn(buttonVariants({ size: "lg" }))}>Open the portfolio <ArrowUpRight /></Link>
             <Link href={routes.market} className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}>Buy existing shares</Link>
           </div>
           <p className="mt-5 text-xs text-muted-foreground">Built on XRP Ledger <span className="mx-2">/</span> Hackathon Devnet</p>
@@ -53,7 +53,7 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto max-w-layout px-5 py-20 md:px-8 lg:py-24">
-        <div className="flex flex-wrap items-end justify-between gap-5"><div><p className="eyebrow text-muted-foreground">Designed for your next move</p><h2 className="editorial-title mt-4 text-4xl md:text-5xl">A clearer path to liquidity.</h2></div><p className="max-w-xs text-sm leading-6 text-muted-foreground">From your first deposit to finding a buyer. A sale needs an interested buyer; listing alone does not release cash.</p></div>
+        <div className="flex flex-wrap items-end justify-between gap-5"><div><p className="eyebrow text-muted-foreground">Three screens, one ledger</p><h2 className="editorial-title mt-4 text-4xl md:text-5xl">A terminal, not a brochure.</h2></div><p className="max-w-xs text-sm leading-6 text-muted-foreground">Every figure is read back from the validated ledger. A sale needs an interested buyer; listing alone does not release cash.</p></div>
         <div className="mt-10 grid gap-4 md:grid-cols-3">{STEPS.map((step) => <Link href={step.href} key={step.number} className="group flex flex-col rounded-2xl border bg-card p-7 transition-colors hover:border-success/50 hover:bg-accent/30"><div className="flex items-center justify-between"><span className="eyebrow text-muted-foreground">{step.number}</span><step.icon className="size-6 text-success" strokeWidth={1.5} /></div><h3 className="mt-10 text-xl font-semibold tracking-tight">{step.title}</h3><p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">{step.body}</p><span className="mt-8 flex items-center justify-between border-t pt-5 text-xs font-semibold">{step.action}<ArrowUpRight className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></span></Link>)}</div>
       </section>
 

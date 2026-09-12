@@ -39,14 +39,16 @@ Single-account transactions persist public recovery hashes before broadcasting. 
 
 ## Screens
 
+The interface is a trading terminal, in the MetaTrader convention: dense panels, tabular numbers, **blue = up / long / profit / discount, red = down / loss / premium**, values that flash when the ledger moves them. Charts are real: the Track 1 node keeps full history, so a vault's past state is read with `ledger_entry` at earlier ledgers (`src/lib/history.ts`), plus one exact sample at every deposit, withdrawal, disbursement and repayment of the vault.
+
 | Route | Ticket | What it does |
 |---|---|---|
-| `/` | — | Application landing page and navigation. |
-| `/position` | #19 | Your vault shares, accounting value against available liquidity, deposit and withdraw. When the vault cannot fund a withdrawal, the rejection is explained and routes you to sell. |
-| `/market`, `/market/[id]` | #20 | Open offers with unit price and discount against accounting value; offer detail with the vault's live state and the seller's live share balance. |
-| `/sell` | #21 | Create, review and cancel offers on your position. |
-| `/buy/[offerId]` | #22 | Purchase confirmation, atomic settlement, and post-trade ownership verified from the validated ledger. |
-| `/operator` | #23 | Vault, broker, cover and two-party loan origination; borrower repayment. |
+| `/` | — | Landing page and navigation. |
+| `/portfolio` | #19, #21 | The portfolio terminal: account strip (balance, positions, equity, withdrawable today, open offers, ledger), market watch of your vaults with NAV sparklines, the NAV / assets / utilisation chart with activity markers, the deposit and withdraw ticket with the ledger's verdict and the "sell instead" route, and the toolbox (positions, orders, history from `account_tx`). `/position` redirects here. |
+| `/market` | #20 | Market watch: open, settled and all offers quoted against live NAV per share, with discount or premium coloured blue or red, sparklines, utilisation and expiry. |
+| `/market/[id]` | #20, #22 | One page per offer: figures strip, NAV chart with the asked unit price as a reference, vault panel, and the sale ticket (buyer authorisation, purchase request, buyer signature, seller approval, reconciliation). `/buy/[offerId]` redirects here. |
+| `/sell` | #21 | Sell ticket: position summary and NAV chart on the left, the order ticket on the right (quantity, price with at-NAV and discount quick fills, expiry, live unit price and discount preview, review, publish), your offers below. |
+| `/operator` | #23 | The lending desk: KPI strip, navigator (vaults, brokers, loans), asset and cash chart with activity markers, cash-versus-deployed donut, activity feed, broker cover-versus-debt, loan payment schedule (projection, labelled as such), the action tickets (seed liquidity, broker, originate, cover), the loan blotter, and the borrower tab with repayment tickets. |
 | `/embed` | #32 | Validated launch/handoff prototype, not a complete partner SDK. |
 
 ## What the screens refuse to do
@@ -61,6 +63,12 @@ Single-account transactions persist public recovery hashes before broadcasting. 
 ```
 src/app/            routes (one folder per screen)
 src/components/ui/  design system: button, card, badge, input, label, table, skeleton, separator, alert
+src/components/terminal/  workstation primitives: panel, tabs, KPI strip, tick flash, signed deltas
+src/components/charts/    recharts wrappers (time series, donut, bars, sparkline) and the vault-history hook
+src/components/portfolio/ the portfolio terminal
+src/components/operator/  the lending desk
+src/components/market/, sell/, buy/  market watch, offer page, sale ticket, sell ticket
+src/lib/history.ts  real vault history from ledger_entry at past ledgers, account_tx activity
 src/components/     shell, network badge, wallet button, page header, stat, tx result
 src/lib/network.ts  fixed Track 1 configuration and route contract
 src/lib/ledger.ts   validated-ledger reads and signing helpers (single, LoanSet two-party, sale Batch)

@@ -1,0 +1,68 @@
+[20:10:31] === funding four wallets from the faucet
+[20:10:36] Op rBx6RCrWunrEbMZxP79L2gepKjMNw5Hzt9 funded 1000000000 drops
+[20:10:43] Borrower rGzYbHdiuXYG4cdDazoopyLJuqqX13mW8j funded 1000000000 drops
+[20:10:48] Alice r49jfVVdtvYDm94Z1mx8crRZVwBkcDedPV funded 1000000000 drops
+[20:10:55] Bob rNxu9h3p6h4eTiyWx9arwSNvgfJvWNU4Dp funded 1000000000 drops
+[20:10:58] Op connected in browser
+[20:11:05] validated: VaultCreate
+[20:11:06] vault 69A5C989A6FFC1A3676C8B010BFF32F3EDC623BD3A392F92A608A343A12543BA
+[20:11:06] shot ../run/01-op-vault-created.png
+[20:11:08] Alice connected in browser
+[20:11:15] validated: Alice VaultDeposit 500
+[20:11:19] shot ../run/02-alice-deposited-500.png
+[20:11:22] validated: LoanBrokerSet
+[20:11:32] validated: LoanBrokerCoverDeposit 50
+[20:11:43] validated: LoanSet 400 XRP to borrower
+[20:11:50] loan  borrower balance 1400
+[20:11:50] shot ../run/03-op-loan-originated.png
+[20:11:57] shot ../run/04-alice-withdraw-verdict.png
+[20:12:03] refused: VaultWithdraw 300 (liquidity wall)
+[20:12:04] shot ../run/05-alice-liquidity-wall.png
+[20:12:06] shot ../run/06-alice-sell-ticket.png
+[20:12:08] offer d27faadc-952a-47b3-94fb-1326dff76240 300000000 shares for 285 XRP
+[20:12:10] shot ../run/07-alice-offer-published.png
+[20:12:12] Bob connected in browser
+[20:12:20] shot ../run/08-bob-market-watch.png
+[20:12:30] validated: Bob MPTokenAuthorize
+[20:12:37] Bob signed the buyer leg
+[20:12:40] shot ../run/09-bob-signed-waiting-seller.png
+[20:14:42] FAILED: locator.waitFor: Timeout 120000ms exceeded.
+Call log:
+[2m  - waiting for getByText(/payment and shares verified/i) to be visible[22m
+
+[20:16:47] Op connected in browser
+[20:16:49] Alice connected in browser
+[20:16:51] Bob connected in browser
+[20:17:52] FAILED: locator.click: Timeout 60000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: /approve and submit sale/i })[22m
+
+[20:18:10] Op connected in browser
+[20:18:12] Alice connected in browser
+[20:18:14] Bob connected in browser
+[20:18:18] outcome unconfirmed, reconciling from the ledger
+[20:18:26] settled: Batch (buyer payment + seller share delivery)
+[20:18:29] shot ../run/10-alice-sale-settled.png
+[20:19:30] FAILED: locator.waitFor: Timeout 60000ms exceeded.
+Call log:
+[2m  - waiting for getByText(/payment and shares verified/i) to be visible[22m
+
+[20:21:49] Op connected in browser
+[20:21:50] Alice connected in browser
+[20:21:53] Bob connected in browser
+[20:21:57] settled: Batch (buyer payment + seller share delivery)
+[20:22:00] shot ../run/10-alice-sale-settled.png
+[20:22:07] shot ../run/11-bob-offer-settled.png
+[20:22:10] Borrower connected in browser
+[20:22:18] shot ../run/12-borrower-loan-schedule.png
+[20:23:48] FAILED: locator.waitFor: Timeout 90000ms exceeded.
+Call log:
+[2m  - waiting for getByText(/loan closed/i) to be visible[22m
+
+[20:30:15] Op connected in browser
+[20:30:18] Bob connected in browser
+[20:30:23] shot ../run/14-bob-portfolio-before-exit.png
+[20:30:31] validated: Bob VaultWithdraw 300
+[20:30:40] shot ../run/15-bob-history-after-exit.png
+[20:30:53] shot ../run/16-op-desk-final.png
+[20:30:55] === DONE {"vaultId":"69A5C989A6FFC1A3676C8B010BFF32F3EDC623BD3A392F92A608A343A12543BA","offerId":"d27faadc-952a-47b3-94fb-1326dff76240","balances":{"op":952.999952,"borrower":994.991985,"alice":784.999916,"bob":1014.999976},"bobShares":["4802"],"aliceShares":["200000000"],"errors":[]}

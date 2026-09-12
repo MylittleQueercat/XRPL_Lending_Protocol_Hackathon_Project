@@ -1,6 +1,6 @@
 import { liquidityPicture } from "@/components/position/position-math";
 // Pure pricing helpers for the market screens. No ledger access here so they are unit-testable.
-import { unitPriceDrops, type Offer, type OfferState } from "@/lib/offers";
+import { discountRatio, unitPriceDrops, type Offer, type OfferState } from "@/lib/offers";
 import type { VaultState } from "@/lib/ledger";
 
 export { describeVsValue, type VsValue, type VsValueKind } from "@/lib/pricing";
@@ -45,4 +45,54 @@ export function isBuyable(offer: Offer, sellerCovers: boolean | null, viewer: st
   if (sellerCovers === false) return { ok: false, reason: "Seller no longer holds enough shares" };
   if (sellerCovers === null) return { ok: false, reason: "Checking the seller's live balance" };
   return { ok: true, reason: null };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Market Watch figures. Pure so the KPI strip can be unit-tested without a ledger.
+// ---------------------------------------------------------------------------------------------
+
+export interface MarketSummary {
+  open: number; // offers currently open
+  listedDrops: string; // sum of open offers' asked prices, in drops
+  medianDiscount: number | null; // median discount ratio of open offers with a known accounting value
+  priced: number; // open offers whose accounting value was available
+  vaults: number; // distinct vaults with an open offer
+}
+
+export function summarizeMarket(offers: Offer[], accountingValueOf: (offer: Offer) => string | null | undefined): MarketSummary {
+  const open = offers.filter((o) => o.state === "open");
+  let listed = 0n;
+  const ratios: number[] = [];
+  const vaults = new Set<string>();
+  for (const offer of open) {
+    listed += BigInt(offer.priceDrops);
+    vaults.add(offer.vaultId);
+    const value = accountingValueOf(offer);
+    if (!value) continue;
+    const ratio = discountRatio(offer.priceDrops, value);
+    if (ratio !== null && Number.isFinite(ratio)) ratios.push(ratio);
+  }
+  ratios.sort((a, b) => a - b);
+  const mid = ratios.length >> 1;
+  const medianDiscount = ratios.length === 0 ? null : ratios.length % 2 ? ratios[mid] : (ratios[mid - 1] + ratios[mid]) / 2;
+  return { open: open.length, listedDrops: listed.toString(), medianDiscount, priced: ratios.length, vaults: vaults.size };
+}
+
+// "2d 04h", "3h 12m", "4m 09s", "expired". Terminal style: two fields, no words.
+export function formatCountdown(msRemaining: number): string {
+  if (!Number.isFinite(msRemaining) || msRemaining <= 0) return "expired";
+  const s = Math.floor(msRemaining / 1000);
+  const d = Math.floor(s / 86_400), h = Math.floor((s % 86_400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  const two = (n: number) => n.toString().padStart(2, "0");
+  if (d > 0) return `${d}d ${two(h)}h`;
+  if (h > 0) return `${h}h ${two(m)}m`;
+  return `${m}m ${two(sec)}s`;
+}
+
+// Drops per raw share unit, for display only. NAV per share is a float from the history module;
+// money that is paid or signed is never formatted through here.
+export function formatDropsPerShare(value: number | string | null | undefined): string {
+  const n = typeof value === "string" ? Number(value) : value;
+  if (n === null || n === undefined || !Number.isFinite(n)) return "—";
+  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 }

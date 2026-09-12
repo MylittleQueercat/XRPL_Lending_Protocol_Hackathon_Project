@@ -15,7 +15,9 @@ export const explorerAccount = (address: string) => `${TRACK1.explorerUrl}/accou
 // hand-typed paths, so a route can move without breaking the others.
 export const routes = Object.freeze({
   home: "/",
-  position: "/position",
+  // The portfolio terminal. /position stays as a redirect so old links and the embed prototype work.
+  position: "/portfolio",
+  portfolio: "/portfolio",
   market: "/market",
   offer: (id: string) => `/market/${id}`,
   sell: (params?: { vault?: string; shares?: string }) => {

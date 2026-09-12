@@ -246,6 +246,9 @@ export async function readOwnedVaults(address: string): Promise<VaultState[]> {
 export interface BrokerState {
   loanBrokerId: string;
   owner: string;
+  // The broker's pseudo-account. Loan objects live in ITS owner directory (and the borrower's),
+  // not in the operator's, so this is how a broker's loans are found.
+  pseudoAccount: string;
   vaultId: string;
   coverAvailableDrops: string;
   debtTotalDrops: string;
@@ -263,6 +266,7 @@ export async function readBroker(loanBrokerId: string): Promise<BrokerState> {
   return {
     loanBrokerId,
     owner: String(broker.Owner),
+    pseudoAccount: String(broker.Account),
     vaultId: String(broker.VaultID),
     coverAvailableDrops: String(broker.CoverAvailable ?? "0"),
     debtTotalDrops: String(broker.DebtTotal ?? "0"),
@@ -282,6 +286,7 @@ export async function readOwnedBrokers(address: string): Promise<BrokerState[]> 
       return {
         loanBrokerId: String(b.index),
         owner: String(b.Owner),
+        pseudoAccount: String(b.Account),
         vaultId: String(b.VaultID),
         coverAvailableDrops: String(b.CoverAvailable ?? "0"),
         debtTotalDrops: String(b.DebtTotal ?? "0"),
@@ -347,7 +352,15 @@ export async function readLoan(loanId: string): Promise<LoanState> {
   return toLoanState(loan, loanId);
 }
 
-// Loans where the account is broker owner or borrower, from its owner directory.
+// Every loan originated by these brokers, read from each broker pseudo-account's owner directory.
+export async function readLoansForBrokers(brokers: Pick<BrokerState, "pseudoAccount">[]): Promise<LoanState[]> {
+  const lists = await Promise.all(brokers.map((b) => readLoansFor(b.pseudoAccount)));
+  const seen = new Set<string>();
+  return lists.flat().filter((l) => (seen.has(l.loanId) ? false : (seen.add(l.loanId), true)));
+}
+
+// Loans in an account's owner directory: the borrower's, or a broker pseudo-account's. The operator's
+// own account holds none, which is why the operator desk goes through readLoansForBrokers.
 export async function readLoansFor(address: string): Promise<LoanState[]> {
   const c = await getClient();
   try {

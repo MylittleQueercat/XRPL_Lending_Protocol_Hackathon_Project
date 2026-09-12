@@ -1,4 +1,4 @@
-import { ceilAccountingDrops } from "@/lib/accounting";
+import { ceilAccountingDrops, floorAccountingDrops } from "@/lib/accounting";
 // Pure lending logic for the operator console. Mirrors the transaction shapes and defaults proven
 // by `npm run vanilla` at the repository root (src/lending.ts). No network access here.
 import type { SubmittableTransaction } from "xrpl";
@@ -151,4 +151,113 @@ export function formatDuration(seconds: number): string {
   if (seconds % 3_600 === 0) return `${seconds / 3_600} h`;
   if (seconds % 60 === 0) return `${seconds / 60} min`;
   return `${seconds} s`;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Projections and display helpers (pure). Nothing here is realised interest: the network runs
+// cash-basis accounting, so the vault earns interest only when a payment delivers it.
+// ---------------------------------------------------------------------------------------------
+
+export const SECONDS_PER_YEAR = 31_536_000;
+
+// Per-period interest rate implied by the contract: annual rate (1/10 bps) × interval / year.
+export function periodRate(interestRate: number, paymentInterval: number): number {
+  return (interestRate / RATE_DENOMINATOR) * (paymentInterval / SECONDS_PER_YEAR);
+}
+
+export type LoanStatus = "performing" | "impaired" | "defaulted" | "repaid";
+
+// Default wins over impaired when both bits are set: the loan is already in default.
+// A loan paid down to zero stays on the ledger until the broker deletes it (LoanDelete), so
+// "repaid" is derived from the balances, not from a flag.
+export function loanStatus(flags: number, loan?: { principalOutstandingDrops: string; paymentRemaining: number }): LoanStatus {
+  if (isLoanDefaulted(flags)) return "defaulted";
+  if (isLoanImpaired(flags)) return "impaired";
+  if (loan && BigInt(ceilDrops(loan.principalOutstandingDrops || "0")) === 0n && loan.paymentRemaining === 0) return "repaid";
+  return "performing";
+}
+
+export interface SchedulePeriod {
+  period: number; // 1-based among the payments still to come
+  dueDate: number; // ripple epoch seconds
+  interestDrops: string; // whole drops, floored
+  principalDrops: string; // whole drops
+  paymentDrops: string; // interest + principal for this period
+  outstandingAfterDrops: string; // principal left once this period is paid
+}
+
+export interface ScheduleInput {
+  principalOutstandingDrops: string;
+  interestRate: number; // 1/10 bps annualised
+  paymentInterval: number; // seconds
+  paymentRemaining: number;
+  periodicPaymentDrops: string; // the ledger's instalment, may be fractional
+  nextPaymentDueDate: number; // ripple epoch seconds
+}
+
+// Projection of the contract schedule from the loan's current state. Amortises from the principal
+// outstanding: each period charges outstanding × per-period rate as interest (integer arithmetic,
+// floored to a drop), the rest of the ledger's periodic payment reduces principal, and the last
+// period (or any period where the instalment would overshoot) clears whatever principal is left.
+// Realised repayments are read from the ledger; this only says what the contract still calls for.
+export function buildPaymentSchedule(loan: ScheduleInput): SchedulePeriod[] {
+  const periods = Math.max(0, Math.floor(Number(loan.paymentRemaining) || 0));
+  let outstanding = BigInt(floorAccountingDrops(loan.principalOutstandingDrops || "0"));
+  const instalment = BigInt(ceilDrops(loan.periodicPaymentDrops || "0"));
+  const rateNumerator = BigInt(Math.max(0, Math.floor(loan.interestRate || 0))) * BigInt(Math.max(0, Math.floor(loan.paymentInterval || 0)));
+  const rateDenominator = BigInt(RATE_DENOMINATOR) * BigInt(SECONDS_PER_YEAR);
+  const schedule: SchedulePeriod[] = [];
+  for (let period = 1; period <= periods && outstanding > 0n; period++) {
+    const interest = (outstanding * rateNumerator) / rateDenominator;
+    let principal = instalment - interest;
+    if (principal < 0n) principal = 0n;
+    if (period === periods || principal > outstanding) principal = outstanding;
+    outstanding -= principal;
+    schedule.push({
+      period,
+      dueDate: loan.nextPaymentDueDate + (period - 1) * loan.paymentInterval,
+      interestDrops: interest.toString(),
+      principalDrops: principal.toString(),
+      paymentDrops: (interest + principal).toString(),
+      outstandingAfterDrops: outstanding.toString(),
+    });
+  }
+  return schedule;
+}
+
+export function scheduleTotals(schedule: SchedulePeriod[]): { interestDrops: string; principalDrops: string; paymentDrops: string } {
+  let interest = 0n; let principal = 0n;
+  for (const p of schedule) { interest += BigInt(p.interestDrops); principal += BigInt(p.principalDrops); }
+  return { interestDrops: interest.toString(), principalDrops: principal.toString(), paymentDrops: (interest + principal).toString() };
+}
+
+// "2d 03:14:05" or "03:14:05" for a non-negative number of seconds; the caller decides the sign.
+export function formatCountdown(seconds: number): string {
+  const total = Math.max(0, Math.floor(Math.abs(seconds)));
+  const days = Math.floor(total / 86_400);
+  const rest = total % 86_400;
+  const hh = String(Math.floor(rest / 3_600)).padStart(2, "0");
+  const mm = String(Math.floor((rest % 3_600) / 60)).padStart(2, "0");
+  const ss = String(rest % 60).padStart(2, "0");
+  return days > 0 ? `${days}d ${hh}:${mm}:${ss}` : `${hh}:${mm}:${ss}`;
+}
+
+// Seconds until (positive) or since (negative) a ripple-epoch timestamp.
+export function secondsUntilRippleTime(rippleSeconds: number, nowMs = Date.now()): number {
+  const RIPPLE_EPOCH_SECONDS = 946_684_800;
+  return rippleSeconds + RIPPLE_EPOCH_SECONDS - Math.floor(nowMs / 1000);
+}
+
+// Sums drop strings that may carry a fractional part, rounding each up to a whole drop.
+export function sumCeilDrops(values: ReadonlyArray<string>): string {
+  let total = 0n;
+  for (const v of values) total += BigInt(ceilDrops(v));
+  return total.toString();
+}
+
+// Payments already made, derived from the dates the ledger keeps: the next due date advances by one
+// interval per payment from the start date, so (next − start) / interval − 1 payments have landed.
+export function paymentsMade(loan: Pick<ScheduleInput, "nextPaymentDueDate" | "paymentInterval"> & { startDate: number }): number {
+  if (!loan.paymentInterval || !loan.startDate || !loan.nextPaymentDueDate) return 0;
+  return Math.max(0, Math.round((loan.nextPaymentDueDate - loan.startDate) / loan.paymentInterval) - 1);
 }
