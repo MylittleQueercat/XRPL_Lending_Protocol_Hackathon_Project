@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Track | 1, open-ended Single Asset Vault |
-| Flavour | XLS-65 + XLS-66 Vanilla baseline, complete and verified. A `Batch`-settlement spike also exists; because `Batch` is a primitive beyond that baseline, the final flavour is pending confirmation with mentors — see [`docs/PRODUCT_SCOPE.md`](docs/PRODUCT_SCOPE.md) §10. |
+| Flavour | **Loaded**. The XLS-65 + XLS-66 Vanilla baseline is complete and independently reproducible (`npm run vanilla`); atomic settlement adds `Batch` (XLS-56), a primitive beyond that baseline — see [`docs/PRODUCT_SCOPE.md`](docs/PRODUCT_SCOPE.md) §10. |
 | Protocol targeted | Lending Protocol V1 |
 | Protocol actually enabled | `LendingProtocol` **and** `LendingProtocolV1_1`, both enabled — see finding 1 |
 | Network | Custom Hackathon Devnet, network ID 4001, `rippled` 3.4.0-rc1 |
