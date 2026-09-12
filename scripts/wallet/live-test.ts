@@ -1,6 +1,6 @@
 import { Client, Wallet, type SubmittableTransaction } from 'xrpl';
 import { signTrack1, type Track1Signer } from '../../src/wallet.js';
-import { TRACK1 } from '../../src/core.js';
+import { assertValidated, TRACK1 } from '../../src/core.js';
 
 // Opt-in live test: creates one disposable faucet account and one MPTokenAuthorize.
 // The faucet seed is held only in memory and is never logged or written to disk.
@@ -25,11 +25,11 @@ try {
   };
   const signed = await signTrack1(transaction, signer);
   const result = (await client.submitAndWait(signed.tx_blob)).result;
-  if (result.validated !== true) throw new Error('Live wallet test was not validated.');
+  const validated = assertValidated(result);
   console.log(JSON.stringify({
     wallet_mode: 'xrpl.js Wallet via src/wallet.ts', network: 'Track 1 custom Devnet', network_id: TRACK1.networkId,
     account: wallet.address, transaction_type: transaction.TransactionType, hash: result.hash,
-    validated: result.validated, ledger_index: result.ledger_index, engine_result: result.meta?.TransactionResult,
+    validated: true, ledger_index: validated.ledgerIndex, engine_result: validated.resultCode,
     fee_drops: transaction.Fee, explorer: `${TRACK1.explorerUrl}/transactions/${result.hash}`,
   }, null, 2));
 } finally {
