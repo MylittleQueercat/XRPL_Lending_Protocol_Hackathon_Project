@@ -1,0 +1,42 @@
+{
+  "network": {
+    "name": "Track 1 custom Devnet",
+    "network_id": 4001,
+    "wss": "wss://lending-hackathon.dev.ripplex.io:51233",
+    "explorer_base": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/"
+  },
+  "validated": true,
+  "vault_id": "84953AA75CEBE50930F987E969D7918308B7C1471253DB0BD5E55CF3334C66DF",
+  "share_mpt_id": "000000016D8E5748CD5FA882BDFF41D6619F430CF479D096",
+  "seller": "rHmFRk6rLPAbWzDXaH1nUvxbhHgQiMxXag",
+  "buyer": "rKqW5QpW4LfGfRzDAjEv2cpAkDnS2Utin5",
+  "sale_price_drops": "1000000",
+  "share_amount_units": "450000",
+  "batch": {
+    "hash": "4D4686EA12DAD06318E95AC8537DA3975D63A0E04204809884570F195BF8D0F9",
+    "ledger_index": 65192,
+    "engine_result": "tesSUCCESS",
+    "explorer": "https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/4D4686EA12DAD06318E95AC8537DA3975D63A0E04204809884570F195BF8D0F9",
+    "flags": "tfAllOrNothing",
+    "outer_fee_drops": "60"
+  },
+  "before": {
+    "seller_xrp_drops": "931999676",
+    "seller_share_units": "9000000",
+    "buyer_xrp_drops": "1002999844",
+    "buyer_share_units": "0"
+  },
+  "after": {
+    "seller_xrp_drops": "932999616",
+    "seller_share_units": "8550000",
+    "buyer_xrp_drops": "1001999844",
+    "buyer_share_units": "450000"
+  },
+  "fee_breakdown": {
+    "outer_batch_paid_by": "seller",
+    "outer_batch_fee_drops": "60",
+    "buyer_additional_fee_drops": "0",
+    "seller_net_xrp_change_drops": "999940",
+    "buyer_net_xrp_change_drops": "-1000000"
+  }
+}
