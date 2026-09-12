@@ -8,7 +8,7 @@
 | Protocol actually enabled | `LendingProtocol` **and** `LendingProtocolV1_1`, both enabled |
 | Network | Custom Hackathon Devnet, network ID 4001, `rippled` 3.4.0-rc1 |
 | Endpoints | `wss://lending-hackathon.dev.ripplex.io:51233`, `https://lending-hackathon.dev.ripplex.io:51234` |
-| Library | `xrpl.js` 5.2.0 (exact, committed lockfile) |
+| Library | `xrpl.js` 5.2.0-beta.1 (exact, committed lockfile). The §1 accounting measurement was taken with 5.2.0 stable; it is a ledger property and is unaffected by the client version. |
 | Runtime | Node.js 24.21.0 |
 | Date | September 12, 2026 |
 | Evidence | [`evidence/vanilla-flow.json`](evidence/vanilla-flow.json), [`evidence/vault-smoke.json`](evidence/vault-smoke.json) |
@@ -81,7 +81,7 @@ Independently, `temINVALID` on lending transactions should name the field that f
 **Reproduction:** compare these two validated transactions on network 4001, both returning `tecINSUFFICIENT_FUNDS` for different reasons:
 
 - cover shortfall on `LoanSet`, reproducible by setting `CoverRateMinimum: 100000` with 20 XRP of cover
-- liquidity shortfall on `VaultWithdraw`, hash `5AAE7A6B6863F7B50CFB597C50C8BCEC18ED125A943BF6895507E1C13355E067`
+- liquidity shortfall on `VaultWithdraw`, hash `A35CB5DC2235104B54F6B29DB48118013F836F9F96DA319ED103CCA846A1A028`
 
 **Impact:** an application cannot tell the borrower "the broker needs more cover" apart from "this vault is out of cash" without re-reading ledger objects and re-deriving the cover ratio itself. Those messages lead to opposite user actions.
 
@@ -97,12 +97,12 @@ Independently, `temINVALID` on lending transactions should name the field that f
 
 **Expected:** some way to show a lender redeeming meaningfully more than they deposited.
 
-**Actual:** yield is bounded by `principal x rate x elapsed time`, `InterestRate` is capped at 100 % annualised, and the ledger follows wall-clock time. Our 50 XRP loan held open for 120 seconds produced **190 drops** of yield, matching the contract's own formula exactly. The mechanism is exactly right; the magnitude is dust. Reaching 1 XRP of interest requires principal x time on the order of one XRP-year.
+**Actual:** yield is bounded by `principal x rate x elapsed time`, `InterestRate` is capped at 100 % annualised, and the ledger follows wall-clock time. Our 50 XRP loan held open for 120 seconds produced **188 drops** of yield against **190** predicted by the contract's own formula, the gap being ledger close timing. The mechanism is exactly right; the magnitude is dust. Reaching 1 XRP of interest requires principal x time on the order of one XRP-year.
 
 Two routes that look like workarounds do not work, and we verified both:
 
-- **Early full payment does not accelerate interest.** `LoanPay` with `tfLoanFullPayment` charges principal plus interest accrued *to date*, not the remaining schedule. The ledger caps the charge at what is owed: we offered 241.570476 XRP against a `TotalValueOutstanding` of 80.523492 XRP and the borrower was debited 55.000190 XRP. The cap is good behaviour and worth documenting explicitly.
-- **`ClosePaymentFee` does not reach the vault.** On the recorded run the borrower was charged 55.000190 XRP, the vault received 50.000190 XRP, and the 5 XRP prepayment fee went to the broker. Prepayment charges therefore cannot stand in for lender yield, and the split is worth documenting.
+- **Early full payment does not accelerate interest.** `LoanPay` with `tfLoanFullPayment` charges principal plus interest accrued *to date*, not the remaining schedule. The ledger caps the charge at what is owed: we offered 241.570476 XRP against a `TotalValueOutstanding` of 80.523492 XRP and the borrower was debited 55.000188 XRP. The cap is good behaviour and worth documenting explicitly.
+- **`ClosePaymentFee` does not reach the vault.** On the recorded run the borrower was charged 55.000188 XRP, the vault received 50.000188 XRP, and the 5 XRP prepayment fee went to the broker. Prepayment charges therefore cannot stand in for lender yield, and the split is worth documenting.
 
 **Impact:** every Track 1 team either reports a yield indistinguishable from rounding, or quietly presents a simulated figure. The judging criteria reward on-chain evidence, so the honest option looks weaker than it is.
 

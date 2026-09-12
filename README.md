@@ -16,7 +16,7 @@ Raise proposes a secondary market where an investor can sell existing vault shar
 
 On September 12, 2026, the event endpoint reported network **4001**, rippled **3.4.0-rc1**, and **SingleAssetVault, LendingProtocol and LendingProtocolV1_1 enabled**.
 
-We initially read the [V1.1 documentation](https://opensource.ripple.com/docs/lending-protocol-v1-1) as restricting new loans to closed-ended vaults, and treated that as a blocker. **Measurement on the ledger shows it is not one.** Open-ended origination succeeds: see `LoanSet` [A3D05857…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/A3D05857232287180F7CAF52C2737ECC080834B5C6BCD21EE722906064AD6152) and the complete run in [`evidence/vanilla-flow.json`](evidence/vanilla-flow.json).
+We initially read the [V1.1 documentation](https://opensource.ripple.com/docs/lending-protocol-v1-1) as restricting new loans to closed-ended vaults, and treated that as a blocker. **Measurement on the ledger shows it is not one.** Open-ended origination succeeds: see `LoanSet` [AD028082…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/AD0280823EBD6910BC95F95E726D46C3542C645B9392AD3A058436A64598EE87) (hash `AD028082…`) and the complete run in [`evidence/vanilla-flow.json`](evidence/vanilla-flow.json).
 
 What V1.1 does change is **accounting**. A 400 XRP loan carrying 244.19 XRP of scheduled interest left the vault's `AssetsTotal` at exactly 800.000000 XRP at origination, so interest is realised when a payment delivers it, not at origination as V1 would. `npm run doctor` therefore exits **0** and reports this in `notes` rather than `blockers`: it is a reporting caveat, documented in [`DEVEX_FEEDBACK.md`](DEVEX_FEEDBACK.md) §1, not a reason to refuse to run.
 
@@ -34,7 +34,7 @@ npm run check
 npm run doctor
 ```
 
-No API key or `.env` file is required. The SDK is pinned to **xrpl.js 5.2.0** with a committed lockfile. `npm run check` runs strict type checking and offline tests; it does not contact the network or create wallets. CI repeats these checks and dependency auditing.
+No API key or `.env` file is required. The SDK is pinned to **xrpl.js 5.2.0-beta.1** with a committed lockfile, following the September 12 event update supplied to the team. `npm run check` runs strict type checking and offline tests; it does not contact the network or create wallets. CI repeats these checks and dependency auditing.
 
 | Target | Value |
 |---|---|
@@ -45,6 +45,8 @@ No API key or `.env` file is required. The SDK is pinned to **xrpl.js 5.2.0** wi
 | WebSocket | `wss://lending-hackathon.dev.ripplex.io:51233` |
 | Faucet | `https://lending-hackathon-faucet.dev.ripplex.io/accounts` |
 | Asset | Faucet-funded test XRP |
+
+The refreshed Notion copy still listed stable xrpl.js for Track 1 and beta.0 for Track 2 when this pin was updated; the explicit team update points to [5.2.0-beta.1 on npm](https://www.npmjs.com/package/xrpl/v/5.2.0-beta.1). Updating the client library does not change the selected track or the amendments enabled on the ledger.
 
 ## Commands
 
@@ -76,27 +78,29 @@ The [sanitized run report](evidence/vanilla-flow.json) records the full flow on 
 
 | # | Minimum-bar item | Transaction | Result | Ledger |
 |---|---|---|---|---:|
-| 1 | Open-ended Single Asset Vault | [`VaultCreate` 381917DA…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/381917DA644EAFBC1781AD8BDBFB6FDC38250F0F57D37F350F0887DA11898AA7) | `tesSUCCESS` | 66802 |
-| 2 | Lender deposits capital | [`VaultDeposit` 87D2F66B…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/87D2F66B3FD19F6E5BCF51196431314BC56C195E28EE18D6892B911DC81804C4) | `tesSUCCESS` | 66803 |
-| 3 | Loan broker and first-loss cover | [`LoanBrokerSet` 87B4C23F…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/87B4C23FF265C645AACE26116BC8D660E3C167F7D7F9B82333A096DC0C8DF3E4) | `tesSUCCESS` | 66804 |
-| 3–4 | Borrower-accepted origination and drawdown | [`LoanSet` A3D05857…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/A3D05857232287180F7CAF52C2737ECC080834B5C6BCD21EE722906064AD6152) | `tesSUCCESS` | 66806 |
-| 7 | Guardrail: withdrawal beyond available liquidity | [`VaultWithdraw` 5AAE7A6B…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/5AAE7A6B6863F7B50CFB597C50C8BCEC18ED125A943BF6895507E1C13355E067) | **`tecINSUFFICIENT_FUNDS`** | 66807 |
-| 5 | Repayment | [`LoanPay` CF6FF6A3…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/CF6FF6A383D7AB291588068DDDB049848CA77BA624FAD00C98C6BB47AD170B83) | `tesSUCCESS` | 66849 |
-| 6 | Capital plus accrued yield redeemed | [`VaultWithdraw` D8ADA286…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/D8ADA286B24992E3132ED8BDF11235FB09B70C2E73B3C7EC1F7E734CC5604C01) | `tesSUCCESS` | 66850 |
+| 1 | Open-ended Single Asset Vault | [`VaultCreate` DBCEFF63…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/DBCEFF6317172C7EB3765A82B31A5F04344A4ABBA396E1583D0FA85B08E32C79) | `tesSUCCESS` | 66914 |
+| 2 | Lender deposits capital | [`VaultDeposit` D5C81BC3…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/D5C81BC3074A49E678221510DAC9A294D9988D42C18B0F46259DB5A2C9E89A74) | `tesSUCCESS` | 66915 |
+| 3 | Loan broker and first-loss cover | [`LoanBrokerSet` 45846261…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/45846261C0DF7D39EBF776438EF729944709946EA6A74DA504E7581BC0587416) | `tesSUCCESS` | 66917 |
+| 3–4 | Borrower-accepted origination and drawdown | [`LoanSet` AD028082…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/AD0280823EBD6910BC95F95E726D46C3542C645B9392AD3A058436A64598EE87) | `tesSUCCESS` | 66919 |
+| 7 | Guardrail: withdrawal beyond available liquidity | [`VaultWithdraw` A35CB5DC…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/A35CB5DC2235104B54F6B29DB48118013F836F9F96DA319ED103CCA846A1A028) | **`tecINSUFFICIENT_FUNDS`** | 66920 |
+| 5 | Repayment | [`LoanPay` CE8D8C80…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/CE8D8C80F2270A004E8BA61239DBE60875F9965B40846C4D843B32B88AA21F69) | `tesSUCCESS` | 66961 |
+| 6 | Capital plus accrued yield redeemed | [`VaultWithdraw` 2D427603…](https://custom.xrpl.org/lending-hackathon.dev.ripplex.io:51233/transactions/2D4276038162C1B1A75E0460BFAC4FB13A02319588E13860980E3CA8D56B2EFC) | `tesSUCCESS` | 66962 |
 
 **The guardrail is the point, not an accident.** The lender held **100,000,000 share units before the rejection and exactly the same after it**, while the vault held 50 XRP against a 100 XRP request. The refusal is therefore about vault liquidity, not about an insufficient personal holding — the distinction that matters, because it is precisely the problem Raise exists to solve.
 
-**Yield is reported exactly.** The lender deposited 100.000000 XRP and redeemed 100.000190 XRP. Those **190 drops match the contract formula to the drop**: 50 XRP of principal at 100 % annualised over a 120 second hold. With `InterestRate` capped at 100 % and no time acceleration on this network, a demo loan cannot yield more — see [`DEVEX_FEEDBACK.md`](DEVEX_FEEDBACK.md) §4. We reconcile the mechanism rather than presenting a simulated figure.
+**Yield is reported exactly.** The lender deposited 100.000000 XRP and redeemed 100.000188 XRP. Those **188 drops sit against 190 predicted by the contract formula**: 50 XRP of principal at 100 % annualised over a 120 second hold, the gap being ledger close timing. With `InterestRate` capped at 100 % and no time acceleration on this network, a demo loan cannot yield more — see [`DEVEX_FEEDBACK.md`](DEVEX_FEEDBACK.md) §4. We reconcile the mechanism rather than presenting a simulated figure.
 
 **Redemption burns shares.** Share supply went from 100,000,000 to 0 and the lender's holding from 100,000,000 to 0, so the redeemed capital is matched by destroyed shares rather than left outstanding.
 
-**The ledger caps repayment at what is owed.** We offered 241.570476 XRP against 80.523492 XRP of outstanding value; the borrower was charged 55.000190 XRP, of which the vault received 50.000190 XRP and the broker kept the 5 XRP prepayment fee.
+**The ledger caps repayment at what is owed.** We offered 241.570476 XRP against 80.523492 XRP of outstanding value; the borrower was charged 55.000188 XRP, of which the vault received 50.000188 XRP and the broker kept the 5 XRP prepayment fee.
 
 Interest is realised on payment, not at origination, because V1.1 is enabled. Item 8 of the minimum bar, the credible use case, is covered by [`docs/PROJECT_CONCEPT.md`](docs/PROJECT_CONCEPT.md).
 
 ### XLS-65 vault smoke — standalone
 
-The [sanitized smoke report](evidence/vault-smoke.json) records three validated `tesSUCCESS` transactions and exact before/after values:
+The SDK update was also checked with a fresh [xrpl.js 5.2.0-beta.1 smoke report](evidence/vault-smoke-beta.1.json): creation, a 10 XRP deposit and full withdrawal all validated successfully. Exact SDK version, transaction hashes, ledger indexes and balance snapshots are in the report. The original evidence below is retained with its actual 5.2.0 version.
+
+The original [sanitized smoke report](evidence/vault-smoke.json), produced with xrpl.js 5.2.0, records three validated `tesSUCCESS` transactions and exact before/after values:
 
 | Operation | Ledger | Transaction |
 |---|---:|---|
