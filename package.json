@@ -10,6 +10,7 @@
   "scripts": {
     "doctor": "tsx src/cli.ts doctor",
     "vanilla": "tsx src/cli.ts vanilla",
+    "wallet:live-test": "tsx scripts/wallet/live-test.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "npm run typecheck && npm test",
