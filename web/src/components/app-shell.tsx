@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Logo, RaiseMark } from "@/components/logo";
 import { NetworkBadge } from "@/components/network-badge";
 import { WalletButton } from "@/components/wallet-button";
+import { ToastProvider } from "@/components/ui/toast";
 import { SubmissionRecovery } from "@/components/submission-recovery";
 
 // Every screen is reachable from here. Screens never build their own navigation.
@@ -61,6 +62,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
   return (
+    <ToastProvider>
     <div className="flex min-h-[100dvh] flex-col">
       <a href="#site-content" className="skip-link raise-focus">Skip to content</a>
       <header className="sticky top-0 z-40 w-full border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80" role="banner">
@@ -142,5 +144,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
     </div>
+    </ToastProvider>
   );
 }

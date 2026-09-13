@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tick } from "@/components/terminal";
-import { TxResult } from "@/components/tx-result";
+import { useToast } from "@/components/ui/toast";
 import { useWallet } from "@/lib/wallet";
 import { formatShares, formatXrp, xrpToDrops } from "@/lib/format";
 import { routes } from "@/lib/network";
@@ -70,6 +70,7 @@ function Line({ label, children }: { label: string; children: React.ReactNode })
 
 export function DepositForm({ position, afterTransaction }: { position: Position; afterTransaction: () => Promise<void> }) {
   const wallet = useWallet();
+  const toast = useToast();
   const [amount, setAmount] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [result, setResult] = React.useState<Submitted | null>(null);
@@ -87,6 +88,7 @@ export function DepositForm({ position, afterTransaction }: { position: Position
       const signer = await wallet.requireSigner();
       const submitted = await signAndSubmit({ TransactionType: "VaultDeposit", Account: signer.classicAddress, VaultID: position.vault.vaultId, Amount: drops }, signer);
       setResult(submitted);
+      toast.pushResult(submitted, submitted.resultCode === "tesSUCCESS" ? "Deposit validated" : "Deposit rejected", "generic");
       // Only the ledger says what changed. Re-read everything before showing new figures.
       await Promise.all([afterTransaction(), wallet.refresh()]);
       if (submitted.resultCode === "tesSUCCESS") setAmount("");
@@ -112,13 +114,13 @@ export function DepositForm({ position, afterTransaction }: { position: Position
       <p className="text-[11px] leading-4 text-muted-foreground">Its loan broker manages lending; a loan interest rate is not a guaranteed return on your deposit.</p>
       {wallet.networkError && <p className="text-xs text-destructive">{wallet.networkError}</p>}
       {error && <p className="text-xs text-destructive [overflow-wrap:anywhere]">{error}</p>}
-      {result && <TxResult result={result} context="generic" title={result.resultCode === "tesSUCCESS" ? "Deposit validated" : "Deposit rejected"} />}
     </form>
   );
 }
 
 export function WithdrawForm({ position, account, afterTransaction }: { position: Position; account: string; afterTransaction: () => Promise<void> }) {
   const wallet = useWallet();
+  const toast = useToast();
   const [amount, setAmount] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [result, setResult] = React.useState<Submitted | null>(null);
@@ -144,6 +146,7 @@ export function WithdrawForm({ position, account, afterTransaction }: { position
       const availableBefore = vault.assetsAvailableDrops;
       const submitted = await signAndSubmit({ TransactionType: "VaultWithdraw", Account: signer.classicAddress, VaultID: vault.vaultId, Amount: drops }, signer);
       setResult(submitted);
+      toast.pushResult(submitted, submitted.resultCode === "tesSUCCESS" ? "Withdrawal validated" : "Withdrawal refused", "withdraw");
       const sharesAfter = await readShareBalance(account, vault.shareMptId);
       if (submitted.resultCode !== "tesSUCCESS") {
         setRefusal({ requestedDrops: drops, availableDrops: availableBefore, accountingValueDrops, sharesBefore, sharesAfter, kind: classifyRefusal(submitted.resultCode, drops, accountingValueDrops, availableBefore) });
@@ -181,7 +184,6 @@ export function WithdrawForm({ position, account, afterTransaction }: { position
       </p>
       {wallet.networkError && <p className="text-xs text-destructive">{wallet.networkError}</p>}
       {error && <p className="text-xs text-destructive [overflow-wrap:anywhere]">{error}</p>}
-      {result && <TxResult result={result} context="withdraw" title={result.resultCode === "tesSUCCESS" ? "Withdrawal validated" : "Withdrawal refused"} />}
       {refusal && <RefusalExplainer refusal={refusal} vaultId={vault.vaultId} heldUnits={heldUnits} />}
     </form>
   );

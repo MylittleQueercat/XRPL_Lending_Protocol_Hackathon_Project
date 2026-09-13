@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Kpi, KpiStrip, PanelEmpty, Tick } from "@/components/terminal";
 import { Dialog } from "@/components/ui/dialog";
-import { TxResult } from "@/components/tx-result";
+import { useToast } from "@/components/ui/toast";
 import { formatXrp, xrpToDrops } from "@/lib/format";
 import { readLoan, readLoansFor, signAndSubmit, type LoanState, type Submitted } from "@/lib/ledger";
 import { useWallet } from "@/lib/wallet";
@@ -17,20 +17,13 @@ import { Badge, ConnectPrompt, Countdown, Field, Mono, Note, StatusBadge, XrpInp
 
 const POLL_MS = 15_000;
 
-interface RepayOutcome {
-  loanId: string;
-  result: Submitted;
-  closed: boolean;
-  after?: LoanState;
-}
-
 // The repayment side: what I owe, when the next payment falls due, and a ticket per loan.
 export function BorrowerTab() {
   const wallet = useWallet();
   const address = wallet.account?.address ?? null;
   const [loans, setLoans] = React.useState<LoanState[] | null>(null);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [outcome, setOutcome] = React.useState<RepayOutcome | { error: string } | null>(null);
+  const toast = useToast();
   const [busy, setBusy] = React.useState<string | null>(null);
   const [lastRead, setLastRead] = React.useState<number | null>(null);
   const loading = React.useRef(false);
@@ -77,9 +70,13 @@ export function BorrowerTab() {
           else throw error;
         }
       }
-      setOutcome({ loanId: loan.loanId, result, closed, after });
+      const title = closed ? "Loan closed" : result.resultCode === "tesSUCCESS" ? (after && loanStatus(after.flags, after) === "repaid" ? "Repaid in full" : "Payment applied") : "Payment rejected";
+      const note = closed
+        ? `The ledger deleted loan ${loan.loanId.slice(0, 8)}… after full repayment. The charge was capped at what was owed plus the close fee.`
+        : after ? `Principal outstanding is now ${xrp(after.principalOutstandingDrops)} with ${after.paymentRemaining} payments remaining.` : undefined;
+      toast.pushResult(result, title, "generic", note);
     } catch (error) {
-      setOutcome({ error: (error as Error).message });
+      toast.push({ tone: "error", title: "Repayment failed", description: (error as Error).message });
     } finally {
       setBusy(null);
       await Promise.all([load(), wallet.refresh()]);
@@ -111,15 +108,6 @@ export function BorrowerTab() {
         <Kpi label="Principal owed" value={principalOwed === null ? "—" : <Tick numeric={principalOwed}>{formatXrp(principalOwed, 2)}</Tick>} sub={totalOutstanding === null ? "across all loans" : `${formatXrp(totalOutstanding, 2)} with scheduled interest`} />
         <Kpi label="Next payment due" value={Number.isFinite(nextDue) && nextDue > 0 ? <Countdown due={nextDue} /> : "—"} sub="earliest due date" />
       </KpiStrip>
-
-      {outcome && "error" in outcome && <Alert variant="destructive"><AlertTitle>Repayment failed</AlertTitle><AlertDescription>{outcome.error}</AlertDescription></Alert>}
-      {outcome && "result" in outcome && (
-        <div className="space-y-2">
-          <TxResult result={outcome.result} title={outcome.closed ? "Loan closed" : outcome.result.resultCode === "tesSUCCESS" ? (outcome.after && loanStatus(outcome.after.flags, outcome.after) === "repaid" ? "Repaid in full" : "Payment applied") : "Payment rejected"} />
-          {outcome.closed && <Note className="text-sm">The ledger deleted loan <Mono value={outcome.loanId} /> after full repayment. The charge was capped at principal plus interest accrued to date plus the close fee, whatever amount was offered.</Note>}
-          {outcome.after && <Note className="text-sm">Principal outstanding is now {xrp(outcome.after.principalOutstandingDrops)} with {outcome.after.paymentRemaining} payments remaining.</Note>}
-        </div>
-      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-sm font-semibold">Your loans</h2>

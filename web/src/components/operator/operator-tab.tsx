@@ -1,14 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { ArrowDownToLine, Handshake, LineChart, Plus, RefreshCw, ShieldCheck, X } from "lucide-react";
+import { ArrowDownToLine, Handshake, LineChart, Plus, RefreshCw, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Kpi, KpiStrip, PanelEmpty, Tick } from "@/components/terminal";
-import { TxResult } from "@/components/tx-result";
+import { useToast } from "@/components/ui/toast";
 import { formatShares, formatXrp } from "@/lib/format";
 import {
   createdEntry, readLoan, readLoansForBrokers, readOwnedBrokers, readOwnedVaults, signAndSubmit, signAndSubmitLoanSet,
@@ -37,7 +37,7 @@ export function OperatorTab() {
   const [brokers, setBrokers] = React.useState<BrokerState[] | null>(null);
   const [loans, setLoans] = React.useState<LoanState[] | null>(null);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [outcome, setOutcome] = React.useState<Outcome | null>(null);
+  const toast = useToast();
   const [busy, setBusy] = React.useState<string | null>(null);
   const [tick, setTick] = React.useState(0);
   const [lastRead, setLastRead] = React.useState<number | null>(null);
@@ -72,9 +72,10 @@ export function OperatorTab() {
   const run = async (key: string, action: () => Promise<Outcome>) => {
     setBusy(key);
     try {
-      setOutcome(await action());
+      const outcome = await action();
+      toast.pushResult(outcome.result, outcome.title ?? key, outcome.context);
     } catch (error) {
-      setOutcome({ key, result: { hash: "", ledgerIndex: 0, resultCode: "error", validated: false, meta: {} }, title: (error as Error).message });
+      toast.push({ tone: "error", title: `${key} failed`, description: (error as Error).message });
     } finally {
       setBusy(null);
       await Promise.all([load(), wallet.refresh()]);
@@ -114,15 +115,6 @@ export function OperatorTab() {
       </KpiStrip>
 
       {loadError && <Alert variant="destructive"><AlertTitle>Could not read the ledger</AlertTitle><AlertDescription>{loadError}</AlertDescription></Alert>}
-
-      {outcome && (
-        <div className="relative">
-          {outcome.result.resultCode === "error"
-            ? <Alert variant="destructive"><AlertTitle>{outcome.key} failed</AlertTitle><AlertDescription>{outcome.title}</AlertDescription></Alert>
-            : <TxResult result={outcome.result} context={outcome.context} title={outcome.title} />}
-          <Button size="icon" variant="ghost" className="absolute right-1 top-1 size-7" aria-label="Dismiss" onClick={() => setOutcome(null)}><X className="size-3.5" /></Button>
-        </div>
-      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-sm font-semibold">Your vaults</h2>
