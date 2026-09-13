@@ -79,7 +79,7 @@ export function PositionCard({ row, account, txEpoch, afterTransaction }: { row:
             <DepositForm key={txEpoch} position={position} afterTransaction={afterTransaction} />
           </Dialog>
           <Dialog open={open === "withdraw"} onClose={close} title={`Withdraw from vault ${shortId}`} description="The vault pays from the cash it holds. If the cash is out on loan, you can sell your shares instead." size="sm">
-            <WithdrawForm key={txEpoch} position={position} account={account} afterTransaction={afterTransaction} />
+            <WithdrawForm key={`${account}:${row.vaultId}`} position={position} account={account} afterTransaction={afterTransaction} />
           </Dialog>
           <Dialog open={open === "details"} onClose={close} title={`Vault ${shortId}`} description="How this vault evolved, with deposits, withdrawals, loans and repayments as markers." size="xl">
             <div className="space-y-3">

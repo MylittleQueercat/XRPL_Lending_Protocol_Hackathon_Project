@@ -22,14 +22,16 @@ Do not mix `localhost` and `127.0.0.1` between browser and server configuration.
 ## Buyer and seller on localhost
 
 1. Open two independent browser sessions or freshly created tabs, not a duplicated tab that may inherit session storage. Create one faucet wallet in each and verify that their public addresses differ. No actor asks for the other actor's seed.
-2. Load a funded lending vault in the seller's Position screen. The seller holds shares while loans reduce available cash; accounting ownership and immediate withdrawal capacity are shown separately.
+2. Load a funded lending vault in the seller's Portfolio screen. The seller holds shares while loans reduce available cash; accounting ownership and immediate withdrawal capacity are shown separately.
 3. The seller opens Sell, selects the vault, enters the full-lot quantity, total XRP price and expiry, reviews the terms and signs the listing intent. Share the resulting offer URL with the buyer.
-4. The buyer authorizes receiving the share issuance if necessary, requests the purchase, then signs the exact prepared Batch authorization. The request is durable and visible to the seller.
+4. The buyer opens `/market/[id]`, authorizes receiving the share issuance if necessary, requests the purchase, then signs the exact prepared Batch authorization. The request is durable and visible to the seller.
 5. The seller opens the same purchase page, reviews the payment, shares and outer fee, then approves and submits the Batch from their own wallet. The server broadcasts the persisted blob once.
 6. If validation is pending, use **Check recorded transaction**. Only verified outer and inner transaction metadata changes the offer to settled. A refresh never sends another payment.
-7. After the borrower repays, the buyer refreshes Position and withdraws available cash. This burns the corresponding vault shares; it is a separate transaction from buying them.
+7. After the borrower repays, the buyer refreshes Portfolio and withdraws available cash. This burns the corresponding vault shares; it is a separate transaction from buying them.
 
 The operator and borrower exist in addition to the two marketplace actors. For a controlled browser verification, `scripts/browser-fixture.ts` creates those two fresh operator accounts in memory, waits for the seller's UI deposit, originates the test loan, waits for the browser sale, repays, and waits for the buyer's UI redemption. Its `--help` is read-only; `--start` explicitly sends test-network transactions. Keep the process alive throughout the journey. It does not load browser keys or resume financial operations automatically. Both this fixture and the API harness reject application origins whose hostname is not `localhost` or `127.0.0.1`; they still send their ledger transactions to the dedicated event network. Do not point these harnesses at public hosting or remove their local-origin guard to imply a public E2E result.
+
+Current navigation uses `/portfolio` and an integrated `/market/[id]` offer/purchase page. Legacy `/position` and `/buy/[offerId]` URLs redirect to these screens. Wallet onboarding, Orders and History dialogs, and sampled ledger-history charts are presentation features; the validated ledger and settlement verifier remain authoritative.
 
 ## Verification boundaries
 
@@ -39,10 +41,11 @@ With the local server running and `RAISE_MARKET_ORIGIN` matching its configured 
 
 The browser fixture is a separate check: the seller and buyer operate the actual UI, with lending prepared by the fixture. The successful run is recorded in [browser-market-e2e.json](../evidence/browser-market-e2e.json): seller deposit, rejected withdrawal, shared listing, separate buyer/seller approvals, exact-hash reconciliation and buyer redemption. A separate production-server restart while pending is recorded in [browser-ui-checks.json](../evidence/browser-ui-checks.json). The buyer received 100.00024 test XRP on redemption and the remaining share supply became zero. This scope is distinct from the Node API harness and from `web/verify/wallet.verify.ts`, which uses explicit storage/Web Lock stand-ins while submitting a real ledger transaction.
 
-The browser fixture refuses to start while
-`evidence/browser-market-e2e.json` already exists, and writes the final evidence
-with exclusive creation (`wx`). Preserve the existing proof before deliberately
-starting a new run; do not treat a failed rerun as permission to overwrite it or
+The browser fixture uses `evidence/browser-market-e2e.json` by default. Pass
+`--output evidence/browser-market-e2e-YYYY-MM-DD.json` with a new filename for a
+fresh run; the selected destination must not already exist. It writes final
+evidence with exclusive creation (`wx`) and preserves earlier records. A failed
+rerun does not grant permission to overwrite existing proof or
 resend an uncertain transaction. The API harness writes its own
 `evidence/market-e2e.json`, so preserve that earlier result before a new run too.
 Only public evidence belongs in Git; private local run directories stay ignored.
@@ -77,12 +80,16 @@ The independent review also found fractional/scientific amount handling, omitted
 
 ## Loaded classification
 
-The [event Notion](https://app.notion.com/p/adam-hn/XRPL-Lending-Protocol-Hackathon-5cc7508f4cdc83a7991e01f90528e490), re-read on September 12, defines Loaded as the Vanilla lending baseline plus another useful ledger primitive. Raise's additional primitive is **Batch (XLS-56)** for atomic XRP payment against vault-share delivery. Native vault shares alone are not the claimed extension. The [live amendment check](../evidence/loaded-amendments.json) reports `BatchV1_1` enabled on network 4001; the actual SDK signing support and two-leg settlement are evidenced in the complete run; the Vanilla baseline remains independently runnable with `npm run vanilla`. This is the project's documented mapping to the published definition, not a claim of private mentor approval or a guaranteed judging outcome.
+The [event Notion](https://app.notion.com/p/adam-hn/XRPL-Lending-Protocol-Hackathon-5cc7508f4cdc83a7991e01f90528e490), re-read on September 13, defines Loaded as the Vanilla lending baseline plus another useful ledger primitive. Raise's additional primitive is **Batch (XLS-56)** for atomic XRP payment against vault-share delivery. Native vault shares alone are not the claimed extension. The [live amendment check](../evidence/loaded-amendments.json) reports `BatchV1_1` enabled on network 4001; the actual SDK signing support and two-leg settlement are evidenced in the complete run; the Vanilla baseline remains independently runnable with `npm run vanilla`. This is the project's documented mapping to the published definition, not a claim of private mentor approval or a guaranteed judging outcome.
 
-Partial-fill persistence/rounding and the embedding boundary are exploration prototypes documented in [PARTIAL_FILLS.md](PARTIAL_FILLS.md) and [EMBED.md](EMBED.md). External customer and integrator feedback remains uncollected, as recorded in [DISCOVERY.md](DISCOVERY.md). Slides and submission work are outside this integration change.
+Partial-fill persistence/rounding and the embedding boundary are exploration prototypes documented in [PARTIAL_FILLS.md](PARTIAL_FILLS.md) and [EMBED.md](EMBED.md). External customer and integrator feedback remains uncollected, as recorded in [DISCOVERY.md](DISCOVERY.md). The [demo playbook](DEMO.md) and [submission audit](SUBMISSION.md) cover presentation and handoff separately.
 
 ## Recorded verification outcome
 
 The recorded integration review passed **400 offline tests**: 281 root tests and 119 web tests, with both typechecks and the web production build. Both npm audits reported zero known vulnerabilities. Independent QA ran 79 relevant cases and found no remaining blocking issue in the reviewed changes. The browser verification found and corrected invalid nested HTML in loading stats and a stale-share warning incorrectly shown after a successful sale; historical offers whose supply was fully redeemed now show unavailable current valuation. Final independent reviews covered the receipt preflight, concurrent submission and authorization UI recovery. The browser harness was also tightened to require a validated unavailable withdrawal and zero final assets; it strips only the known RPC presentation fields before checking the serialized Batch terms. These checks do not claim production certification or customer demand.
 
 No new test-network transactions or public-browser E2E were run for this documentation refresh. Consult the dated evidence and [DEPLOYMENT.md](DEPLOYMENT.md) for the scope of each verification.
+
+## Current UI replay — September 13, 2026
+
+[Fresh browser evidence](../evidence/browser-market-e2e-2026-09-13.json) records two independent browser wallets using the updated Portfolio/Sell/Market screens. A 100-XRP deposit funds a 50-XRP loan; the ledger refuses a 100-XRP withdrawal without touching the shares. The seller lists all shares for 95 XRP, both parties sign, and the exact Batch is reconciled after an initially unconfirmed response. The borrower repays and the buyer redeems 100.000602 XRP gross, leaving zero shares and zero vault cash. This is a localhost UI + persistent API + real network-4001 proof, not a public-origin full-trade claim.

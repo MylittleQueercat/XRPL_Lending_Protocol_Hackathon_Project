@@ -142,7 +142,7 @@ function ScopedBuyPanel({ offerId, wallet, market, className }: {
         <dt className="text-muted-foreground">You pay</dt><dd className="text-right text-sm font-semibold tabular-nums">{formatXrp(offer.priceDrops)}</dd>
         <dt className="text-muted-foreground">You receive</dt><dd className="text-right tabular-nums">{formatShares(offer.shares)} shares</dd>
         <dt className="text-muted-foreground">Seller</dt><dd className="text-right font-mono">{shortAddress(offer.seller)}{seller && <span className="ml-1 text-muted-foreground">(you)</span>}</dd>
-        <dt className="text-muted-foreground">Seller holds now</dt>
+        <dt className="text-muted-foreground">Seller shares (last check)</dt>
         <dd className={cn("text-right tabular-nums", live && !available && offer.state === "open" && "text-down")}>{live ? `${formatShares(live.sellerShares)} shares` : ledgerError ? "—" : <Skeleton className="ml-auto h-3.5 w-16" />}</dd>
       </dl>
 
@@ -163,7 +163,7 @@ function ScopedBuyPanel({ offerId, wallet, market, className }: {
           <p className="text-sm">This is your offer. Cancelling stops new purchase requests; it does not revoke an already signed Batch.</p>
           <CancelOfferButton offerId={offerId} onDone={market.refresh} size="default" className="[&>button]:flex-1 w-full" />
         </> : <>
-          {live && <p className="text-sm">Seller currently holds {formatShares(live.sellerShares)} shares. {available ? "Listed quantity is covered." : "Not enough shares to deliver this offer."}</p>}
+          {live && <p className="text-sm">At the last check, the seller held {formatShares(live.sellerShares)} shares. {available ? "The listed quantity was covered." : "The listed quantity was not covered."}</p>}
           {!!address && live && !live.authorized && <><p className="text-sm">Your wallet must first accept this vault&apos;s shares. One signature, no XRP moves.</p><Button variant="outline" className="w-full" disabled={blocked || !!authorizationBlock} onClick={() => void authorizeHolding()}>{busy ? "Checking authorization…" : "Allow these shares in my wallet"}</Button></>}
           {authorizationBlock && <p role="status" className="text-sm text-muted-foreground">{authorizationBlock} No repeat is sent automatically.</p>}
           {authorization && <TxResult result={authorization} />}

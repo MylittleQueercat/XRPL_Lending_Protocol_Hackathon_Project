@@ -10,6 +10,7 @@ import { wholeDrops, type VaultState } from "@/lib/ledger";
 import { formatShares, formatXrp, shortAddress } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { AddressLink, Figure, Mono, Note, TxLink, xrp } from "./shared";
+import { VaultIdentity } from "./vault-identity";
 
 type RangeId = "1h" | "6h" | "24h" | "all";
 // ≈3.5 s per ledger on the Track 1 network.
@@ -77,6 +78,7 @@ export function VaultDetail({ vault, tick, compact }: { vault: VaultState; tick:
           </div>
         }
       >
+        <VaultIdentity key={vault.vaultId} vaultId={vault.vaultId} />
         <div className={cn("grid gap-3 p-3", compact ? "" : "md:grid-cols-[minmax(0,1fr)_13rem]")}>
           <div className="min-w-0">
             <div className="mb-2 flex flex-wrap items-baseline gap-x-4 gap-y-1">

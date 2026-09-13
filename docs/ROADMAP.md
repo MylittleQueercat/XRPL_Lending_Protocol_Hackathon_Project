@@ -4,14 +4,14 @@ Tasks live in this repository with acceptance criteria and dependencies. Coordin
 
 Use [Issues](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues) for current status and [Milestones](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/milestones) for phase progress. Use the [shared Kanban board](https://github.com/users/MylittleQueercat/projects/1) to move and organize cards; this document remains the phase index.
 
-## Current delivery snapshot — September 12, 2026
+## Current delivery snapshot — September 13, 2026
 
-The foundation, Vanilla lending flow, share transfer/atomic settlement and integrated marketplace are merged. The recorded local API/ledger and two-browser journeys include buyer redemption; root/web checks total 400 passing tests. Hosted deployment acceptance (#45) is complete; the release runs on Sunny. See [README](../README.md), [INTEGRATION](INTEGRATION.md) and [DEPLOYMENT](DEPLOYMENT.md) for the evidence boundaries.
+The foundation, Vanilla lending flow, share transfer/atomic settlement and integrated marketplace are merged, along with the new branding, Portfolio and onboarding UI. The recorded local API/ledger and two-browser journeys include buyer redemption; root/web checks total 400 passing tests. Hosted deployment acceptance (#45) is complete; the release runs on Sunny. See [README](../README.md), [INTEGRATION](INTEGRATION.md) and [DEPLOYMENT](DEPLOYMENT.md) for the evidence boundaries.
 
 | Remaining issue | Work left |
 |---|---|
-| [#27](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/27) | Presentation, demo narrative and rehearsal. |
-| [#28](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/28) | Final submission completeness and team sign-off. |
+| [#27](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/27) | English pitch and demo/Q&A plan prepared in [DEMO.md](DEMO.md). Existing slides reported ready by the team; final video, rehearsal and delivery remain separate. |
+| [#28](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/28) | [Requirement audit](SUBMISSION.md) prepared; organizer form route/receipt, final assets and team sign-off need confirmation. |
 | [#31](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/31) | Independent buyer/seller validation for multiple vaults, bids and RFQs. |
 | [#32](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/32) | External integrator feedback on the embed/notification prototype. |
 

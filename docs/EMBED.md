@@ -2,7 +2,7 @@
 
 Status: a full-page launch contract and a pure notification schema. This is not a production SDK, an iframe widget, or an externally validated integration. No integrator feedback has been collected for this contract.
 
-The prototype reuses Raise's existing Position screen and its existing wallet provider. It adds no duplicate application state and no alternate signing flow.
+The prototype reuses Raise's existing Portfolio screen and its existing wallet provider. It adds no duplicate application state and no alternate signing flow.
 
 ## Launch from a host application
 
@@ -26,7 +26,7 @@ The accepted URL contract is:
 /embed?network=4001&vault=<64-character hexadecimal vault index>
 ```
 
-`network` is mandatory and must be exactly `4001`. An optional vault is normalized to uppercase. Repeated parameters, unknown parameters, malformed vault IDs, and different networks are rejected. The route then redirects internally to `/position`, optionally selecting the validated vault. No host-supplied destination or callback URL is accepted. The actual wallet still checks network 4001 before signing.
+`network` is mandatory and must be exactly `4001`. An optional vault is normalized to uppercase. Repeated parameters, unknown parameters, malformed vault IDs, and different networks are rejected. The route then redirects internally through the legacy `/position` route to `/portfolio`, optionally selecting the validated vault. No host-supplied destination or callback URL is accepted. The actual wallet still checks network 4001 before signing.
 
 ## Wallet and state ownership
 
