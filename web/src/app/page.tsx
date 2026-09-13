@@ -5,9 +5,9 @@ import { routes } from "@/lib/network";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { number: "01", icon: Layers3, title: "Portfolio.", body: "One terminal for what you hold: balance, equity, what the vault can pay you today, the live NAV chart, deposit and withdraw tickets, and your sale orders.", href: routes.portfolio, action: "Open the portfolio" },
-  { number: "02", icon: MoveUpRight, title: "Market.", body: "Positions other investors are selling, quoted against their accounting value. Blue is a discount, red is a premium. One page per offer, with the sale ticket on it.", href: routes.market, action: "Watch the market" },
-  { number: "03", icon: ShieldCheck, title: "Operator.", body: "Run the lending side: vaults, brokers, loans, cover, repayments. Real asset and cash history, payment schedules and a live activity feed.", href: routes.operator, action: "Open the desk" },
+  { number: "01", icon: Layers3, title: "Portfolio.", body: "What you hold, what it is worth today and what you can take out. Deposit, withdraw or sell from one place.", href: routes.portfolio, action: "Open the portfolio" },
+  { number: "02", icon: MoveUpRight, title: "Market.", body: "Positions other investors are selling, priced against what the shares are worth. Blue means cheaper than value, red means dearer.", href: routes.market, action: "Watch the market" },
+  { number: "03", icon: ShieldCheck, title: "Operator.", body: "Run the lending side: create a vault, lend to a borrower, watch repayments come back.", href: routes.operator, action: "Open the desk" },
 ];
 
 export default function HomePage() {

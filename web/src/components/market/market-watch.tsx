@@ -2,14 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowRight, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sparkline } from "@/components/charts";
-import { Delta, Panel, PanelEmpty, PanelTabs, Tick, type TabDef } from "@/components/terminal";
+import { Delta, Panel, PanelEmpty, PanelTabs, type TabDef } from "@/components/terminal";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { estimateShareValueDrops } from "@/lib/ledger";
 import { formatShares, formatXrp } from "@/lib/format";
@@ -38,15 +36,15 @@ export function MarketWatch() {
   const now = useNow(1000);
 
   const tabs: TabDef<MarketFilter>[] = [
-    { id: "open", label: "Open", count: filterOffers(offers, "open").length },
-    { id: "settled", label: "Settled", count: filterOffers(offers, "settled").length },
+    { id: "open", label: "For sale", count: filterOffers(offers, "open").length },
+    { id: "settled", label: "Sold", count: filterOffers(offers, "settled").length },
     { id: "all", label: "All", count: offers.length },
   ];
 
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
-        {ready ? <>{summary.open} open offer{summary.open === 1 ? "" : "s"} on {summary.vaults} vault{summary.vaults === 1 ? "" : "s"} · median discount <Delta ratio={summary.medianDiscount} className="align-middle" /> · {tabs[1].count} settled</> : "Reading the shared marketplace…"}
+        {ready ? <>{summary.open} position{summary.open === 1 ? "" : "s"} for sale · typical price vs value <Delta ratio={summary.medianDiscount} className="align-middle" /> · {tabs[1].count} sold</> : "Loading the market…"}
         {refreshedAt && <span className="ml-2">refreshed {new Date(refreshedAt).toLocaleTimeString("en-GB")}</span>}
       </p>
 
@@ -58,14 +56,14 @@ export function MarketWatch() {
       )}
 
       <Panel
-        title="Market watch"
+        title="Positions for sale"
         actions={
           <>
             <DialogTrigger label="How prices work" variant="ghost" buttonSize="sm" className="h-7 px-2 text-xs" title="How prices work" size="sm">
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>NAV per share is the vault&apos;s accounting value (realised interest only, cash basis) divided by shares outstanding, read from the validated ledger.</p>
-                <p><span className="text-up">Blue</span> is a discount to that value, <span className="text-down">red</span> a premium. A discount is a price, not a yield: the buyer&apos;s return still depends on borrowers repaying and on the vault&apos;s cash when they exit.</p>
-                <p>Utilisation is the share of assets out on loan; that cash cannot fund withdrawals until borrowers repay, which is why positions get sold here.</p>
+                <p>Each share is worth its slice of the vault&apos;s assets today. Sellers set their own price; the card compares it with that value.</p>
+                <p><span className="text-up">Blue</span> means you pay less than the shares are worth, <span className="text-down">red</span> means more. A discount is a price, not a promised return: you get your money out when the vault&apos;s loans are repaid.</p>
+                <p>Why would anyone sell below value? Because their money is out on loan and they want cash now.</p>
               </div>
             </DialogTrigger>
             <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => void refresh()} disabled={refreshing} aria-label="Refresh offers">
@@ -82,33 +80,18 @@ export function MarketWatch() {
         ) : visible.length === 0 ? (
           <EmptyState filter={filter} />
         ) : (
-          <Table className="terminal-table">
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead>Vault</TableHead>
-                <TableHead className="w-28"><span className="sr-only">NAV trend</span></TableHead>
-                <TableHead className="text-right">Shares</TableHead>
-                <TableHead className="text-right">Price XRP</TableHead>
-                <TableHead className="text-right">vs NAV</TableHead>
-                <TableHead className="text-right">Expires</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-8"><span className="sr-only">Open</span></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visible.map((offer) => (
-                <QuoteRow key={offer.id} offer={offer} quote={quotes[offer.vaultId]} viewer={account?.address ?? null} now={now} />
-              ))}
-            </TableBody>
-          </Table>
+          <ul className="grid gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3">
+            {visible.map((offer) => (
+              <OfferCard key={offer.id} offer={offer} quote={quotes[offer.vaultId]} viewer={account?.address ?? null} now={now} />
+            ))}
+          </ul>
         )}
       </Panel>
     </div>
   );
 }
 
-function QuoteRow({ offer, quote, viewer, now }: { offer: Offer; quote: VaultQuote | undefined; viewer: string | null; now: number }) {
-  const router = useRouter();
+function OfferCard({ offer, quote, viewer, now }: { offer: Offer; quote: VaultQuote | undefined; viewer: string | null; now: number }) {
   const mine = viewer === offer.seller;
   const latest = quote?.status === "ready" ? quote.latest : null;
   const accountingValue = latest ? estimateShareValueDrops(offer.shares, latest) : null;
@@ -116,29 +99,39 @@ function QuoteRow({ offer, quote, viewer, now }: { offer: Offer; quote: VaultQuo
   const navSeries = quote?.samples.map((s) => s.navPerShare) ?? [];
   const href = routes.offer(offer.id);
   const remaining = Date.parse(offer.expiresAt) - now;
+  const open = offer.state === "open";
   return (
-    <TableRow
-      className="cursor-pointer"
-      data-active={mine || undefined}
-      onClick={(event) => { if (!(event.target as HTMLElement).closest("a")) router.push(href); }}
-    >
-      <TableCell><code className="text-xs">{offer.vaultId.slice(0, 8)}…</code>{mine && <span className="ml-1.5 rounded bg-accent px-1 text-[10px] font-semibold uppercase text-accent-foreground">yours</span>}</TableCell>
-      <TableCell className="py-1">
-        {quote?.status === "ready" ? <Sparkline values={navSeries} width={96} height={24} /> : quote?.status === "error" ? <span className="text-xs text-muted-foreground" title={quote.message}>n/a</span> : <Skeleton className="h-5 w-24" />}
-      </TableCell>
-      <TableCell className="text-right">{formatShares(offer.shares)}</TableCell>
-      <TableCell className="text-right font-medium">{formatXrp(offer.priceDrops).replace(" XRP", "")}</TableCell>
-      <TableCell className="text-right">
-        {latest ? <Delta ratio={vs.ratio} /> : quote?.status === "error" ? <span className="text-xs text-muted-foreground">unavailable</span> : <Skeleton className="ml-auto h-4 w-14" />}
-      </TableCell>
-      <TableCell className={cn("text-right", offer.state === "open" && remaining < 3_600_000 && remaining > 0 && "text-down")}>
-        {offer.state === "open" ? formatCountdown(remaining) : "—"}
-      </TableCell>
-      <TableCell><OfferStatusBadge state={offer.state} /></TableCell>
-      <TableCell className="pr-2 text-right">
-        <Link href={href} className="inline-flex text-muted-foreground hover:text-foreground" aria-label={`Open offer ${offer.id}`}><ArrowRight className="size-4" /></Link>
-      </TableCell>
-    </TableRow>
+    <li className={cn("terminal-panel flex flex-col p-4 transition-shadow hover:shadow-md", mine && "ring-1 ring-primary/30")}>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-xs font-semibold" title={offer.vaultId}>Vault {offer.vaultId.slice(0, 8)}…</span>
+        {mine && <span className="rounded bg-accent px-1 text-[10px] font-semibold uppercase text-accent-foreground">yours</span>}
+        <span className="ml-auto"><OfferStatusBadge state={offer.state} /></span>
+      </div>
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[.1em] text-muted-foreground">Price</p>
+          <p className="text-2xl font-semibold tabular-nums leading-tight">{formatXrp(offer.priceDrops).replace(" XRP", "")} <span className="text-sm font-normal text-muted-foreground">XRP</span></p>
+          <p className="mt-0.5 text-xs text-muted-foreground">for {formatShares(offer.shares)} shares</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] font-semibold uppercase tracking-[.1em] text-muted-foreground">vs value</p>
+          <div className="text-lg font-semibold">
+            {latest ? <Delta ratio={vs.ratio} /> : quote?.status === "error" ? <span className="text-sm text-muted-foreground">n/a</span> : <Skeleton className="ml-auto h-6 w-16" />}
+          </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">{vs.kind === "discount" ? "cheaper than the shares are worth" : vs.kind === "premium" ? "above what the shares are worth" : vs.kind === "par" ? "at value" : !open ? "priced at the time of sale" : latest ? "value unavailable" : "value loading"}</p>
+        </div>
+      </div>
+      <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-2">
+          {quote?.status === "ready" ? <Sparkline values={navSeries} width={80} height={22} /> : <Skeleton className="h-5 w-20" />}
+          <span>value per share</span>
+        </span>
+        <span className={cn(open && remaining < 3_600_000 && remaining > 0 && "text-down")}>{open ? `${formatCountdown(remaining)} left` : offer.settlement ? "sold" : offer.state}</span>
+      </div>
+      <Link href={href} className={cn(buttonVariants({ size: "sm", variant: open && !mine ? "default" : "outline" }), "mt-4 w-full")}>
+        {open ? (mine ? "Manage my offer" : "Buy these shares") : "See the sale"} <ArrowRight />
+      </Link>
+    </li>
   );
 }
 
@@ -146,10 +139,9 @@ function EmptyState({ filter }: { filter: MarketFilter }) {
   return (
     <PanelEmpty className="min-h-40">
       <div className="max-w-md space-y-2">
-        <p className="text-sm font-medium text-foreground">{filter === "open" ? "No open offers" : filter === "settled" ? "No settled sales yet" : "No offers"}</p>
+        <p className="text-sm font-medium text-foreground">{filter === "open" ? "Nothing for sale right now" : filter === "settled" ? "No sale yet" : "No offers"}</p>
         <p>
-          Offers appear here when an investor lists vault shares from their portfolio, typically because the vault cannot fund their withdrawal while its
-          capital is out on loan. Every offer is checked against the seller&apos;s live share balance before it can settle.
+          When an investor wants cash while the vault&apos;s money is out on loan, they list their shares here at their own price.
         </p>
         <Link href={routes.portfolio} className="inline-flex items-center gap-1 text-primary hover:underline">Go to my portfolio <ArrowRight className="size-3.5" /></Link>
       </div>

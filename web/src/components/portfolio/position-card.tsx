@@ -55,10 +55,10 @@ export function PositionCard({ row, account, txEpoch, afterTransaction }: { row:
       {position ? (
         <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-5">
           <Figure label="Shares">{formatShares(position.heldUnits)}</Figure>
-          <Figure label="NAV / share"><Tick numeric={position.navPerShare}>{formatNav(position.navPerShare)}</Tick> <Delta ratio={navChangeRatio(history.first?.navPerShare, position.navPerShare)} decimals={2} className="ml-1 text-xs font-normal" /></Figure>
-          <Figure label="Value"><Tick numeric={position.accountingValueDrops}>{formatXrp(position.accountingValueDrops, 2)}</Tick></Figure>
-          <Figure label="Withdrawable today"><Tick numeric={position.withdrawableTodayDrops} className={BigInt(position.withdrawableTodayDrops) < BigInt(position.withdrawalValueEstimateDrops) ? "tick-down" : undefined}>{formatXrp(position.withdrawableTodayDrops, 2)}</Tick></Figure>
-          <Figure label="On loan"><Tick numeric={position.utilisation}>{formatPercent(position.utilisation, 0)}</Tick></Figure>
+          <Figure label="Value per share"><Tick numeric={position.navPerShare}>{formatNav(position.navPerShare)}</Tick> <Delta ratio={navChangeRatio(history.first?.navPerShare, position.navPerShare)} decimals={2} className="ml-1 text-xs font-normal" /></Figure>
+          <Figure label="Worth today"><Tick numeric={position.accountingValueDrops}>{formatXrp(position.accountingValueDrops, 2)}</Tick></Figure>
+          <Figure label="Cash you can take out"><Tick numeric={position.withdrawableTodayDrops} className={BigInt(position.withdrawableTodayDrops) < BigInt(position.withdrawalValueEstimateDrops) ? "tick-down" : undefined}>{formatXrp(position.withdrawableTodayDrops, 2)}</Tick></Figure>
+          <Figure label="Out on loan"><Tick numeric={position.utilisation}>{formatPercent(position.utilisation, 0)}</Tick></Figure>
         </div>
       ) : !row.error ? (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-9" />)}</div>
@@ -75,13 +75,13 @@ export function PositionCard({ row, account, txEpoch, afterTransaction }: { row:
 
       {position && (
         <>
-          <Dialog open={open === "deposit"} onClose={close} title={`Deposit into vault ${shortId}`} description="Shares are issued at the vault's current NAV. The ledger's verdict is shown after signing." size="sm">
+          <Dialog open={open === "deposit"} onClose={close} title={`Deposit into vault ${shortId}`} description="You receive shares at the vault's current value per share." size="sm">
             <DepositForm key={txEpoch} position={position} afterTransaction={afterTransaction} />
           </Dialog>
-          <Dialog open={open === "withdraw"} onClose={close} title={`Withdraw from vault ${shortId}`} description="The vault can only pay from cash it actually holds. If it cannot, you can sell the position instead." size="sm">
+          <Dialog open={open === "withdraw"} onClose={close} title={`Withdraw from vault ${shortId}`} description="The vault pays from the cash it holds. If the cash is out on loan, you can sell your shares instead." size="sm">
             <WithdrawForm key={txEpoch} position={position} account={account} afterTransaction={afterTransaction} />
           </Dialog>
-          <Dialog open={open === "details"} onClose={close} title={`Vault ${shortId}`} description="Real vault history from the validated ledger, with the vault's own deposits, withdrawals, loans and repayments as markers." size="xl">
+          <Dialog open={open === "details"} onClose={close} title={`Vault ${shortId}`} description="How this vault evolved, with deposits, withdrawals, loans and repayments as markers." size="xl">
             <div className="space-y-3">
               <VaultChart position={position} vaultId={row.vaultId} txEpoch={txEpoch} onRefreshVault={() => void afterTransaction()} refreshing={false} />
               <DeployedPanel vault={position.vault} txEpoch={txEpoch} />
@@ -100,7 +100,7 @@ export function UnmappedCard({ holding }: { holding: ShareHolding }) {
         <span className="truncate" title={holding.shareMptId}>Issuance {shortHash(holding.shareMptId)}</span>
         <span className="tabular-nums">{formatShares(holding.amount)} units</span>
       </p>
-      <p className="mt-1 text-xs text-muted-foreground">Shares of a vault this browser does not know yet. Add the vault by id to value them; shares bought on the market are mapped automatically.</p>
+      <p className="mt-1 text-xs text-muted-foreground">Shares of a vault this browser does not know yet. Add the vault by id to see what they are worth.</p>
     </li>
   );
 }

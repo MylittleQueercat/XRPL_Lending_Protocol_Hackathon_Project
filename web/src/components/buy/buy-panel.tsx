@@ -134,16 +134,16 @@ function ScopedBuyPanel({ offerId, wallet, market, className }: {
   const title = attempt ? STATUS[attempt.status].title : seller ? "Your offer" : "Sale ticket";
   return (
     <Panel title={title} className={className} actions={<OfferStatusBadge state={offer.state} />} bodyClassName="space-y-3 p-3">
-      <p className="text-xs text-muted-foreground">{attempt ? STATUS[attempt.status].description : seller ? "A buyer opens this offer with their wallet to request a purchase. You then return here to approve it." : "Authorize receiving these shares, then request the seller’s approval. Each party signs from their own wallet."}</p>
+      <p className="text-xs text-muted-foreground">{attempt ? STATUS[attempt.status].description : seller ? "A buyer opens this offer with their wallet to request a purchase. You then return here to approve it." : "Two steps: allow your wallet to hold these shares, then request the purchase. The seller approves from their side and the swap settles in one go."}</p>
       {(market.error || actionError || ledgerError) && <Alert variant="warning"><Info /><AlertTitle>Refresh before continuing</AlertTitle><AlertDescription><p>{actionError ?? market.error ?? ledgerError}</p><Button size="sm" variant="outline" disabled={busy || market.refreshing} onClick={() => { void market.refresh(); void refreshLedger(); }}><RefreshCw /> Refresh saved state</Button></AlertDescription></Alert>}
-      {proof && offer.state === "settled" && <Alert variant="success"><ShieldCheck /><AlertTitle>Payment and shares verified</AlertTitle><AlertDescription><p>{formatShares(offer.shares)} raw share units delivered to {shortAddress(proof.buyer)} for {formatXrp(offer.priceDrops)}. Validated ledger #{proof.ledgerIndex.toLocaleString()}.</p><a href={explorerTx(proof.hash)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-mono text-xs underline">{shortHash(proof.hash)} <ExternalLink className="size-3" /></a></AlertDescription></Alert>}
+      {proof && offer.state === "settled" && <Alert variant="success"><ShieldCheck /><AlertTitle>Payment and shares verified</AlertTitle><AlertDescription><p>{formatShares(offer.shares)} shares delivered to {shortAddress(proof.buyer)} for {formatXrp(offer.priceDrops)}. Validated ledger #{proof.ledgerIndex.toLocaleString()}.</p><a href={explorerTx(proof.hash)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-mono text-xs underline">{shortHash(proof.hash)} <ExternalLink className="size-3" /></a></AlertDescription></Alert>}
 
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-y border-border py-2 text-xs">
         <dt className="text-muted-foreground">You pay</dt><dd className="text-right text-sm font-semibold tabular-nums">{formatXrp(offer.priceDrops)}</dd>
-        <dt className="text-muted-foreground">You receive</dt><dd className="text-right tabular-nums">{formatShares(offer.shares)} share units</dd>
+        <dt className="text-muted-foreground">You receive</dt><dd className="text-right tabular-nums">{formatShares(offer.shares)} shares</dd>
         <dt className="text-muted-foreground">Seller</dt><dd className="text-right font-mono">{shortAddress(offer.seller)}{seller && <span className="ml-1 text-muted-foreground">(you)</span>}</dd>
         <dt className="text-muted-foreground">Seller holds now</dt>
-        <dd className={cn("text-right tabular-nums", live && !available && offer.state === "open" && "text-down")}>{live ? `${formatShares(live.sellerShares)} units` : ledgerError ? "—" : <Skeleton className="ml-auto h-3.5 w-16" />}</dd>
+        <dd className={cn("text-right tabular-nums", live && !available && offer.state === "open" && "text-down")}>{live ? `${formatShares(live.sellerShares)} shares` : ledgerError ? "—" : <Skeleton className="ml-auto h-3.5 w-16" />}</dd>
       </dl>
 
       {!address && offer.state === "open" && <Alert variant="info"><Info /><AlertTitle>Connect your own wallet</AlertTitle><AlertDescription>Buyers sign the payment. Sellers sign the sale. Use the same offer link on separate browsers.</AlertDescription></Alert>}
@@ -163,8 +163,8 @@ function ScopedBuyPanel({ offerId, wallet, market, className }: {
           <p className="text-sm">This is your offer. Cancelling stops new purchase requests; it does not revoke an already signed Batch.</p>
           <CancelOfferButton offerId={offerId} onDone={market.refresh} size="default" className="[&>button]:flex-1 w-full" />
         </> : <>
-          {live && <p className="text-sm">Seller currently holds {formatShares(live.sellerShares)} raw share units. {available ? "Listed quantity is covered." : "Not enough shares to deliver this offer."}</p>}
-          {!!address && live && !live.authorized && <><p className="text-sm">Authorize your account to receive this issuance before requesting the purchase.</p><Button variant="outline" className="w-full" disabled={blocked || !!authorizationBlock} onClick={() => void authorizeHolding()}>{busy ? "Checking authorization…" : "Authorize receiving shares"}</Button></>}
+          {live && <p className="text-sm">Seller currently holds {formatShares(live.sellerShares)} shares. {available ? "Listed quantity is covered." : "Not enough shares to deliver this offer."}</p>}
+          {!!address && live && !live.authorized && <><p className="text-sm">Your wallet must first accept this vault&apos;s shares. One signature, no XRP moves.</p><Button variant="outline" className="w-full" disabled={blocked || !!authorizationBlock} onClick={() => void authorizeHolding()}>{busy ? "Checking authorization…" : "Allow these shares in my wallet"}</Button></>}
           {authorizationBlock && <p role="status" className="text-sm text-muted-foreground">{authorizationBlock} No repeat is sent automatically.</p>}
           {authorization && <TxResult result={authorization} />}
           <Button className="w-full" size="lg" disabled={blocked || !!authorizationBlock || seller || !live?.authorized || !available} onClick={() => void act({ type: "prepare", offerId })}>{busy ? "Preparing request…" : "Request purchase"}</Button>

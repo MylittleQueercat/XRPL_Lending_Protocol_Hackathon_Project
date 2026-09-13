@@ -104,7 +104,7 @@ export function DepositForm({ position, afterTransaction }: { position: Position
       <AmountField id="ticket-deposit" value={amount} onChange={setAmount} disabled={busy} baseDrops={wallet.balanceDrops} baseLabel="wallet balance" />
       <div className="space-y-1 rounded-md border border-border bg-background/60 px-2.5 py-2">
         <Line label="Wallet balance">{wallet.balanceDrops ? <Tick numeric={wallet.balanceDrops}>{formatXrp(wallet.balanceDrops)}</Tick> : "—"}</Line>
-        <Line label="Vault NAV / share">{position.navPerShare.toFixed(6)} drops</Line>
+        <Line label="Value per share">{position.navPerShare.toFixed(6)} drops</Line>
         <Line label="You hold">{formatShares(position.heldUnits)} sh</Line>
       </div>
       {drops && (exceedsBalance ? <Verdict tone="down">Exceeds the wallet balance; the ledger will refuse it.</Verdict> : <Verdict tone="up">Funded from the wallet. Shares are issued at the vault&apos;s current NAV; the reserve and fee stay with your account.</Verdict>)}
@@ -179,7 +179,7 @@ export function WithdrawForm({ position, account, afterTransaction }: { position
         <ArrowUpFromLine /> {busy ? "Waiting for validation…" : predictedFundable === false ? "Submit anyway, let the ledger decide" : "Sign and withdraw"}
       </Button>
       <p className="text-[11px] leading-4 text-muted-foreground">
-        Estimates use validated ledger reads. Interest is recognized when a payment delivers it; unrealized losses reduce accounting value. These figures are not a guaranteed transaction quote.
+        Figures come from the ledger and can change until the transaction is validated.
         {position.soleHolderLossWaiverApplied && " Sole-holder loss waiver included; execution is not guaranteed."}
       </p>
       {wallet.networkError && <p className="text-xs text-destructive">{wallet.networkError}</p>}

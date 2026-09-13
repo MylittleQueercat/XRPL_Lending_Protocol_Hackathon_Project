@@ -130,13 +130,13 @@ export function OfferDetail({ id }: { id: string }) {
         <div className="min-w-0 space-y-3">
           <KpiStrip className="sm:grid-cols-2 lg:grid-cols-4">
             <Kpi label="Price" value={formatXrp(offer.priceDrops).replace(" XRP", "")} sub={`XRP for ${formatShares(offer.shares)} shares · ${formatDropsPerShare(unitPrice)} drops each`} />
-            <Kpi label="NAV / share now" value={navNow !== null && Number.isFinite(navNow) ? <Tick numeric={navNow}>{formatDropsPerShare(navNow)}</Tick> : live.status === "loading" || history.status === "loading" ? <span className="text-muted-foreground">…</span> : "—"} sub={accountingValue ? `${formatXrp(accountingValue, 2)} for the lot` : "accounting value"} />
-            <Kpi label="Discount to NAV" value={<Delta ratio={vsValue.ratio} />} sub={vsValue.kind === "discount" ? "below value · not yield" : vsValue.kind === "premium" ? "above value" : vsValue.kind === "par" ? "at value" : "value unavailable"} />
+            <Kpi label="Value per share" value={navNow !== null && Number.isFinite(navNow) ? <Tick numeric={navNow}>{formatDropsPerShare(navNow)}</Tick> : live.status === "loading" || history.status === "loading" ? <span className="text-muted-foreground">…</span> : "—"} sub={accountingValue ? `these shares are worth ${formatXrp(accountingValue, 2)} today` : "worth today"} />
+            <Kpi label="Price vs value" value={<Delta ratio={vsValue.ratio} />} sub={vsValue.kind === "discount" ? "you pay less than the shares are worth" : vsValue.kind === "premium" ? "you pay more than the shares are worth" : vsValue.kind === "par" ? "at value" : "value unavailable"} />
             <Kpi label="Expires" value={offer.state === "open" ? formatCountdown(remaining) : "—"} tone={offer.state === "open" && remaining > 0 && remaining < 3_600_000 ? "down" : undefined} sub={new Date(offer.expiresAt).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })} />
           </KpiStrip>
 
           <div className="flex flex-wrap gap-2">
-            <DialogTrigger label="Chart" icon={<LineChart />} title="NAV per share against the asked price" description="Real vault state at past ledgers. Blue when NAV rose over the window, red when it fell; markers are the vault's own deposits, withdrawals, loans and repayments." size="xl">
+            <DialogTrigger label="Chart" icon={<LineChart />} title="Value per share against the asked price" description="Real vault state at past ledgers. Blue when NAV rose over the window, red when it fell; markers are the vault's own deposits, withdrawals, loans and repayments." size="xl">
           <Panel
             title="NAV per share · asked price"
             actions={
@@ -152,7 +152,7 @@ export function OfferDetail({ id }: { id: string }) {
             <TimeSeriesChart
               data={chartData}
               series={[
-                { key: "nav", label: "NAV / share", format: (v) => `${formatDropsPerShare(v)} drops`, area: true },
+                { key: "nav", label: "Value per share", format: (v) => `${formatDropsPerShare(v)} drops`, area: true },
                 { key: "ask", label: "Asked unit price", format: (v) => `${formatDropsPerShare(v)} drops`, dashed: true, color: chartColor.muted },
               ]}
               yFormat={(v) => formatDropsPerShare(v)}
@@ -218,12 +218,12 @@ export function OfferDetail({ id }: { id: string }) {
 
           <Panel title="What you are buying">
             <ul className="list-disc space-y-1.5 p-3 pl-7 text-sm text-muted-foreground">
-              <li>A quantity of vault shares: a proportional claim on the vault&apos;s assets, not a claim on any particular loan.</li>
+              <li>Shares of a lending vault: a slice of everything the vault holds, not one specific loan.</li>
               <li>The underlying loans continue unchanged. You take over the seller&apos;s exposure to them.</li>
-              <li>A discount to accounting value is a price, not yield. Returns depend on borrowers repaying and on the vault&apos;s cash when you exit.</li>
-              <li>Accounting value contains realised interest only. Interest is recognised when a payment delivers it, not when a loan is originated.</li>
+              <li>Paying below value is a price, not a promised return. What you get back depends on borrowers repaying and on the vault having cash when you exit.</li>
+              <li>The value counts interest only once a borrower has actually paid it.</li>
               <li>Liquidity is not guaranteed. Withdrawing later depends on the vault holding enough available cash at that time.</li>
-              <li>Settlement is one all-or-nothing Batch: your payment and the seller&apos;s share delivery apply together, or neither applies. Ownership is confirmed from the ledger afterwards, not from the submission result.</li>
+              <li>Your payment and the seller&apos;s shares move in one transaction, together or not at all. Ownership is then confirmed from the ledger.</li>
             </ul>
           </Panel>
               </div>

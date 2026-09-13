@@ -93,7 +93,7 @@ export function WalletButton() {
           {wallet.account ? (
             <div className="space-y-3">
               <div>
-                <p className="text-xs text-muted-foreground">{wallet.account.label} · local dev wallet</p>
+                <p className="text-xs text-muted-foreground">{wallet.account.label} · test wallet</p>
                 <div className="mt-1 flex items-center gap-2">
                   <code className="truncate text-sm">{wallet.account.address}</code>
                   <Button size="icon" variant="ghost" onClick={copy} aria-label={copied ? "Address copied" : "Copy address"}>{copied ? <Check /> : <Copy />}</Button>
@@ -112,17 +112,17 @@ export function WalletButton() {
           ) : (
             <div className="space-y-4">
               <div>
-                <p className="font-medium">Local development wallet</p>
+                <p className="font-medium">Your test wallet</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Keys stay in this browser session. The shared market receives public data and signatures only. Signing is refused unless the node reports network 4001.
+                  Create a wallet funded with test XRP in one click, or import one you already have. Keys never leave this browser; the app only signs on the test network.
                 </p>
               </div>
               <Button className="w-full" aria-busy={busy === "create"} disabled={busy !== null} onClick={() => run("create", () => wallet.createFundedWallet())}>
-                {busy === "create" ? <LoaderCircle className="animate-spin motion-reduce:animate-none" /> : <Sparkles />} {busy === "create" ? "Funding from faucet…" : "Create a funded test wallet"}
+                {busy === "create" ? <LoaderCircle className="animate-spin motion-reduce:animate-none" /> : <Sparkles />} {busy === "create" ? "Creating and funding…" : "Create a test wallet"}
               </Button>
               <div className="flex items-center gap-2 text-xs text-muted-foreground"><Separator className="flex-1" /> or <Separator className="flex-1" /></div>
               <form className="space-y-2" onSubmit={(e) => { e.preventDefault(); void run("import", () => wallet.connectWithSeed(seed)); }}>
-                <Label htmlFor="seed">Import a test seed</Label>
+                <Label htmlFor="seed">Import a wallet key</Label>
                 <Input id="seed" type="password" autoComplete="off" placeholder="s…" value={seed} onChange={(e) => setSeed(e.target.value)} />
                 <Button type="submit" variant="outline" className="w-full" aria-busy={busy === "import"} disabled={!seed || busy !== null}>{busy === "import" ? <LoaderCircle className="animate-spin motion-reduce:animate-none" /> : <KeyRound />} {busy === "import" ? "Checking…" : "Import"}</Button>
               </form>

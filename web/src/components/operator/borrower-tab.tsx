@@ -124,7 +124,7 @@ export function BorrowerTab() {
         </ul>
       )}
 
-      <Note>Cash-basis accounting: interest reaches the vault only when a payment delivers it. Scheduled interest is what the contract will charge over its life, not what the vault has earned.</Note>
+      <Note>Interest counts for the vault only once you have paid it. Scheduled interest is what the contract will charge over its life.</Note>
     </div>
   );
 }

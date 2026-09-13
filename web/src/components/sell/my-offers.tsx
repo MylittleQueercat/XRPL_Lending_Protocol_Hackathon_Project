@@ -79,7 +79,7 @@ export function MyOffersTable({ className }: { className?: string }) {
               <TableHead>Vault</TableHead>
               <TableHead className="text-right">Shares</TableHead>
               <TableHead className="text-right">Price XRP</TableHead>
-              <TableHead className="text-right">Unit drops/sh</TableHead>
+              <TableHead className="text-right">Per share</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Expires</TableHead>
               <TableHead className="text-right">Action</TableHead>

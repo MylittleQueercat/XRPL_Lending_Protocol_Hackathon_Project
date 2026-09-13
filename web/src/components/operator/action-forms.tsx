@@ -147,12 +147,12 @@ export function OriginateForm({ vault, brokers, contextBrokerId, busy, onOrigina
         onOriginate({ borrower, borrowerSeed, loanBrokerId: broker.loanBrokerId, principalDrops, closePaymentFeeDrops: closeFeeDrops, interestRate, paymentInterval, paymentTotal, gracePeriod });
       }}
     >
-      <Note>The broker proposes terms; the borrower accepts by counter-signing the same transaction. Principal is disbursed at origination — there is no separate drawdown on this protocol version.</Note>
+      <Note>The principal leaves the vault and reaches the borrower the moment the loan is validated.</Note>
       <Alert variant="info" className="py-2.5 text-xs">
         <Info />
-        <AlertTitle className="text-xs">Borrower signing seed (demo only)</AlertTitle>
+        <AlertTitle className="text-xs">The borrower co-signs the loan</AlertTitle>
         <AlertDescription className="text-xs">
-          This operator demo asks for the borrower&apos;s test seed to co-sign LoanSet in this browser. Used once and never stored. Separate borrower approval is not yet connected in this console; the marketplace sale uses separate buyer and seller wallets.
+          A loan is a two-party transaction: the broker proposes, the borrower accepts by signing the same transaction. Enter the borrower&apos;s wallet key here; it is used once in this browser and never stored.
         </AlertDescription>
       </Alert>
 
@@ -164,7 +164,7 @@ export function OriginateForm({ vault, brokers, contextBrokerId, busy, onOrigina
       <Field id="borrower" label="Borrower address">
         <Input id="borrower" value={borrower} onChange={(e) => setBorrower(e.target.value)} placeholder="r…" className={`${DENSE_INPUT} font-mono`} aria-invalid={borrower.length > 0 && !addressOk} />
       </Field>
-      <Field id="borrower-seed" label="Borrower signing seed (demo only)">
+      <Field id="borrower-seed" label="Borrower wallet key">
         <Input id="borrower-seed" type="password" autoComplete="off" value={borrowerSeed} onChange={(e) => setBorrowerSeed(e.target.value)} placeholder="s…" className={`${DENSE_INPUT} font-mono`} />
       </Field>
       <div className="grid grid-cols-2 gap-2">

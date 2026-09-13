@@ -35,6 +35,19 @@ export function PortfolioTerminal() {
     setTxEpoch((n) => n + 1);
   }, [refresh]);
   const totals = React.useMemo(() => (account ? accountTotals(portfolio.positions, wallet.balanceDrops) : null), [account, portfolio.positions, wallet.balanceDrops]);
+
+  // A new wallet knows no vault. The shared market knows every vault that was ever listed, so
+  // offer those to deposit into; nobody should have to paste a 64-character id to get started.
+  const { rows, loadedOnce, addVault } = portfolio;
+  React.useEffect(() => {
+    if (!account || !loadedOnce || rows.length > 0 || !market.ready) return;
+    const seen = new Set<string>();
+    for (const offer of market.offers) {
+      if (seen.size >= 2 || seen.has(offer.vaultId)) continue;
+      seen.add(offer.vaultId);
+      addVault(offer.vaultId);
+    }
+  }, [account, loadedOnce, rows.length, market.ready, market.offers, addVault]);
   const money = (drops: string | null | undefined) => (account && drops ? <Tick numeric={drops}>{formatXrp(drops, 2)}</Tick> : <span className="text-muted-foreground">—</span>);
 
   if (!account) return <NotConnected />;
@@ -52,14 +65,14 @@ export function PortfolioTerminal() {
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-sm font-semibold">Your vaults</h2>
+        <h2 className="text-sm font-semibold">{portfolio.positions.length > 0 ? "Your vaults" : "Vaults you can join"}</h2>
         <span className="text-xs text-muted-foreground">{portfolio.readAt ? `read ${new Date(portfolio.readAt).toLocaleTimeString("en-GB")} · every 15 s` : "reading…"}</span>
         <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => void portfolio.refresh()} disabled={portfolio.loading} aria-label="Re-read vaults from the ledger"><RefreshCw className={cn("size-3.5", portfolio.loading && "animate-spin")} /></Button>
         <AddVault onAdd={portfolio.addVault} />
       </div>
 
       {portfolio.rows.length === 0 && portfolio.unmapped.length === 0 ? (
-        <div className="terminal-panel"><PanelEmpty className="min-h-32">No vault yet. Add one by id to deposit into it, or buy a position on the market.</PanelEmpty></div>
+        <div className="terminal-panel"><PanelEmpty className="min-h-32">{market.ready ? "No vault to show yet. Add one by id, or buy a position on the market." : "Looking for vaults…"}</PanelEmpty></div>
       ) : (
         <ul className="grid gap-3">
           {portfolio.rows.map((row) => <PositionCard key={row.vaultId} row={row} account={account} txEpoch={txEpoch} afterTransaction={afterTransaction} />)}
@@ -74,13 +87,13 @@ export function PortfolioTerminal() {
             <Link href={routes.sell(portfolio.selectedId ? { vault: portfolio.selectedId } : undefined)} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}><Plus /> New offer</Link>
           </div>
         </DialogTrigger>
-        <DialogTrigger icon={<History />} label="History" title="History" description="The last transactions of this wallet, from the validated ledger. XRP change includes fees." size="xl">
+        <DialogTrigger icon={<History />} label="History" title="History" description="Your last transactions, straight from the ledger. XRP change includes fees." size="xl">
           <HistoryTable account={account} txEpoch={txEpoch} />
         </DialogTrigger>
       </div>
 
       <p className="text-[11px] text-muted-foreground">
-        Every figure is read from the validated ledger and re-read every 15 s and after each transaction. Accounting value follows cash-basis accounting: realised interest only. Blue is up or profit; red is down or loss.
+        Every figure comes from the ledger and refreshes every 15 s. Blue is up or profit; red is down or loss.
       </p>
     </div>
   );
@@ -93,9 +106,9 @@ function AddVault({ onAdd }: { onAdd: (vaultId: string) => void }) {
   return (
     <>
       <Button size="sm" variant="outline" className="ml-auto" onClick={() => setOpen(true)}><Plus /> Add vault</Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Add a vault by id" description="Paste the vault's 64-character ledger index. Your share balance for it is read from the validated ledger." size="sm">
+      <Dialog open={open} onClose={() => setOpen(false)} title="Add a vault" description="Paste the id of a vault (the operator can give it to you). Your shares in it are read from the ledger." size="sm">
         <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!valid) return; onAdd(draft.trim().toUpperCase()); setDraft(""); setOpen(false); }}>
-          <Input id="watch-vault-id" className="font-mono text-xs" placeholder="64-character ledger index" value={draft} onChange={(e) => setDraft(e.target.value)} aria-invalid={draft.length > 0 && !valid} autoComplete="off" spellCheck={false} autoFocus />
+          <Input id="watch-vault-id" className="font-mono text-xs" placeholder="Vault id" value={draft} onChange={(e) => setDraft(e.target.value)} aria-invalid={draft.length > 0 && !valid} autoComplete="off" spellCheck={false} autoFocus />
           <Button type="submit" disabled={!valid} aria-label="Add vault">Add</Button>
         </form>
       </Dialog>

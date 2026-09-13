@@ -185,7 +185,7 @@ export function SellTicket() {
             >
               <div className="min-w-0 flex-1 space-y-1">
                 <Label htmlFor="vault" className="text-xs">Vault ID</Label>
-                <Input id="vault" list="known-vaults" className="h-9 font-mono text-xs" placeholder="64-character hex ledger index" value={vaultInput} onChange={(e) => setVaultInput(e.target.value)} spellCheck={false} autoComplete="off" />
+                <Input id="vault" list="known-vaults" className="h-9 font-mono text-xs" placeholder="Vault id" value={vaultInput} onChange={(e) => setVaultInput(e.target.value)} spellCheck={false} autoComplete="off" />
                 <datalist id="known-vaults">{knownVaults.map((v) => <option key={v} value={v} />)}</datalist>
               </div>
               <Button type="submit" variant="outline" size="sm" className="h-9" disabled={!isVaultId(vaultInput) || loading}>{loading ? <><RefreshCw className="animate-spin" /> Reading…</> : "Read position"}</Button>
@@ -206,8 +206,8 @@ export function SellTicket() {
               <>
                 <KpiStrip className="rounded-none border-x-0 border-b-0 sm:grid-cols-3 lg:grid-cols-3">
                   <Kpi label="Shares held" value={formatShares(balance)} sub={`of ${formatShares(vault.sharesOutstanding)} outstanding`} />
-                  <Kpi label="NAV / share" value={navNow !== null ? <Tick numeric={navNow}>{formatDropsPerShare(navNow)}</Tick> : "—"} sub={utilisation !== null ? `${formatPercent(utilisation, 0)} of assets on loan` : "drops per share"} />
-                  <Kpi label="Accounting value" value={heldValueDrops ? formatXrp(heldValueDrops, 2) : "—"} sub={`vault cash ${formatXrp(vault.assetsAvailableDrops, 2)}`} />
+                  <Kpi label="Value per share" value={navNow !== null ? <Tick numeric={navNow}>{formatDropsPerShare(navNow)}</Tick> : "—"} sub={utilisation !== null ? `${formatPercent(utilisation, 0)} of the vault is out on loan` : "drops per share"} />
+                  <Kpi label="Worth today" value={heldValueDrops ? formatXrp(heldValueDrops, 2) : "—"} sub={`vault cash ${formatXrp(vault.assetsAvailableDrops, 2)}`} />
                 </KpiStrip>
                 {!vault.transferable && (
                   <div className="p-3"><Alert variant="destructive"><Info /><AlertTitle>These shares cannot be transferred</AlertTitle><AlertDescription>The share issuance was created without the transfer flag, so no buyer can receive them. Nothing can be listed.</AlertDescription></Alert></div>
@@ -217,11 +217,11 @@ export function SellTicket() {
                 )}
               </>
             )}
-            {!vault && !loading && !loadError && <PanelEmpty>Paste the vault&apos;s ledger index or pick a recent one. Your live share balance for that vault is read from the validated ledger.</PanelEmpty>}
+            {!vault && !loading && !loadError && <PanelEmpty>Pick one of your vaults, or paste a vault id.</PanelEmpty>}
           </Panel>
 
           {vault && (
-            <DialogTrigger label="NAV chart" icon={<LineChart />} title="NAV per share" description="Real vault state at past ledgers. Blue when NAV rose over the window, red when it fell." size="xl">
+            <DialogTrigger label="Value chart" icon={<LineChart />} title="Value per share over time" description="Blue when the value rose over the window, red when it fell." size="xl">
             <Panel
               title="NAV per share"
               actions={<span className="text-[11px] text-muted-foreground">{history.status === "loading" ? "reading history…" : history.first ? `since ledger #${history.first.ledgerIndex.toLocaleString("en-US")}` : ""}{history.status === "error" && <Button variant="ghost" size="sm" className="ml-2 h-6 px-2 text-xs" onClick={() => void history.refresh()}>Retry</Button>}</span>}
@@ -229,7 +229,7 @@ export function SellTicket() {
             >
               <TimeSeriesChart
                 data={chartData}
-                series={[{ key: "nav", label: "NAV / share", format: (v) => `${formatDropsPerShare(v)} drops`, area: true }]}
+                series={[{ key: "nav", label: "Value per share", format: (v) => `${formatDropsPerShare(v)} drops`, area: true }]}
                 yFormat={(v) => formatDropsPerShare(v)}
                 directional
                 height={200}
@@ -253,7 +253,7 @@ export function SellTicket() {
                   </div>
                   <Input id="shares" inputMode="numeric" className="h-9 font-mono" placeholder="0" value={shares} disabled={!canSell} onChange={(e) => setShares(e.target.value.replace(/[^\d]/g, ""))} aria-invalid={!!errors.shares && shares !== ""} />
                   {errors.shares && shares !== "" && <p className="text-xs text-destructive">{errors.shares}</p>}
-                  {quantityValueDrops && <p className="text-[11px] text-muted-foreground">Accounting value of this quantity: <span className="tabular-nums text-foreground">{formatXrp(quantityValueDrops)}</span></p>}
+                  {quantityValueDrops && <p className="text-[11px] text-muted-foreground">Worth today: <span className="tabular-nums text-foreground">{formatXrp(quantityValueDrops)}</span></p>}
                 </div>
 
                 <div className="space-y-1">
@@ -265,22 +265,22 @@ export function SellTicket() {
                       <Button key={q.bps} type="button" variant="outline" size="sm" className={cn("h-7 px-2 text-xs tabular-nums", q.bps > 0 && "text-up")} disabled={!quantityValueDrops || !canSell} onClick={() => fill(q.bps)}>{q.label}</Button>
                     ))}
                   </div>
-                  <p className="text-[11px] text-muted-foreground">Quick prices are computed from the accounting value of the quantity above, rounded down to a whole drop.</p>
+                  <p className="text-[11px] text-muted-foreground">Quick prices start from what the shares are worth today.</p>
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs">Expires in</Label>
+                  <Label className="text-xs">Offer valid for</Label>
                   <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Expiry">
                     {EXPIRY_OPTIONS.map((o) => (
                       <Button key={o.hours} type="button" role="radio" aria-checked={expiryHours === o.hours} variant={expiryHours === o.hours ? "default" : "outline"} size="sm" className="h-7 px-2 text-xs" disabled={!canSell} onClick={() => setExpiryHours(o.hours)}>{o.label}</Button>
                     ))}
                   </div>
-                  <p className="text-[11px] text-muted-foreground">Enforced by Raise when the offer is read, not by the ledger.</p>
+                  
                 </div>
 
                 <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-y border-border py-2 text-xs" aria-live="polite">
                   <dt className="text-muted-foreground">Unit price</dt><dd className="text-right tabular-nums">{previewUnit ? `${formatDropsPerShare(previewUnit)} drops/sh` : "—"}</dd>
-                  <dt className="text-muted-foreground">Discount to NAV</dt><dd className="text-right"><Delta ratio={previewRatio} /></dd>
+                  <dt className="text-muted-foreground">vs value</dt><dd className="text-right"><Delta ratio={previewRatio} /></dd>
                   <dt className="text-muted-foreground">Proceeds</dt><dd className="text-right text-sm font-semibold tabular-nums">{typedPriceDrops ? formatXrp(typedPriceDrops) : "—"}</dd>
                 </dl>
 
@@ -296,8 +296,8 @@ export function SellTicket() {
                   <dt className="text-muted-foreground">Sell</dt><dd className="text-right tabular-nums">{formatShares(review.shares)} share units</dd>
                   <dt className="text-muted-foreground">For</dt><dd className="text-right text-sm font-semibold tabular-nums">{formatXrp(review.priceDrops)}</dd>
                   <dt className="text-muted-foreground">Unit price</dt><dd className="text-right tabular-nums">{formatDropsPerShare(review.unitPriceXrp)} drops/sh</dd>
-                  <dt className="text-muted-foreground">Accounting value</dt><dd className="text-right tabular-nums">{formatXrp(review.accountingValueDrops)}</dd>
-                  <dt className="text-muted-foreground">Discount to NAV</dt><dd className="text-right"><Delta ratio={review.discount} /></dd>
+                  <dt className="text-muted-foreground">Worth today</dt><dd className="text-right tabular-nums">{formatXrp(review.accountingValueDrops)}</dd>
+                  <dt className="text-muted-foreground">vs value</dt><dd className="text-right"><Delta ratio={review.discount} /></dd>
                   <dt className="text-muted-foreground">Expires</dt><dd className="text-right">{new Date(review.expiresAt).toLocaleString("en-GB")}</dd>
                   <dt className="text-muted-foreground">Seller</dt><dd className="text-right font-mono">{shortAddress(address)}</dd>
                   <dt className="text-muted-foreground">Vault</dt><dd className="text-right font-mono">{vault.vaultId.slice(0, 12)}…</dd>

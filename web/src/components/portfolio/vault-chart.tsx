@@ -120,7 +120,7 @@ export function VaultChart({ position, vaultId, txEpoch, onRefreshVault, refresh
     if (history.status === "loading" && samples.length === 0) return <Skeleton className="m-3 h-[220px]" />;
     if (samples.length === 0 && history.status === "ready") return <PanelEmpty className="min-h-[220px]">The vault did not exist in this range. Try a shorter range or wait for the next ledger.</PanelEmpty>;
     if (tab === "nav") {
-      return <TimeSeriesChart data={data} series={[{ key: "nav", label: "NAV / share", format: (v) => `${v.toFixed(6)} drops` }]} yFormat={(v) => v.toFixed(4)} markers={markers} directional height={220} className="px-1 pt-2" />;
+      return <TimeSeriesChart data={data} series={[{ key: "nav", label: "Value per share", format: (v) => `${v.toFixed(6)} drops` }]} yFormat={(v) => v.toFixed(4)} markers={markers} directional height={220} className="px-1 pt-2" />;
     }
     if (tab === "assets") {
       return <TimeSeriesChart data={data} series={[{ key: "total", label: "Assets total", color: chartColor.c1, area: true, format: xrpLabel }, { key: "available", label: "Cash available", color: chartColor.c3, area: true, format: xrpLabel }]} yFormat={formatXrpAxis} markers={markers} height={220} className="px-1 pt-2" />;
@@ -156,7 +156,7 @@ export function VaultChart({ position, vaultId, txEpoch, onRefreshVault, refresh
         )}
       </div>
       <div className="grid grid-cols-2 divide-x divide-y divide-border border-t border-border sm:grid-cols-3 lg:grid-cols-6 lg:divide-y-0">
-        <Figure label="NAV / share">{navNow !== null ? <Tick numeric={navNow}>{formatNav(navNow)}</Tick> : "—"}</Figure>
+        <Figure label="Value per share">{navNow !== null ? <Tick numeric={navNow}>{formatNav(navNow)}</Tick> : "—"}</Figure>
         <Figure label={`Δ ${range}`}><Delta ratio={navDelta} decimals={3} /></Figure>
         <Figure label="Assets total">{vault ? <Tick numeric={vault.assetsTotalDrops.split(".")[0]}>{formatXrp(vault.assetsTotalDrops, 2)}</Tick> : "—"}</Figure>
         <Figure label="Cash available">{vault ? <Tick numeric={vault.assetsAvailableDrops.split(".")[0]}>{formatXrp(vault.assetsAvailableDrops, 2)}</Tick> : "—"}</Figure>
