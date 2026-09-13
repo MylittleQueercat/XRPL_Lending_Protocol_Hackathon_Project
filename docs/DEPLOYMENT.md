@@ -71,11 +71,25 @@ Use a unique backup filename per operation in practice. Verify `PRAGMA integrity
 
 For an application rollback, retain the same database volume and use the recorded known-good image tag. In Dokploy, set `RAISE_IMAGE_TAG` to that tag and temporarily use the documented custom Compose command with `up -d --no-build --pull never --remove-orphans` instead of rebuilding the current main source. The project name and Compose path must match the service shown in Dokploy; copy its displayed command and change only those options. Confirm the resulting image ID matches the retained image. Restore the normal build command before a later forward deployment.
 
-If the schema is incompatible, do not start old code against the new database; use the tested paired image/database restore procedure. This first deployment has no historical production release, so its rollback rehearsal targets the first validated image and a disposable verification volume.
+If the schema is incompatible, do not start old code against the new database; use the tested paired image/database restore procedure. The initial September 12 rollback rehearsal used a disposable verification volume. Later releases retain their previous image and take a fresh online backup before replacement.
 
 Use the service Deployments and Logs tabs for build/start errors, Containers for health, and Preview Compose for routing. If HTTPS returns a proxy error, check DNS, the certificate, Host rule, `websecure`, port 3000 and `dokploy-network`. Do not solve routing problems by exposing the app port or disabling TLS validation.
 
-## Verification record — 12 September 2026
+## Current release — 13 September 2026
+
+The updated branding and wallet flows are deployed at [raise.vgtray.fr](https://raise.vgtray.fr). The application revision is [`b17c06ab68ade358b18c424853594381e61958eb`](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/commit/b17c06ab68ade358b18c424853594381e61958eb), merged in [PR #52](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/pull/52). Later documentation-only commits do not change the deployed application.
+
+- Dokploy completed the manual deployment in **1m 42s**. The running image is `raise-web:b17c06a`, ID `sha256:17c39d0a73f52319c18ffd128e632a020383c43ea9f6b47c4c806355dc7a1683`; source checkout and release commit match.
+- The container is healthy and runs as `node`, with the existing `raise-market-data` volume at `/data`. SQLite integrity is `ok`; the database inode is unchanged across replacement. A fresh online backup is retained outside the volume with restricted host permissions.
+- The previous image was preserved as `raise-web:rollback-20f30c7`, ID `sha256:aef499dd611c7a2733e1f15343599323161831e97d2a63037ffa6bf0ab055a6f`. The old service had reused an earlier tag, so this release records the actual image identity rather than inferring it from that tag.
+- Eight public routes and **18 referenced JavaScript/CSS assets** return HTTP 200 with normal TLS validation. `/position` redirects to `/portfolio`; the shared API returns its existing two offers.
+- After reloading the public Operator page, the browser reads network **4001**, ledger **89076**. The updated detail panel exposes the full Vault ID, confirms copying it, and provides prefilled Portfolio/Sell links. No console warning or error was observed in this check. No transaction was submitted through the public wallet.
+- Root **281 tests** and web **119 tests**, both type checks, and the production build pass. Both production dependency audits report zero vulnerabilities. PR CI and [main CI](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/actions/runs/34747109488) pass. The September 12 container scan below is historical, not a new scan of this image.
+- The separate [September 13 browser E2E](../evidence/browser-market-e2e-2026-09-13.json) covers the complete economic flow from localhost against network 4001: seller deposit, rejected unavailable withdrawal, 95-XRP share sale with separate signatures, recovery after reload, repayment and **100.000602 XRP** gross buyer redemption, with zero final shares and vault cash.
+
+The [current deployment evidence](../evidence/deployment-smoke-2026-09-13.json) records these hosted checks and their scope. A complete trade was not repeated on the public origin. Existing team slides, the requested video, rehearsal, the human-authored DevEx report and form submission remain separate deliverables in [the submission audit](SUBMISSION.md).
+
+## Historical verification — 12 September 2026
 
 Deployment is running on Sunny. DNS and HTTPS now respond for [raise.vgtray.fr](https://raise.vgtray.fr). Hosted smoke checks pass; the complete local trading E2E is a separate proof, not a claim of a full trade repeated on the public origin.
 

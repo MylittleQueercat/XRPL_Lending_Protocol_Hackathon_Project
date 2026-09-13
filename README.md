@@ -17,7 +17,7 @@ Updated September 13, 2026. The current interface includes the new branding, wal
 | Interface | Portfolio, market, sell, integrated offer/purchase and operator screens; new Raise branding, wallet onboarding, ledger-history charts, Apple/system typography, light/dark themes and reduced-motion support. |
 | Persistence | One Next.js Node server with SQLite; offers, reservations and submission state survive restarts. |
 | Verification | September 13: 281 root + 119 web tests and type checks pass. The [new two-browser journey](evidence/browser-market-e2e-2026-09-13.json) proves deposit, rejected withdrawal, sale, repayment and full buyer redemption on the updated UI. The production build passes. Hosted deployment results are recorded separately. |
-| Hosting | Running on Sunny through Dokploy, persistent volume, Cloudflare and HTTPS. See the dated [deployment checks](docs/DEPLOYMENT.md). |
+| Hosting | September 13 application release `b17c06a` runs on Sunny through Dokploy, persistent volume, Cloudflare and HTTPS. Eight public routes and 18 JS/CSS assets pass; see the [deployment evidence](evidence/deployment-smoke-2026-09-13.json). |
 
 The local E2E evidence is not a claim that the entire trade has been repeated on the public domain. Public deployment checks and their limits are recorded separately.
 

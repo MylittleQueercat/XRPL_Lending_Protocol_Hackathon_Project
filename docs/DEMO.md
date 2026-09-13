@@ -2,7 +2,7 @@
 
 Prepared September 13, 2026. English delivery, **four minutes plus two minutes of questions**, following the [event instructions](https://app.notion.com/p/adam-hn/XRPL-Lending-Protocol-Hackathon-5cc7508f4cdc83a7991e01f90528e490). The published instructions require a live demonstration and a deck of at most ten slides; **a generated or prerecorded video is not listed as a mandatory deliverable**. A recording is useful as a labelled fallback. Confirm any later organizer request separately.
 
-The team already has its slides and reports them ready; their file and slide count have not been independently checked here. Keep that existing deck and adapt this spoken pitch to it. [SUBMISSION.md](SUBMISSION.md) records evidence and the remaining confirmations. Timings guide presentation delivery, not development scheduling. The requested complete video is separate work, to be produced after the final application version is validated.
+The team already has its slides and reports them ready; their file and slide count have not been independently checked here. Keep that existing deck and adapt this spoken pitch to it. [SUBMISSION.md](SUBMISSION.md) records evidence and the remaining confirmations. Timings guide presentation delivery, not development scheduling. Application release `b17c06a` is now validated and deployed for the scope recorded in [DEPLOYMENT.md](DEPLOYMENT.md). The requested video should combine a polished product introduction, motion design and real application footage. Production awaits the existing team deck so the video, spoken pitch and slide order tell the same story.
 
 ## Four-minute spoken pitch
 
