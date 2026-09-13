@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowDown, ArrowUpRight, Check, Layers3, MoveUpRight, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Check, Layers3, MoveUpRight, ShieldCheck } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { routes } from "@/lib/network";
 import { cn } from "@/lib/utils";
+import { PhoneMockup } from "@/components/phone-mockup";
 
 const STEPS = [
   { number: "01", icon: Layers3, title: "Portfolio.", body: "What you hold, what it is worth today and what you can take out. Deposit, withdraw or sell from one place.", href: routes.portfolio, action: "Open the portfolio" },
@@ -25,24 +26,10 @@ export default function HomePage() {
           <p className="mt-5 text-xs text-muted-foreground">Built on XRP Ledger <span className="mx-2">/</span> Hackathon Devnet</p>
         </div>
 
-        <div className="flow-art flex min-h-[450px] flex-col overflow-hidden rounded-[28px] p-6 sm:p-9 lg:mt-3">
+        <div className="flow-art relative flex items-center justify-center overflow-hidden rounded-[28px] px-6 py-10 sm:py-12 lg:mt-3">
           <div className="flow-orbit" aria-hidden="true" />
-          <div className="flex items-center justify-between"><span className="eyebrow">A position. New possibilities.</span><ArrowUpRight className="size-5" /></div>
-          <div className="mt-12 rounded-2xl border border-white/80 bg-[#fffef8] p-6 shadow-[0_12px_35px_-20px_#233d3250]">
-            <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-[#eef0e5]"><Layers3 className="size-5" /></span><div><p className="text-sm font-semibold">Your vault position</p><p className="mt-1 text-xs text-[#647166]">Shares in a lending vault</p></div></div>
-            <ol className="mt-6 space-y-3 text-sm">
-              {[["01", "You deposit XRP", "The vault issues your shares."], ["02", "The broker manages loans", "Available cash can change."], ["03", "You choose your next move", "Withdraw available cash or list shares."]].map(([number, title, description]) => (
-                <li key={number} className="flex items-start gap-3">
-                  <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-[#eef0e5] text-[10px] font-semibold">{number}</span>
-                  <div><p className="font-medium">{title}</p><p className="mt-0.5 text-xs text-[#647166]">{description}</p></div>
-                </li>
-              ))}
-            </ol>
-            <div className="mt-4 flex justify-between border-t border-[#dcded0] pt-4 text-xs"><span>Transferable shares</span><span className="flex items-center gap-1 text-[#397044]"><Check className="size-3.5" /> Yours to list</span></div>
-          </div>
-          <div className="flex items-center justify-center gap-3 py-4 text-xs text-[#53664f]"><ArrowDown className="size-4" /> Your price. A new owner.</div>
-          <div className="flex items-center justify-between gap-3 rounded-2xl bg-[#233d32] p-5 text-[#f7f5ec]"><div><p className="font-medium">An agreed sale. One exchange.</p><p className="mt-1 text-xs text-[#c1ceb8]">Buyer signs. Seller approves. Settlement is verified.</p></div><span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#c5e6a4] text-[#233d32]"><ArrowUpRight className="size-5" /></span></div>
-          <p className="mt-6 text-center text-[10px] uppercase tracking-[.13em] text-[#647166]">How it works · illustrative view, not live data</p>
+          <PhoneMockup className="lg:-rotate-[3deg]" />
+          <p className="absolute bottom-4 left-0 right-0 text-center text-[10px] uppercase tracking-[.13em] text-[#647166]">The app on your phone · a sale settled on the ledger</p>
         </div>
       </section>
 
