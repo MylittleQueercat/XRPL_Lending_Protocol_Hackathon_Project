@@ -5,8 +5,6 @@ import { Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Panel, PanelEmpty, PanelTabs } from "@/components/terminal";
-import { TxResult } from "@/components/tx-result";
 import { xrpToDrops } from "@/lib/format";
 import { wholeDrops, type BrokerState, type Submitted, type VaultState } from "@/lib/ledger";
 import { DEFAULTS, formatDuration, INTERVAL_OPTIONS, percentToTenthBps, requiredCoverDrops, tenthBpsToPercent, validateLoanTerms } from "./lending";
@@ -24,63 +22,12 @@ export interface OriginateInput {
   interestRate: number; paymentInterval: number; paymentTotal: number; gracePeriod: number;
 }
 
-type ActionTab = "seed" | "broker" | "originate" | "cover";
-const TABS: ReadonlyArray<{ id: ActionTab; label: string }> = [
-  { id: "seed", label: "Seed liquidity" },
-  { id: "broker", label: "Broker" },
-  { id: "originate", label: "Originate" },
-  { id: "cover", label: "Cover" },
-];
-
 // The transaction tickets. Each form keeps the exact shapes, defaults and checks of the proven flow;
 // the parent signs, shows the ledger's verdict and re-reads the ledger.
-export function ActionsColumn({ vault, brokers, contextBrokerId, busy, outcomes, onDeposit, onCreateBroker, onCover, onOriginate }: {
-  vault: VaultState | null; brokers: BrokerState[]; contextBrokerId: string | null; busy: string | null; outcomes: Outcome[];
-  onDeposit: (vaultId: string, drops: string) => void;
-  onCreateBroker: (vaultId: string, debtMaxDrops: string, coverMin: number, coverLiq: number) => void;
-  onCover: (brokerId: string, drops: string) => void;
-  onOriginate: (input: OriginateInput) => void;
-}) {
-  const [tab, setTab] = React.useState<ActionTab>("seed");
-  return (
-    <div className="space-y-3">
-      <Panel title="Actions" actions={vault ? <span className="text-[10px] normal-case text-muted-foreground">on vault <Mono value={vault.vaultId} short={8} /></span> : undefined}>
-        <PanelTabs ariaLabel="Action" tabs={TABS} value={tab} onChange={setTab} />
-        <div className="p-3">
-          {!vault ? (
-            <PanelEmpty>Select or create a vault first.</PanelEmpty>
-          ) : tab === "seed" ? (
-            <SeedForm vault={vault} busy={busy} onDeposit={(drops) => onDeposit(vault.vaultId, drops)} />
-          ) : tab === "broker" ? (
-            <BrokerForm vault={vault} brokers={brokers} busy={busy} onCreate={(d, m, l) => onCreateBroker(vault.vaultId, d, m, l)} />
-          ) : tab === "originate" ? (
-            brokers.length === 0 ? <PanelEmpty>Create a broker on this vault before originating.</PanelEmpty> : <OriginateForm vault={vault} brokers={brokers} contextBrokerId={contextBrokerId} busy={busy} onOriginate={onOriginate} />
-          ) : (
-            brokers.length === 0 ? <PanelEmpty>Create a broker on this vault before posting cover.</PanelEmpty> : <CoverForm brokers={brokers} contextBrokerId={contextBrokerId} busy={busy} onCover={onCover} />
-          )}
-        </div>
-      </Panel>
-
-      <Panel title={<span>Outcomes{outcomes.length > 0 && <span className="ml-1.5 rounded-full bg-secondary px-1.5 text-[10px] tabular-nums">{outcomes.length}</span>}</span>} bodyClassName="max-h-[28rem] overflow-auto">
-        {outcomes.length === 0 ? (
-          <PanelEmpty>Ledger verdicts appear here, newest first. A validated tec code is still a rejection.</PanelEmpty>
-        ) : (
-          <div className="space-y-2 p-2 text-sm [&_[role=alert]]:py-2.5 [&_[role=alert]]:text-xs">
-            {outcomes.map((o, index) => (
-              o.result.resultCode === "error"
-                ? <Alert key={`${o.key}-${index}`} variant="destructive"><AlertTitle>{o.key} failed</AlertTitle><AlertDescription>{o.title}</AlertDescription></Alert>
-                : <TxResult key={`${o.key}-${index}`} result={o.result} context={o.context} title={o.title} />
-            ))}
-          </div>
-        )}
-      </Panel>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------------------------
 
-function SeedForm({ vault, busy, onDeposit }: { vault: VaultState; busy: string | null; onDeposit: (drops: string) => void }) {
+export function SeedForm({ vault, busy, onDeposit }: { vault: VaultState; busy: string | null; onDeposit: (drops: string) => void }) {
   const [depositXrp, setDepositXrp] = React.useState("100");
   const depositDrops = xrpToDrops(depositXrp);
   return (
@@ -100,7 +47,7 @@ function SeedForm({ vault, busy, onDeposit }: { vault: VaultState; busy: string 
 
 // ---------------------------------------------------------------------------------------------
 
-function BrokerForm({ vault, brokers, busy, onCreate }: { vault: VaultState; brokers: BrokerState[]; busy: string | null; onCreate: (debtMaxDrops: string, coverMin: number, coverLiq: number) => void }) {
+export function BrokerForm({ vault, brokers, busy, onCreate }: { vault: VaultState; brokers: BrokerState[]; busy: string | null; onCreate: (debtMaxDrops: string, coverMin: number, coverLiq: number) => void }) {
   const [debtMax, setDebtMax] = React.useState(DEFAULTS.debtMaximumXrp);
   const [coverMin, setCoverMin] = React.useState(DEFAULTS.coverRateMinimumPercent);
   const [coverLiq, setCoverLiq] = React.useState(DEFAULTS.coverRateLiquidationPercent);
@@ -132,7 +79,7 @@ function BrokerForm({ vault, brokers, busy, onCreate }: { vault: VaultState; bro
 
 // ---------------------------------------------------------------------------------------------
 
-function CoverForm({ brokers, contextBrokerId, busy, onCover }: { brokers: BrokerState[]; contextBrokerId: string | null; busy: string | null; onCover: (brokerId: string, drops: string) => void }) {
+export function CoverForm({ brokers, contextBrokerId, busy, onCover }: { brokers: BrokerState[]; contextBrokerId: string | null; busy: string | null; onCover: (brokerId: string, drops: string) => void }) {
   const [brokerId, setBrokerId] = React.useState(contextBrokerId ?? brokers[0].loanBrokerId);
   React.useEffect(() => { if (contextBrokerId) setBrokerId(contextBrokerId); }, [contextBrokerId]);
   const broker = brokers.find((b) => b.loanBrokerId === brokerId) ?? brokers[0];
@@ -159,7 +106,7 @@ function CoverForm({ brokers, contextBrokerId, busy, onCover }: { brokers: Broke
 
 // ---------------------------------------------------------------------------------------------
 
-function OriginateForm({ vault, brokers, contextBrokerId, busy, onOriginate }: { vault: VaultState; brokers: BrokerState[]; contextBrokerId: string | null; busy: string | null; onOriginate: (input: OriginateInput) => void }) {
+export function OriginateForm({ vault, brokers, contextBrokerId, busy, onOriginate }: { vault: VaultState; brokers: BrokerState[]; contextBrokerId: string | null; busy: string | null; onOriginate: (input: OriginateInput) => void }) {
   const [brokerId, setBrokerId] = React.useState(contextBrokerId ?? brokers[0].loanBrokerId);
   React.useEffect(() => { if (contextBrokerId) setBrokerId(contextBrokerId); }, [contextBrokerId]);
   const [borrower, setBorrower] = React.useState("");

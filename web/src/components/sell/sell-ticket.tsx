@@ -3,7 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, Info, RefreshCw, Wallet as WalletIcon } from "lucide-react";
+import { CheckCircle2, Info, LineChart, ListOrdered, RefreshCw, Wallet as WalletIcon } from "lucide-react";
+import { DialogTrigger } from "@/components/ui/dialog";
+import { MyOffersTable } from "./my-offers";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,7 +175,7 @@ export function SellTicket() {
         <Alert variant="destructive"><Info /><AlertTitle>Offers are paused</AlertTitle><AlertDescription>{wallet.networkError}</AlertDescription></Alert>
       )}
 
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="mx-auto max-w-2xl space-y-3">
         {/* Position: which vault, what you hold, what it is worth now. */}
         <div className="min-w-0 space-y-3">
           <Panel title="Position" actions={vault && <span className="text-[11px] text-muted-foreground">validated ledger #{vault.ledgerIndex.toLocaleString("en-US")}</span>}>
@@ -202,12 +204,10 @@ export function SellTicket() {
             {loading && <div className="grid gap-2 border-t border-border p-3 sm:grid-cols-5">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>}
             {vault && balance !== null && (
               <>
-                <KpiStrip className="rounded-none border-x-0 border-b-0 lg:grid-cols-5">
+                <KpiStrip className="rounded-none border-x-0 border-b-0 sm:grid-cols-3 lg:grid-cols-3">
                   <Kpi label="Shares held" value={formatShares(balance)} sub={`of ${formatShares(vault.sharesOutstanding)} outstanding`} />
-                  <Kpi label="NAV / share" value={navNow !== null ? <Tick numeric={navNow}>{formatDropsPerShare(navNow)}</Tick> : "—"} sub="drops per share · live" />
-                  <Kpi label="Accounting value" value={heldValueDrops ? formatXrp(heldValueDrops, 2) : "—"} sub="realised interest only" />
-                  <Kpi label="Cash available" value={formatXrp(vault.assetsAvailableDrops, 2)} sub={`of ${formatXrp(vault.assetsTotalDrops, 2)} assets`} />
-                  <Kpi label="Utilisation" value={utilisation !== null ? formatPercent(utilisation, 0) : "—"} sub="of assets out on loan" />
+                  <Kpi label="NAV / share" value={navNow !== null ? <Tick numeric={navNow}>{formatDropsPerShare(navNow)}</Tick> : "—"} sub={utilisation !== null ? `${formatPercent(utilisation, 0)} of assets on loan` : "drops per share"} />
+                  <Kpi label="Accounting value" value={heldValueDrops ? formatXrp(heldValueDrops, 2) : "—"} sub={`vault cash ${formatXrp(vault.assetsAvailableDrops, 2)}`} />
                 </KpiStrip>
                 {!vault.transferable && (
                   <div className="p-3"><Alert variant="destructive"><Info /><AlertTitle>These shares cannot be transferred</AlertTitle><AlertDescription>The share issuance was created without the transfer flag, so no buyer can receive them. Nothing can be listed.</AlertDescription></Alert></div>
@@ -221,6 +221,7 @@ export function SellTicket() {
           </Panel>
 
           {vault && (
+            <DialogTrigger label="NAV chart" icon={<LineChart />} title="NAV per share" description="Real vault state at past ledgers. Blue when NAV rose over the window, red when it fell." size="xl">
             <Panel
               title="NAV per share"
               actions={<span className="text-[11px] text-muted-foreground">{history.status === "loading" ? "reading history…" : history.first ? `since ledger #${history.first.ledgerIndex.toLocaleString("en-US")}` : ""}{history.status === "error" && <Button variant="ghost" size="sm" className="ml-2 h-6 px-2 text-xs" onClick={() => void history.refresh()}>Retry</Button>}</span>}
@@ -236,11 +237,12 @@ export function SellTicket() {
               />
               <p className="px-2 pb-2 pt-1 text-[11px] text-muted-foreground">Blue when NAV rose over the window, red when it fell. Owner <code>{shortAddress(vault.owner)}</code> · issuance <code>{vault.shareMptId.slice(0, 12)}…</code></p>
             </Panel>
+            </DialogTrigger>
           )}
         </div>
 
         {/* The ticket. */}
-        <div className="min-w-0 lg:sticky lg:top-4 lg:self-start">
+        <div className="min-w-0">
           <Panel title={reviewing ? "Review order" : "Sell ticket"} actions={<span className="text-[11px] text-muted-foreground">{reviewing ? "step 3 of 3" : positionReady ? "step 2 of 3" : "step 1 of 3"}</span>} bodyClassName="space-y-3 p-3">
             {!reviewing ? (
               <>
@@ -315,6 +317,11 @@ export function SellTicket() {
               <p className="text-sm text-muted-foreground">The terms changed. <Button variant="link" className="h-auto p-0" onClick={() => setReviewing(false)}>Edit the ticket</Button>.</p>
             )}
           </Panel>
+          <div className="mt-3">
+            <DialogTrigger label="My offers" icon={<ListOrdered />} title="Your offers" description="Shared across browsers. A pending sale needs your approval from this wallet." size="xl">
+              <MyOffersTable />
+            </DialogTrigger>
+          </div>
         </div>
       </div>
     </div>

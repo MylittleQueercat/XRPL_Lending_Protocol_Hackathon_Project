@@ -9,7 +9,7 @@ export default function Page() {
       <PageHeader
         className="mb-5 lg:mb-6"
         title="Operator"
-        description="The lending desk: vaults, brokers with first-loss cover, two-party loan origination and repayments, with every figure read back from the validated ledger and re-read every 15 seconds."
+        description="Vaults, brokers and loans, read from the validated ledger every 15 seconds."
       />
       <OperatorConsole />
     </>

@@ -39,7 +39,7 @@ Single-account transactions persist public recovery hashes before broadcasting. 
 
 ## Screens
 
-The interface is a trading terminal, in the MetaTrader convention: dense panels, tabular numbers, **blue = up / long / profit / discount, red = down / loss / premium**, values that flash when the ledger moves them. Charts are real: the Track 1 node keeps full history, so a vault's past state is read with `ledger_entry` at earlier ledgers (`src/lib/history.ts`), plus one exact sample at every deposit, withdrawal, disbursement and repayment of the vault.
+The interface keeps the MetaTrader convention, kept light: three figures and a card per vault on each screen; tickets, charts, orders and history open in dialogs. Tabular numbers, **blue = up / long / profit / discount, red = down / loss / premium**, values that flash when the ledger moves them. Charts are real: the Track 1 node keeps full history, so a vault's past state is read with `ledger_entry` at earlier ledgers (`src/lib/history.ts`), plus one exact sample at every deposit, withdrawal, disbursement and repayment of the vault.
 
 | Route | Ticket | What it does |
 |---|---|---|

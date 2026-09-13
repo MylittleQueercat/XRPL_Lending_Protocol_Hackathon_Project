@@ -11,7 +11,7 @@ export function NotConnected() {
     { icon: Wallet, text: "The route to sell your position when the vault cannot pay you out" },
   ];
   return (
-    <Panel title="Portfolio terminal" bodyClassName="px-5 py-6 sm:px-8 sm:py-8">
+    <Panel title="Portfolio" bodyClassName="px-5 py-6 sm:px-8 sm:py-8">
       <div className="mx-auto max-w-2xl">
         <h2 className="text-lg font-semibold">Connect a wallet to open your portfolio</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -26,7 +26,7 @@ export function NotConnected() {
           ))}
         </ul>
         <p className="mt-5 text-xs text-muted-foreground">
-          Market watch, live NAV chart, order ticket and history fill in once a wallet is connected. Nothing here is simulated; an empty wallet shows an empty terminal.
+          Nothing here is simulated; an empty wallet shows an empty portfolio.
         </p>
       </div>
     </Panel>

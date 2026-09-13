@@ -1,28 +1,34 @@
 "use client";
 
 import * as React from "react";
+import { ArrowDownToLine, Handshake, LineChart, Plus, RefreshCw, ShieldCheck, X } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Kpi, KpiStrip, PanelEmpty, Tick } from "@/components/terminal";
-import { formatXrp } from "@/lib/format";
+import { TxResult } from "@/components/tx-result";
+import { formatShares, formatXrp } from "@/lib/format";
 import {
   createdEntry, readLoan, readLoansForBrokers, readOwnedBrokers, readOwnedVaults, signAndSubmit, signAndSubmitLoanSet,
   type BrokerState, type LoanState, type VaultState,
 } from "@/lib/ledger";
 import { useWallet } from "@/lib/wallet";
-import { buildLoanBrokerCoverDeposit, buildLoanBrokerSet, buildLoanSet, buildVaultCreate, buildVaultDeposit, sumCeilDrops } from "./lending";
-import { ActionsColumn, type Outcome } from "./action-forms";
+import { cn } from "@/lib/utils";
+import { buildLoanBrokerCoverDeposit, buildLoanBrokerSet, buildLoanSet, buildVaultCreate, buildVaultDeposit, sumCeilDrops, tenthBpsToPercent } from "./lending";
+import { BrokerForm, CoverForm, OriginateForm, SeedForm, type Outcome } from "./action-forms";
 import { BrokerDetail } from "./broker-detail";
 import { LoanPanel } from "./loan-detail";
 import { LoansTable } from "./loans-table";
-import { Navigator, type Selection } from "./navigator";
 import { VaultDetail } from "./vault-detail";
-import { ConnectPrompt, xrp } from "./shared";
+import { ConnectPrompt, Mono, UtilisationBar, xrp } from "./shared";
 
 const POLL_MS = 15_000;
 
-// The operator desk: account strip, navigator, chart-driven centre, tickets on the right, loans
-// blotter at the bottom. Every figure comes from the validated ledger, re-read every 15 seconds
-// and after each transaction.
+type Open = { kind: "deposit" | "broker" | "originate" | "details"; vaultId: string } | { kind: "loan"; loanId: string } | null;
+
+// The lending desk, light: three figures, one card per vault with its actions in dialogs, the loans.
 export function OperatorTab() {
   const wallet = useWallet();
   const address = wallet.account?.address ?? null;
@@ -30,12 +36,12 @@ export function OperatorTab() {
   const [vaults, setVaults] = React.useState<VaultState[] | null>(null);
   const [brokers, setBrokers] = React.useState<BrokerState[] | null>(null);
   const [loans, setLoans] = React.useState<LoanState[] | null>(null);
-  const [selection, setSelection] = React.useState<Selection>(null);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [outcomes, setOutcomes] = React.useState<Outcome[]>([]);
+  const [outcome, setOutcome] = React.useState<Outcome | null>(null);
   const [busy, setBusy] = React.useState<string | null>(null);
   const [tick, setTick] = React.useState(0);
   const [lastRead, setLastRead] = React.useState<number | null>(null);
+  const [open, setOpen] = React.useState<Open>(null);
   const loading = React.useRef(false);
 
   const load = React.useCallback(async () => {
@@ -45,17 +51,9 @@ export function OperatorTab() {
     try {
       const [v, b] = await Promise.all([readOwnedVaults(address), readOwnedBrokers(address)]);
       const l = await readLoansForBrokers(b);
-      setVaults(v);
-      setBrokers(b);
-      setLoans(l);
+      setVaults(v); setBrokers(b); setLoans(l);
       setLastRead(Date.now());
       setTick((t) => t + 1);
-      setSelection((current) => {
-        if (current?.kind === "vault" && v.some((x) => x.vaultId === current.id)) return current;
-        if (current?.kind === "broker" && b.some((x) => x.loanBrokerId === current.id)) return current;
-        if (current?.kind === "loan" && l.some((x) => x.loanId === current.id)) return current;
-        return v[0] ? { kind: "vault", id: v[0].vaultId } : null;
-      });
     } catch (error) {
       setLoadError((error as Error).message);
     } finally {
@@ -63,158 +61,180 @@ export function OperatorTab() {
     }
   }, [address]);
 
-  React.useEffect(() => {
-    setVaults(null);
-    setBrokers(null);
-    setLoans(null);
-    setSelection(null);
-    void load();
-  }, [load]);
-
+  React.useEffect(() => { setVaults(null); setBrokers(null); setLoans(null); void load(); }, [load]);
   React.useEffect(() => {
     if (!address) return;
     const timer = setInterval(() => void load(), POLL_MS);
     return () => clearInterval(timer);
   }, [address, load]);
 
-  const pushOutcome = (outcome: Outcome) => setOutcomes((current) => [outcome, ...current].slice(0, 6));
-
-  // Every action follows the same shape: sign with the connected wallet, show the ledger's verdict,
-  // then re-read state from the validated ledger rather than trusting the result.
+  // Every action: sign with the connected wallet, show the ledger's verdict, re-read the ledger.
   const run = async (key: string, action: () => Promise<Outcome>) => {
     setBusy(key);
     try {
-      pushOutcome(await action());
+      setOutcome(await action());
     } catch (error) {
-      pushOutcome({ key, result: { hash: "", ledgerIndex: 0, resultCode: "error", validated: false, meta: {} }, title: (error as Error).message });
+      setOutcome({ key, result: { hash: "", ledgerIndex: 0, resultCode: "error", validated: false, meta: {} }, title: (error as Error).message });
     } finally {
       setBusy(null);
       await Promise.all([load(), wallet.refresh()]);
     }
   };
 
-  const ownedBrokerIds = React.useMemo(() => new Set((brokers ?? []).map((b) => b.loanBrokerId)), [brokers]);
-  const brokerLoans = React.useMemo(() => (loans ?? []).filter((l) => ownedBrokerIds.has(l.loanBrokerId)), [loans, ownedBrokerIds]);
+  const createVault = () => run("VaultCreate", async () => {
+    const signer = await wallet.requireSigner();
+    const result = await signAndSubmit(buildVaultCreate(address as string), signer);
+    return { key: "VaultCreate", result, title: result.resultCode === "tesSUCCESS" ? "Vault created" : "Vault not created" };
+  });
 
-  if (!address) return <DisconnectedDesk />;
+  if (!address) {
+    return (
+      <div className="space-y-3">
+        <KpiStrip className="sm:grid-cols-3 lg:grid-cols-3">{["Assets managed", "Cash available", "Deployed in loans"].map((label) => <Kpi key={label} label={label} value="—" sub="connect a wallet" />)}</KpiStrip>
+        <div className="terminal-panel p-6"><ConnectPrompt role="vault owner and loan broker" /></div>
+      </div>
+    );
+  }
 
-  // The context vault and broker for the tickets follow the selection up the tree.
-  const selectedLoan = selection?.kind === "loan" ? brokerLoans.find((l) => l.loanId === selection.id) ?? null : null;
-  const selectedBroker = selection?.kind === "broker" ? (brokers ?? []).find((b) => b.loanBrokerId === selection.id) ?? null : selectedLoan ? (brokers ?? []).find((b) => b.loanBrokerId === selectedLoan.loanBrokerId) ?? null : null;
-  const contextVaultId = selection?.kind === "vault" ? selection.id : selectedBroker?.vaultId ?? null;
-  const vault = (vaults ?? []).find((v) => v.vaultId === contextVaultId) ?? null;
-  const vaultBrokers = (brokers ?? []).filter((b) => b.vaultId === contextVaultId);
-
-  const strip = {
-    vaults: vaults?.length ?? null,
-    assets: vaults ? sumCeilDrops(vaults.map((v) => v.assetsTotalDrops)) : null,
-    cash: vaults ? sumCeilDrops(vaults.map((v) => v.assetsAvailableDrops)) : null,
-    cover: brokers ? sumCeilDrops(brokers.map((b) => b.coverAvailableDrops)) : null,
-    debt: brokers ? sumCeilDrops(brokers.map((b) => b.debtTotalDrops)) : null,
-  };
-  const deployed = strip.assets && strip.cash ? (BigInt(strip.assets) - BigInt(strip.cash)).toString() : null;
-  const money = (drops: string | null, tone?: "up" | "down") => drops === null ? "—" : <Tick numeric={drops} className={tone === "up" ? "text-up" : tone === "down" ? "text-down" : undefined}>{formatXrp(drops, 2)}</Tick>;
+  const assets = vaults ? sumCeilDrops(vaults.map((v) => v.assetsTotalDrops)) : null;
+  const cash = vaults ? sumCeilDrops(vaults.map((v) => v.assetsAvailableDrops)) : null;
+  const deployed = assets && cash ? (BigInt(assets) - BigInt(cash)).toString() : null;
+  const money = (drops: string | null) => (drops === null ? "—" : <Tick numeric={drops}>{formatXrp(drops, 2)}</Tick>);
+  const openVault = open && open.kind !== "loan" ? (vaults ?? []).find((v) => v.vaultId === open.vaultId) ?? null : null;
+  const openVaultBrokers = openVault ? (brokers ?? []).filter((b) => b.vaultId === openVault.vaultId) : [];
+  const openLoan = open?.kind === "loan" ? (loans ?? []).find((l) => l.loanId === open.loanId) ?? null : null;
+  const close = () => setOpen(null);
 
   return (
-    <div className="space-y-3">
-      {loadError && (
-        <Alert variant="destructive"><AlertTitle>Could not read the ledger</AlertTitle><AlertDescription>{loadError}</AlertDescription></Alert>
-      )}
-
-      <KpiStrip>
-        <Kpi label="Vaults owned" value={strip.vaults ?? "—"} sub={lastRead ? `ledger read ${new Date(lastRead).toLocaleTimeString("en-GB")}` : "reading ledger…"} />
-        <Kpi label="Assets managed" value={money(strip.assets)} sub="sum of vault assets total" />
-        <Kpi label="Cash available" value={money(strip.cash)} sub="idle liquidity" />
-        <Kpi label="Deployed in loans" value={money(deployed)} sub={strip.assets && BigInt(strip.assets) > 0n && deployed ? `${((Number(deployed) / Number(strip.assets)) * 100).toFixed(1)} % utilised` : "nothing lent"} />
-        <Kpi label="Cover posted" value={money(strip.cover)} sub={`${brokers?.length ?? 0} broker${brokers?.length === 1 ? "" : "s"}`} />
-        <Kpi label="Debt outstanding" value={money(strip.debt)} sub={`${brokerLoans.length} loan${brokerLoans.length === 1 ? "" : "s"}`} />
+    <div className="space-y-4">
+      <KpiStrip className="sm:grid-cols-3 lg:grid-cols-3">
+        <Kpi label="Assets managed" value={money(assets)} sub={`${vaults?.length ?? 0} vault${vaults?.length === 1 ? "" : "s"} · ${lastRead ? `read ${new Date(lastRead).toLocaleTimeString("en-GB")}` : "reading…"}`} />
+        <Kpi label="Cash available" value={money(cash)} sub="idle liquidity" />
+        <Kpi label="Deployed in loans" value={money(deployed)} sub={assets && BigInt(assets) > 0n && deployed ? `${((Number(deployed) / Number(assets)) * 100).toFixed(1)} % utilised · ${loans?.length ?? 0} loan${loans?.length === 1 ? "" : "s"}` : "nothing lent"} />
       </KpiStrip>
 
-      <div className="grid gap-3 lg:grid-cols-[18rem_minmax(0,1fr)_22rem]">
-        <Navigator
-          vaults={vaults} brokers={brokers ?? []} loans={brokerLoans} selection={selection} onSelect={setSelection} busy={busy} lastRead={lastRead}
-          onRefresh={() => void load()}
-          onCreateVault={() => run("VaultCreate", async () => {
-            const signer = await wallet.requireSigner();
-            const result = await signAndSubmit(buildVaultCreate(address), signer);
-            return { key: "VaultCreate", result, title: result.resultCode === "tesSUCCESS" ? "Vault created" : "Vault not created" };
-          })}
-        />
+      {loadError && <Alert variant="destructive"><AlertTitle>Could not read the ledger</AlertTitle><AlertDescription>{loadError}</AlertDescription></Alert>}
 
-        <div className="min-w-0 space-y-3">
-          {selectedLoan ? (
-            <LoanPanel loan={selectedLoan} />
-          ) : selectedBroker ? (
-            <>
-              <BrokerDetail broker={selectedBroker} vault={vault} />
-              {vault && <VaultDetail vault={vault} tick={tick} compact />}
-            </>
-          ) : vault ? (
-            <VaultDetail vault={vault} tick={tick} />
-          ) : (
-            <div className="terminal-panel"><PanelEmpty className="min-h-64">{vaults === null ? "Reading your vaults from the validated ledger…" : "Create a vault to open the desk."}</PanelEmpty></div>
-          )}
+      {outcome && (
+        <div className="relative">
+          {outcome.result.resultCode === "error"
+            ? <Alert variant="destructive"><AlertTitle>{outcome.key} failed</AlertTitle><AlertDescription>{outcome.title}</AlertDescription></Alert>
+            : <TxResult result={outcome.result} context={outcome.context} title={outcome.title} />}
+          <Button size="icon" variant="ghost" className="absolute right-1 top-1 size-7" aria-label="Dismiss" onClick={() => setOutcome(null)}><X className="size-3.5" /></Button>
         </div>
+      )}
 
-        <ActionsColumn
-          vault={vault} brokers={vaultBrokers} contextBrokerId={selectedBroker?.loanBrokerId ?? null} busy={busy} outcomes={outcomes}
-          onDeposit={(vaultId, drops) => run("VaultDeposit", async () => {
-            const signer = await wallet.requireSigner();
-            const result = await signAndSubmit(buildVaultDeposit(address, vaultId, drops), signer);
-            return { key: "VaultDeposit", result, title: "Liquidity deposit" };
-          })}
-          onCreateBroker={(vaultId, debtMaxDrops, coverMin, coverLiq) => run("LoanBrokerSet", async () => {
-            const signer = await wallet.requireSigner();
-            const result = await signAndSubmit(buildLoanBrokerSet(address, vaultId, debtMaxDrops, coverMin, coverLiq), signer);
-            return { key: "LoanBrokerSet", result, title: "Loan broker" };
-          })}
-          onCover={(brokerId, drops) => run("LoanBrokerCoverDeposit", async () => {
-            const signer = await wallet.requireSigner();
-            const result = await signAndSubmit(buildLoanBrokerCoverDeposit(address, brokerId, drops), signer);
-            return { key: "LoanBrokerCoverDeposit", result, title: "First-loss cover" };
-          })}
-          onOriginate={(input) => run("LoanSet", async () => {
-            const brokerSigner = await wallet.requireSigner();
-            const borrowerSigner = wallet.signerForSeed(input.borrowerSeed);
-            if (borrowerSigner.classicAddress !== input.borrower) throw new Error("The borrower seed does not belong to the borrower address entered.");
-            const result = await signAndSubmitLoanSet(buildLoanSet({ ...input, broker: address }), brokerSigner, borrowerSigner);
-            let title = "Origination";
-            if (result.resultCode === "tesSUCCESS") {
-              const loanId = createdEntry(result.meta, "Loan");
-              if (loanId) {
-                const loan = await readLoan(loanId);
-                title = `Loan ${loanId.slice(0, 8)}… originated · ${xrp(loan.principalOutstandingDrops)} disbursed to the borrower`;
-                setSelection({ kind: "loan", id: loanId });
-              }
-            }
-            return { key: "LoanSet", result, context: "loanset", title };
-          })}
-        />
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="text-sm font-semibold">Your vaults</h2>
+        <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => void load()} aria-label="Re-read the ledger"><RefreshCw className="size-3.5" /></Button>
+        <Button size="sm" variant={vaults && vaults.length > 0 ? "outline" : "default"} className="ml-auto" disabled={busy !== null} onClick={() => void createVault()}><Plus /> {busy === "VaultCreate" ? "Creating…" : "Create vault"}</Button>
       </div>
 
-      <LoansTable loans={loans === null ? null : brokerLoans} selectedId={selectedLoan?.loanId ?? null} onSelect={(loanId) => setSelection({ kind: "loan", id: loanId })} />
+      {vaults === null ? (
+        <Skeleton className="h-32" />
+      ) : vaults.length === 0 ? (
+        <div className="terminal-panel"><PanelEmpty className="min-h-32">No vault yet. Creating one costs 2 test XRP on network 4001, consumed as a fee, not deposited. Shares are transferable by default.</PanelEmpty></div>
+      ) : (
+        <ul className="grid gap-3">
+          {vaults.map((vault) => {
+            const vaultBrokers = (brokers ?? []).filter((b) => b.vaultId === vault.vaultId);
+            return (
+              <li key={vault.vaultId} className="terminal-panel p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-sm font-semibold">Vault <Mono value={vault.vaultId} short={8} className="text-sm" /></span>
+                  <Badge variant={vault.transferable ? "outline" : "warning"} className="h-5 text-[10px]">{vault.transferable ? "transferable shares" : "non-transferable"}</Badge>
+                  <span className="ml-auto text-xs text-muted-foreground">{formatShares(vault.sharesOutstanding)} shares out</span>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+                  <Figure label="Assets total"><Tick numeric={vault.assetsTotalDrops.split(".")[0]}>{xrp(vault.assetsTotalDrops, 2)}</Tick></Figure>
+                  <Figure label="Cash available"><Tick numeric={vault.assetsAvailableDrops.split(".")[0]}>{xrp(vault.assetsAvailableDrops, 2)}</Tick></Figure>
+                  <div className="col-span-2 self-center"><UtilisationBar totalDrops={vault.assetsTotalDrops} availableDrops={vault.assetsAvailableDrops} /></div>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {vaultBrokers.length === 0 ? "No broker yet: create one to originate loans." : vaultBrokers.map((b) => <span key={b.loanBrokerId} className="mr-3">Broker <Mono value={b.loanBrokerId} short={8} /> · cover {xrp(b.coverAvailableDrops, 2)} · debt {xrp(b.debtTotalDrops, 2)} · min {tenthBpsToPercent(b.coverRateMinimum)}</span>)}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => setOpen({ kind: "deposit", vaultId: vault.vaultId })}><ArrowDownToLine /> Deposit</Button>
+                  <Button size="sm" variant="outline" onClick={() => setOpen({ kind: "broker", vaultId: vault.vaultId })}><ShieldCheck /> Broker</Button>
+                  <Button size="sm" variant="outline" disabled={vaultBrokers.length === 0} onClick={() => setOpen({ kind: "originate", vaultId: vault.vaultId })}><Handshake /> Originate</Button>
+                  <Button size="sm" variant="ghost" className="ml-auto" onClick={() => setOpen({ kind: "details", vaultId: vault.vaultId })}><LineChart /> Details</Button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <LoansTable loans={loans} onOpen={(loanId) => setOpen({ kind: "loan", loanId })} />
+
+      {openVault && (
+        <>
+          <Dialog open={open?.kind === "deposit"} onClose={close} title="Seed liquidity" description="Deposit your own XRP so the vault has something to lend. In a product this is the lenders' capital." size="sm">
+            <SeedForm vault={openVault} busy={busy} onDeposit={(drops) => run("VaultDeposit", async () => {
+              const signer = await wallet.requireSigner();
+              const result = await signAndSubmit(buildVaultDeposit(address, openVault.vaultId, drops), signer);
+              return { key: "VaultDeposit", result, title: "Liquidity deposit" };
+            })} />
+          </Dialog>
+          <Dialog open={open?.kind === "broker"} onClose={close} title="Loan broker" description="A broker originates loans against the vault and posts first-loss cover. Cover must clear the minimum rate before any origination." size="md">
+            <div className="space-y-5">
+              {openVaultBrokers.map((b) => <BrokerDetail key={b.loanBrokerId} broker={b} vault={openVault} />)}
+              {openVaultBrokers.length > 0 && (
+                <section>
+                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-[.1em] text-muted-foreground">Deposit cover</h3>
+                  <CoverForm brokers={openVaultBrokers} contextBrokerId={null} busy={busy} onCover={(brokerId, drops) => run("LoanBrokerCoverDeposit", async () => {
+                    const signer = await wallet.requireSigner();
+                    const result = await signAndSubmit(buildLoanBrokerCoverDeposit(address, brokerId, drops), signer);
+                    return { key: "LoanBrokerCoverDeposit", result, title: "First-loss cover" };
+                  })} />
+                </section>
+              )}
+              <section>
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-[.1em] text-muted-foreground">{openVaultBrokers.length > 0 ? "Create another broker" : "Create a broker"}</h3>
+                <BrokerForm vault={openVault} brokers={openVaultBrokers} busy={busy} onCreate={(d, m, l) => run("LoanBrokerSet", async () => {
+                  const signer = await wallet.requireSigner();
+                  const result = await signAndSubmit(buildLoanBrokerSet(address, openVault.vaultId, d, m, l), signer);
+                  return { key: "LoanBrokerSet", result, title: "Loan broker" };
+                })} />
+              </section>
+            </div>
+          </Dialog>
+          <Dialog open={open?.kind === "originate"} onClose={close} title="Originate a loan" description="The broker proposes terms; the borrower accepts by counter-signing the same transaction." size="md">
+            {openVaultBrokers.length === 0 ? <PanelEmpty>Create a broker on this vault first.</PanelEmpty> : (
+              <OriginateForm vault={openVault} brokers={openVaultBrokers} contextBrokerId={null} busy={busy} onOriginate={(input) => run("LoanSet", async () => {
+                const brokerSigner = await wallet.requireSigner();
+                const borrowerSigner = wallet.signerForSeed(input.borrowerSeed);
+                if (borrowerSigner.classicAddress !== input.borrower) throw new Error("The borrower seed does not belong to the borrower address entered.");
+                const result = await signAndSubmitLoanSet(buildLoanSet({ ...input, broker: address }), brokerSigner, borrowerSigner);
+                let title = "Origination";
+                if (result.resultCode === "tesSUCCESS") {
+                  const loanId = createdEntry(result.meta, "Loan");
+                  if (loanId) {
+                    const loan = await readLoan(loanId);
+                    title = `Loan ${loanId.slice(0, 8)}… originated · ${xrp(loan.principalOutstandingDrops)} disbursed to the borrower`;
+                  }
+                }
+                return { key: "LoanSet", result, context: "loanset", title };
+              })} />
+            )}
+          </Dialog>
+          <Dialog open={open?.kind === "details"} onClose={close} title={<span>Vault <Mono value={openVault.vaultId} short={12} className="text-base" /></span>} description="Real vault state at past ledgers, cash versus deployed, and the vault account's activity." size="xl">
+            <VaultDetail vault={openVault} tick={tick} />
+          </Dialog>
+        </>
+      )}
+      <Dialog open={!!openLoan} onClose={close} title={openLoan ? <span>Loan <Mono value={openLoan.loanId} short={12} className="text-base" /></span> : "Loan"} description="Figures from the validated ledger; the schedule is a projection of the contract, not realised interest." size="xl">
+        {openLoan && <LoanPanel loan={openLoan} />}
+      </Dialog>
     </div>
   );
 }
 
-// The desk with nothing behind it: same frame, dashes for figures, one call to action.
-function DisconnectedDesk() {
-  const ghost = (title: string, height: string) => (
-    <div className={`terminal-panel ${height}`}><div className="terminal-head">{title}</div><div className="grid h-[calc(100%-2.25rem)] place-items-center"><span className="text-[11px] text-muted-foreground/70">—</span></div></div>
-  );
+function Figure({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-3">
-      <KpiStrip>
-        {["Vaults owned", "Assets managed", "Cash available", "Deployed in loans", "Cover posted", "Debt outstanding"].map((label) => <Kpi key={label} label={label} value="—" sub="connect a wallet" />)}
-      </KpiStrip>
-      <div className="grid gap-3 lg:grid-cols-[18rem_minmax(0,1fr)_22rem]">
-        {ghost("Navigator", "min-h-40 lg:min-h-72")}
-        <div className="terminal-panel flex min-h-72 flex-col">
-          <div className="terminal-head">Vault</div>
-          <div className="grid flex-1 place-items-center p-6"><ConnectPrompt role="vault owner and loan broker" /></div>
-        </div>
-        {ghost("Actions", "min-h-40 lg:min-h-72")}
-      </div>
+    <div className="min-w-0">
+      <p className="text-[10px] font-semibold uppercase tracking-[.1em] text-muted-foreground">{label}</p>
+      <p className={cn("mt-0.5 truncate text-sm font-semibold tabular-nums")}>{children}</p>
     </div>
   );
 }

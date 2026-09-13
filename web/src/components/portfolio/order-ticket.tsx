@@ -6,7 +6,7 @@ import { ArrowDownToLine, ArrowUpFromLine, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Panel, PanelEmpty, PanelTabs, Tick } from "@/components/terminal";
+import { Tick } from "@/components/terminal";
 import { TxResult } from "@/components/tx-result";
 import { useWallet } from "@/lib/wallet";
 import { formatShares, formatXrp, xrpToDrops } from "@/lib/format";
@@ -16,8 +16,6 @@ import { cn } from "@/lib/utils";
 import { LiquidityBar } from "@/components/position/liquidity-bar";
 import { canVaultFund, classifyRefusal, liquidityPicture } from "@/components/position/position-math";
 import { fractionOfDropsAsXrpInput, type Position } from "./portfolio-math";
-
-type Side = "deposit" | "withdraw";
 
 interface Refusal {
   requestedDrops: string;
@@ -70,7 +68,7 @@ function Line({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-function DepositForm({ position, afterTransaction }: { position: Position; afterTransaction: () => Promise<void> }) {
+export function DepositForm({ position, afterTransaction }: { position: Position; afterTransaction: () => Promise<void> }) {
   const wallet = useWallet();
   const [amount, setAmount] = React.useState("");
   const [busy, setBusy] = React.useState(false);
@@ -119,7 +117,7 @@ function DepositForm({ position, afterTransaction }: { position: Position; after
   );
 }
 
-function WithdrawForm({ position, account, afterTransaction }: { position: Position; account: string; afterTransaction: () => Promise<void> }) {
+export function WithdrawForm({ position, account, afterTransaction }: { position: Position; account: string; afterTransaction: () => Promise<void> }) {
   const wallet = useWallet();
   const [amount, setAmount] = React.useState("");
   const [busy, setBusy] = React.useState(false);
@@ -225,44 +223,4 @@ function RefusalExplainer({ refusal, vaultId, heldUnits }: { refusal: Refusal; v
     );
   }
   return null;
-}
-
-// Right column: deposit into or withdraw from the selected vault. The verdict shown before signing
-// is a prediction from the last ledger read; the result shown after is what the ledger said.
-export function OrderTicket({ position, account, vaultError, afterTransaction }: { position: Position | null; account: string; vaultError: string | null; afterTransaction: () => Promise<void> }) {
-  const [side, setSide] = React.useState<Side>("deposit");
-  const held = position ? BigInt(position.heldUnits || "0") : 0n;
-  const canSell = position !== null && held > 0n && position.vault.transferable;
-  return (
-    <Panel title="Order ticket" bodyClassName="flex flex-col">
-      <PanelTabs
-        tabs={[{ id: "deposit", label: <span className="tick-up">Deposit</span> }, { id: "withdraw", label: <span className="tick-down">Withdraw</span> }]}
-        value={side}
-        onChange={setSide}
-        ariaLabel="Ticket side"
-        className="[&>button]:flex-1 [&>button]:justify-center"
-      />
-      {!position ? (
-        <PanelEmpty className="min-h-40">{vaultError ? <span>Could not read this vault: {vaultError}</span> : "Select a vault to deposit into or withdraw from."}</PanelEmpty>
-      ) : side === "deposit" ? (
-        <DepositForm key={position.vault.vaultId} position={position} afterTransaction={afterTransaction} />
-      ) : (
-        <WithdrawForm key={position.vault.vaultId} position={position} account={account} afterTransaction={afterTransaction} />
-      )}
-      {position && (
-        <div className="mt-auto border-t border-border p-3">
-          {canSell ? (
-            <>
-              <Link href={routes.sell({ vault: position.vault.vaultId, shares: position.heldUnits })} className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "w-full")}>Sell position</Link>
-              <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">List your shares at a price you set. A sale needs a buyer and both signatures before XRP changes hands.</p>
-            </>
-          ) : held > 0n ? (
-            <p className="text-[11px] leading-4 text-muted-foreground">These shares are non-transferable; the vault&apos;s cash is the only exit.</p>
-          ) : (
-            <p className="text-[11px] leading-4 text-muted-foreground">No shares of this vault yet. A deposit issues them at the current NAV.</p>
-          )}
-        </div>
-      )}
-    </Panel>
-  );
 }

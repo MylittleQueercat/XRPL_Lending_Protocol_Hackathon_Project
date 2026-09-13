@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, ExternalLink, RefreshCw } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ExternalLink, Landmark, LineChart, RefreshCw } from "lucide-react";
+import { DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -101,7 +102,6 @@ export function OfferDetail({ id }: { id: string }) {
         <h1 className="text-base font-semibold">Offer <code className="text-sm font-normal text-muted-foreground">{offer.id.slice(0, 8)}…</code></h1>
         <OfferStatusBadge state={offer.state} />
         <span className="text-xs text-muted-foreground">listed {formatRelativeTime(offer.createdAt)}</span>
-        <span className="ml-auto text-[11px] text-muted-foreground">blue = discount / NAV up · red = premium / NAV down</span>
       </div>
 
       {marketError && <Alert variant="warning"><AlertTitle>Shared offer data may be stale</AlertTitle><AlertDescription>{marketError} <Button variant="outline" size="sm" onClick={() => void refreshMarket()}>Refresh marketplace</Button></AlertDescription></Alert>}
@@ -128,15 +128,15 @@ export function OfferDetail({ id }: { id: string }) {
 
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="min-w-0 space-y-3">
-          <KpiStrip className="lg:grid-cols-3 xl:grid-cols-6">
-            <Kpi label="Shares" value={formatShares(offer.shares)} sub="raw share units" />
-            <Kpi label="Price" value={formatXrp(offer.priceDrops).replace(" XRP", "")} sub="XRP, total" />
-            <Kpi label="Unit price" value={formatDropsPerShare(unitPrice)} sub="drops per share" />
+          <KpiStrip className="sm:grid-cols-2 lg:grid-cols-4">
+            <Kpi label="Price" value={formatXrp(offer.priceDrops).replace(" XRP", "")} sub={`XRP for ${formatShares(offer.shares)} shares · ${formatDropsPerShare(unitPrice)} drops each`} />
             <Kpi label="NAV / share now" value={navNow !== null && Number.isFinite(navNow) ? <Tick numeric={navNow}>{formatDropsPerShare(navNow)}</Tick> : live.status === "loading" || history.status === "loading" ? <span className="text-muted-foreground">…</span> : "—"} sub={accountingValue ? `${formatXrp(accountingValue, 2)} for the lot` : "accounting value"} />
             <Kpi label="Discount to NAV" value={<Delta ratio={vsValue.ratio} />} sub={vsValue.kind === "discount" ? "below value · not yield" : vsValue.kind === "premium" ? "above value" : vsValue.kind === "par" ? "at value" : "value unavailable"} />
             <Kpi label="Expires" value={offer.state === "open" ? formatCountdown(remaining) : "—"} tone={offer.state === "open" && remaining > 0 && remaining < 3_600_000 ? "down" : undefined} sub={new Date(offer.expiresAt).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })} />
           </KpiStrip>
 
+          <div className="flex flex-wrap gap-2">
+            <DialogTrigger label="Chart" icon={<LineChart />} title="NAV per share against the asked price" description="Real vault state at past ledgers. Blue when NAV rose over the window, red when it fell; markers are the vault's own deposits, withdrawals, loans and repayments." size="xl">
           <Panel
             title="NAV per share · asked price"
             actions={
@@ -166,6 +166,9 @@ export function OfferDetail({ id }: { id: string }) {
             </p>
           </Panel>
 
+            </DialogTrigger>
+            <DialogTrigger label="Vault and seller" icon={<Landmark />} title="Vault, seller and record" size="xl">
+              <div className="space-y-3">
           <div className="grid gap-3 md:grid-cols-2">
             <Panel title="Vault" actions={vault && <span className="text-[11px] text-muted-foreground">ledger #{vault.ledgerIndex.toLocaleString("en-US")}</span>}>
               {vault ? <VaultPanel vault={vault} /> : live.status === "loading" ? <VaultSkeleton /> : <p className="p-3 text-sm text-muted-foreground">Unavailable.</p>}
@@ -223,6 +226,9 @@ export function OfferDetail({ id }: { id: string }) {
               <li>Settlement is one all-or-nothing Batch: your payment and the seller&apos;s share delivery apply together, or neither applies. Ownership is confirmed from the ledger afterwards, not from the submission result.</li>
             </ul>
           </Panel>
+              </div>
+            </DialogTrigger>
+          </div>
         </div>
 
         <div className="min-w-0 lg:sticky lg:top-4 lg:self-start">

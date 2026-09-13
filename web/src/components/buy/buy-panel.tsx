@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Panel } from "@/components/terminal";
+import { DialogTrigger } from "@/components/ui/dialog";
 import { OfferStatusBadge } from "@/components/market/status-badge";
 import type { useOffer } from "@/components/market/use-offers";
 import { CancelOfferButton } from "@/components/sell/my-offers";
@@ -173,11 +174,16 @@ function ScopedBuyPanel({ offerId, wallet, market, className }: {
         <Button className="w-full" disabled={blocked} onClick={() => void act({ type: "prepare", offerId })}>{busy ? "Finishing preparation…" : "Finish preparing request"}</Button>
       </> : <p className="text-sm">This offer is {offer.state} and cannot accept a new request.</p>}
 
-      <div className="space-y-1.5 border-t border-border pt-2 text-[11px] text-muted-foreground">
-        <p>Started requests stay locked through reloads and uncertain results. Expiry does not revoke an already signed transaction. Refreshing does not send another payment.</p>
-        <p>A vault share represents proportional exposure to its assets and credit risk. A discount is an agreed price, not promised yield. Future withdrawal depends on repayments and available cash; neither liquidity nor a return is guaranteed.</p>
-        <p>The seller pays the outer transaction fee, shown before approval. Both exchange legs are verified against the saved transaction hash and its ledger metadata.</p>
-        <p>These are test wallets on network 4001. Seeds stay in each browser session; the shared server receives public data and signatures.</p>
+      <div className="flex items-center justify-between border-t border-border pt-2 text-[11px] text-muted-foreground">
+        <span>Refreshing never sends another payment.</span>
+        <DialogTrigger label="Terms" variant="ghost" buttonSize="sm" className="h-6 px-2 text-[11px]" title="What you take on" size="sm">
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>Started requests stay locked through reloads and uncertain results. Expiry does not revoke an already signed transaction. Refreshing does not send another payment.</p>
+            <p>A vault share represents proportional exposure to its assets and credit risk. A discount is an agreed price, not promised yield. Future withdrawal depends on repayments and available cash; neither liquidity nor a return is guaranteed.</p>
+            <p>The seller pays the outer transaction fee, shown before approval. Both exchange legs are verified against the saved transaction hash and its ledger metadata.</p>
+            <p>These are test wallets on network 4001. Seeds stay in each browser session; the shared server receives public data and signatures.</p>
+          </div>
+        </DialogTrigger>
       </div>
     </Panel>
   );
