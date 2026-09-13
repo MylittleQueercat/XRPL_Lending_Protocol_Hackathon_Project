@@ -189,6 +189,9 @@
   .raise-skeleton { animation: raise-pulse 1.8s ease-in-out infinite; }
   .skip-link { position: fixed; z-index: 60; left: 1rem; top: 1rem; transform: translateY(-200%); border-radius: .625rem; padding: .75rem 1rem; background: var(--foreground); color: var(--background); }
   .skip-link:focus { transform: translateY(0); }
+  /* The phone on the landing page floats, then straightens and lifts toward the pointer. */
+  .phone-hover { transform: perspective(1400px) rotateY(-14deg) rotateX(4deg) rotate(-3deg); transition: transform .6s var(--ease-out), filter .6s var(--ease-out); animation: phone-float 6s ease-in-out infinite; will-change: transform; }
+  .phone-hover:hover { transform: perspective(1400px) rotateY(0deg) rotateX(0deg) rotate(0deg) translateY(-10px) scale(1.03); animation-play-state: paused; filter: drop-shadow(0 30px 40px rgba(20, 26, 31, .25)); }
   .flow-art { background: #e2ebd6; color: #233d32; position: relative; isolation: isolate; }
   .flow-art::before { content: ""; position: absolute; inset: 0; z-index: -1; background-image: radial-gradient(#75896b35 1px, transparent 1px); background-size: 20px 20px; mask-image: linear-gradient(black, transparent); }
   .flow-orbit { position: absolute; width: 330px; height: 330px; border: 1px solid #96ad83; border-radius: 50%; right: -100px; top: 25px; z-index: -1; }
@@ -200,11 +203,13 @@
 }
 @keyframes tick-flash-up { from { background: var(--up-soft); } to { background: transparent; } }
 @keyframes tick-flash-down { from { background: var(--down-soft); } to { background: transparent; } }
+@keyframes phone-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
 @keyframes raise-state-in { from { opacity: .55; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes raise-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
-  .raise-panel, .raise-state, .raise-skeleton { animation: none; }
+  .raise-panel, .raise-state, .raise-skeleton, .phone-hover { animation: none; }
+  .phone-hover, .phone-hover:hover { transform: none; transition: none; }
   a:hover .hover-arrow, button:hover .hover-arrow, .raise-press:active { transform: none; }
 }

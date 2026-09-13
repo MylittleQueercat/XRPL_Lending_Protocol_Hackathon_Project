@@ -26,10 +26,8 @@ export default function HomePage() {
           <p className="mt-5 text-xs text-muted-foreground">Built on XRP Ledger <span className="mx-2">/</span> Hackathon Devnet</p>
         </div>
 
-        <div className="flow-art relative flex items-center justify-center overflow-hidden rounded-[28px] px-6 py-10 sm:py-12 lg:mt-3">
-          <div className="flow-orbit" aria-hidden="true" />
-          <PhoneMockup className="lg:-rotate-[3deg]" />
-          <p className="absolute bottom-4 left-0 right-0 text-center text-[10px] uppercase tracking-[.13em] text-[#647166]">The app on your phone · a sale settled on the ledger</p>
+        <div className="flex items-center justify-center py-6 lg:py-0">
+          <PhoneMockup className="phone-hover" />
         </div>
       </section>
 
