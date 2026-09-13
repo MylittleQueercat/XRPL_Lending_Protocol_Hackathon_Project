@@ -17,7 +17,7 @@ import type { MarketSnapshot, StoredAttempt } from '../src/market-types.js';
 
 const argv=process.argv.slice(2);
 if(argv.includes('--help') || !argv.includes('--start')) {
-  process.stdout.write('Usage: npx tsx scripts/browser-fixture.ts --start --seller CLASSIC_ADDRESS --buyer CLASSIC_ADDRESS [--origin http://127.0.0.1:3100]\nNo network operation occurs without --start. Operator wallets remain in memory only.\n');
+  process.stdout.write('Usage: npx tsx scripts/browser-fixture.ts --start --seller CLASSIC_ADDRESS --buyer CLASSIC_ADDRESS [--origin http://127.0.0.1:3100] [--output evidence/browser-market-e2e.json]\nNo network operation occurs without --start. Operator wallets remain in memory only. Existing evidence is never overwritten.\n');
   process.exit(0);
 }
 function arg(name:string):string|undefined {const i=argv.indexOf(name);return i<0?undefined:argv[i+1];}
@@ -25,7 +25,7 @@ const seller=arg('--seller'),buyer=arg('--buyer'),origin=arg('--origin')??'http:
 if(!seller || !buyer || !isValidClassicAddress(seller) || !isValidClassicAddress(buyer) || seller===buyer)throw new Error('Provide distinct valid seller and buyer public addresses.');
 const parsedOrigin=new URL(origin);
 if(!['localhost','127.0.0.1'].includes(parsedOrigin.hostname) || parsedOrigin.origin!==origin)throw new Error('The fixture reads only a localhost Raise application.');
-const output='evidence/browser-market-e2e.json';
+const output=arg('--output')??'evidence/browser-market-e2e.json';
 if(existsSync(output))throw new Error('Browser evidence already exists; preserve it before explicitly starting a fresh fixture.');
 const client=createClient();
 const directory=await createRunDirectory('browser-fixture');

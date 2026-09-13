@@ -24,9 +24,9 @@ Local capture is not proof of remote ingestion. When delivery cannot be directly
 
 ## Team status and final submission
 
-Issue #3 is closed and the previous team record reported four completed local setups. This repository does not contain private per-participant capture records and cannot independently reverify that each hook is active now. Each teammate should run their own status check before submission. Do not convert that historical setup record into a claim of current remote delivery.
+Issue #3 is closed, and Adam confirms on September 13 that the teammates have installed their hooks. This is team-confirmed installation. The repository does not contain private per-participant capture records and cannot independently reverify that each hook is active now. Each teammate should run their own status check before submission. Do not convert that historical setup record into a claim of current remote delivery.
 
-The curated manual report is [DEVEX_FEEDBACK.md](../DEVEX_FEEDBACK.md), with detailed reproductions under [devfeedback/findings](../devfeedback/findings/). Report preparation (#26) and final submission/sign-off (#28) are distinct. The running web deployment does not install or transmit another participant's DevEx hook.
+The team prepares the final manual report without AI, as requested by Adam. The existing [DEVEX_FEEDBACK.md](../DEVEX_FEEDBACK.md) is preserved; its authorship, final content and three-page limit require team review. Detailed reproductions remain under [devfeedback/findings](../devfeedback/findings/). Report preparation (#26) and final submission/sign-off (#28) are distinct. The running web deployment does not install or transmit another participant's DevEx hook.
 
 ## Public evidence and security handling
 

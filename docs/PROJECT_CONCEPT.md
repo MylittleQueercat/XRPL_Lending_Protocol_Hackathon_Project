@@ -1,6 +1,6 @@
 # Raise — a secondary market for XRPL vault shares
 
-Team product document · Version 2 · September 12, 2026
+Team product document · Version 3 · September 13, 2026
 
 This document describes the implemented V1 and the remaining product hypotheses. [PRODUCT_SCOPE.md](PRODUCT_SCOPE.md) records the accepted scope; [README.md](../README.md) is the starting point for running the application; [the board](https://github.com/users/MylittleQueercat/projects/1) tracks work. Teammates can propose changes without treating every idea here as a delivery commitment.
 
@@ -54,14 +54,14 @@ The trading workflow has two independent browser wallets. The operator and borro
 
 | Screen | Current behavior |
 |---|---|
-| Position | Select a vault, inspect ownership/value/cash, deposit, withdraw and start a sale. |
+| Portfolio | Onboard a test wallet, discover/watch vaults, inspect ownership/value/cash, deposit, withdraw and start a sale. Orders, history and charts open from the position cards. |
 | Market and offer details | Read shared listings, exact quantity and price, valuation context, expiry and settlement state. |
 | Sell | Review and publish a fixed-price full-lot ask; cancel while its lifecycle permits. |
-| Purchase | Receive-share authorization, buyer approval, seller approval, exact-hash recovery and result. |
+| Purchase on the offer page | Receive-share authorization, buyer approval, seller approval, exact-hash recovery and result; legacy buy links redirect here. |
 | Operator | Create/select vaults, seed liquidity, configure brokers/cover, originate and repay demo loans. |
 | Embed | Explore a separate-origin launch/handoff contract; not a production wallet integration SDK. |
 
-The interface uses Apple/system typography, light/dark themes, CSS motion and reduced-motion handling. Its values come from the application and selected ledger, rather than a static illustration.
+The interface uses the new Raise logo, Apple/system typography, light/dark themes, CSS motion and reduced-motion handling. Charts sample available ledger history; they are not yield forecasts. Operational balances and transaction outcomes come from the application and selected ledger. The landing-page phone preview is a product illustration, not a live transaction receipt.
 
 ## Architecture and responsibilities
 
@@ -115,7 +115,7 @@ Hosted deployment acceptance is complete in [#45](https://github.com/MylittleQue
 
 | Work | State / decision |
 |---|---|
-| Mentor demo and presentation | [#27](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/27); prepare the narrative and rehearsal using reproducible evidence. |
+| Mentor demo and presentation | [#27](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/27); English [pitch, demo and Q&A](DEMO.md) prepared. The team reports its existing slides ready; final recording/rehearsal is separate. |
 | Submission and team sign-off | [#28](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/28). |
 | Multiple-vault comparison, bids and RFQs | [#31](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/31); technical comparison exists, independent buyer/seller feedback is missing. |
 | Embedding and notifications | [#32](https://github.com/MylittleQueercat/XRPL_Lending_Protocol_Hackathon_Project/issues/32); prototype exists, external integrator validation is missing. |
@@ -126,7 +126,7 @@ Future ideas include partial fills, standing bids, negotiated quotes and a partn
 
 The presentation should show **deposit → loan → unavailable withdrawal → offer → two-party share sale → repayment → buyer redemption**. Clearly identify any previously recorded operation rather than presenting historical evidence as a live transaction. Loan timing and interest must use real ledger behavior.
 
-The event guidance recorded by the team weights developer feedback 40%, XRPL execution 30%, creativity/use case 20%, and presentation 10%. The manual report is at [DEVEX_FEEDBACK.md](../DEVEX_FEEDBACK.md); the [findings pool](../devfeedback/README.md) preserves detailed reproductions. Each contributor's consent-based automatic hook is separate from the team report. Slides, the submission form and final sign-off remain tracked deliverables; a code deployment does not complete them.
+The event guidance recorded by the team weights developer feedback 40%, XRPL execution 30%, creativity/use case 20%, and presentation 10%. The manual report is at [DEVEX_FEEDBACK.md](../DEVEX_FEEDBACK.md); the [findings pool](../devfeedback/README.md) preserves detailed reproductions. Each contributor's consent-based automatic hook is separate from the team report. The [submission audit](SUBMISSION.md) tracks deck/report format, the form and final sign-off. A code deployment does not complete those external steps.
 
 ## Adding a team proposal
 

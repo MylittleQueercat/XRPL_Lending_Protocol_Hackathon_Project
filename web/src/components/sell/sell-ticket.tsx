@@ -30,8 +30,14 @@ import { EXPIRY_OPTIONS, QUICK_FILLS, computeReview, dropsToXrpInput, isVaultId,
 // confirmation before the wallet-signed publish. The three steps (position, terms, review) are
 // still enforced: nothing can be published before the position is read and the terms reviewed.
 export function SellTicket() {
-  const params = useSearchParams();
   const wallet = useWallet();
+  // Holdings and reviewed terms belong to one account. Pending reads from an old
+  // instance cannot populate the newly connected account's ticket.
+  return <AccountSellTicket key={wallet.account?.address ?? "disconnected"} wallet={wallet} />;
+}
+
+function AccountSellTicket({ wallet }: { wallet: ReturnType<typeof useWallet> }) {
+  const params = useSearchParams();
   const address = wallet.account?.address ?? null;
 
   const [vaultInput, setVaultInput] = React.useState(params.get("vault") ?? "");

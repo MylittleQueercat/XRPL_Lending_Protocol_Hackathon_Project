@@ -39,12 +39,14 @@ Single-account transactions persist public recovery hashes before broadcasting. 
 
 ## Screens
 
-The interface keeps the MetaTrader convention, kept light: three figures and a card per vault on each screen; tickets, charts, orders and history open in dialogs. Tabular numbers, **blue = up / long / profit / discount, red = down / loss / premium**, values that flash when the ledger moves them. Charts are real: the Track 1 node keeps full history, so a vault's past state is read with `ledger_entry` at earlier ledgers (`src/lib/history.ts`), plus one exact sample at every deposit, withdrawal, disbursement and repayment of the vault.
+The current interface presents three account figures and vault cards, with action tickets, charts, orders and history in dialogs. New users can create a funded test wallet from Portfolio onboarding; vaults already known to the shared market can be suggested, and **Add vault** accepts a full Vault ID.
+
+Tabular numbers and brief value flashes distinguish updates. Blue indicates positive changes or discounts; red indicates losses or premiums. Charts read available historical vault states with `ledger_entry` and available activity through `account_tx` (`src/lib/history.ts`). History depth depends on the selected node; sampling is not a complete guaranteed archive or a projected return.
 
 | Route | Ticket | What it does |
 |---|---|---|
 | `/` | — | Landing page and navigation. |
-| `/portfolio` | #19, #21 | The portfolio terminal: account strip (balance, positions, equity, withdrawable today, open offers, ledger), market watch of your vaults with NAV sparklines, the NAV / assets / utilisation chart with activity markers, the deposit and withdraw ticket with the ledger's verdict and the "sell instead" route, and the toolbox (positions, orders, history from `account_tx`). `/position` redirects here. |
+| `/portfolio` | #19, #21 | Balance, position accounting value and withdrawable-today figures, one card per vault, deposit/withdraw actions, a chart dialog and a sell route. Orders and History open in dialogs; history comes from `account_tx`. `/position` redirects here. |
 | `/market` | #20 | Market watch: open, settled and all offers quoted against live NAV per share, with discount or premium coloured blue or red, sparklines, utilisation and expiry. |
 | `/market/[id]` | #20, #22 | One page per offer: figures strip, NAV chart with the asked unit price as a reference, vault panel, and the sale ticket (buyer authorisation, purchase request, buyer signature, seller approval, reconciliation). `/buy/[offerId]` redirects here. |
 | `/sell` | #21 | Sell ticket: position summary and NAV chart on the left, the order ticket on the right (quantity, price with at-NAV and discount quick fills, expiry, live unit price and discount preview, review, publish), your offers below. |
