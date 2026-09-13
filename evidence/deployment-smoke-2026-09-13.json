@@ -1,0 +1,174 @@
+{
+  "checkedAt": "2026-09-13T08:15:21.054679+00:00",
+  "origin": "https://raise.vgtray.fr",
+  "applicationRevision": "b17c06ab68ade358b18c424853594381e61958eb",
+  "scope": "Public HTTPS routes, same-origin JS/CSS, deployed image identity, persistent database and browser ledger/Vault ID checks. The full two-account trade was verified separately on localhost against network 4001.",
+  "tlsVerification": true,
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/"
+    },
+    {
+      "path": "/portfolio",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/portfolio"
+    },
+    {
+      "path": "/market",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/market"
+    },
+    {
+      "path": "/sell",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/sell"
+    },
+    {
+      "path": "/operator",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/operator"
+    },
+    {
+      "path": "/embed",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/embed"
+    },
+    {
+      "path": "/position",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/portfolio"
+    },
+    {
+      "path": "/api/market",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/api/market"
+    }
+  ],
+  "assets": [
+    {
+      "path": "/_next/static/chunks/249-3af12878e0707888.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/249-3af12878e0707888.js"
+    },
+    {
+      "path": "/_next/static/chunks/284-884b52ad5d9fa579.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/284-884b52ad5d9fa579.js"
+    },
+    {
+      "path": "/_next/static/chunks/449-55ce580143c8763e.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/449-55ce580143c8763e.js"
+    },
+    {
+      "path": "/_next/static/chunks/4bd1b696-c9cc1fe3b38e59bb.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/4bd1b696-c9cc1fe3b38e59bb.js"
+    },
+    {
+      "path": "/_next/static/chunks/500-2d1136a2b6ea2d76.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/500-2d1136a2b6ea2d76.js"
+    },
+    {
+      "path": "/_next/static/chunks/62-7c93a1ce689a0ce6.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/62-7c93a1ce689a0ce6.js"
+    },
+    {
+      "path": "/_next/static/chunks/628-9f31cf8a327f3849.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/628-9f31cf8a327f3849.js"
+    },
+    {
+      "path": "/_next/static/chunks/794-e2e598b36f4553ee.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/794-e2e598b36f4553ee.js"
+    },
+    {
+      "path": "/_next/static/chunks/app/layout-cd82a3e1ad8f32f6.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/app/layout-cd82a3e1ad8f32f6.js"
+    },
+    {
+      "path": "/_next/static/chunks/app/market/page-e20f55c85aa5e30d.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/app/market/page-e20f55c85aa5e30d.js"
+    },
+    {
+      "path": "/_next/static/chunks/app/operator/page-8fedb230f42ceb91.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/app/operator/page-8fedb230f42ceb91.js"
+    },
+    {
+      "path": "/_next/static/chunks/app/page-9b74b433e551f6a6.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/app/page-9b74b433e551f6a6.js"
+    },
+    {
+      "path": "/_next/static/chunks/app/portfolio/page-e43eb7e6aa7eb670.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/app/portfolio/page-e43eb7e6aa7eb670.js"
+    },
+    {
+      "path": "/_next/static/chunks/app/sell/page-399dbcf020eaad7d.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/app/sell/page-399dbcf020eaad7d.js"
+    },
+    {
+      "path": "/_next/static/chunks/main-app-9343b4e5be753063.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/main-app-9343b4e5be753063.js"
+    },
+    {
+      "path": "/_next/static/chunks/polyfills-42372ed130431b0a.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/polyfills-42372ed130431b0a.js"
+    },
+    {
+      "path": "/_next/static/chunks/webpack-7b1cf6f575596087.js",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/chunks/webpack-7b1cf6f575596087.js"
+    },
+    {
+      "path": "/_next/static/css/5dc0ea1b24f0b30b.css",
+      "status": 200,
+      "finalUrl": "https://raise.vgtray.fr/_next/static/css/5dc0ea1b24f0b30b.css"
+    }
+  ],
+  "publicOfferCount": 2,
+  "runtime": {
+    "imageTag": "raise-web:b17c06a",
+    "imageId": "sha256:17c39d0a73f52319c18ffd128e632a020383c43ea9f6b47c4c806355dc7a1683",
+    "sourceRevision": "b17c06ab68ade358b18c424853594381e61958eb",
+    "health": "healthy",
+    "user": "node",
+    "volume": "raise-market-data",
+    "mountPath": "/data",
+    "databaseIntegrityCheck": "ok",
+    "databaseInodeBefore": 58992563,
+    "databaseInodeAfter": 58992563,
+    "onlineBackupCreated": true,
+    "restrictedHostBackupRetained": true,
+    "rollbackTag": "raise-web:rollback-20f30c7",
+    "rollbackImageId": "sha256:aef499dd611c7a2733e1f15343599323161831e97d2a63037ffa6bf0ab055a6f",
+    "dokployDeploymentStatus": "Done",
+    "dokployDeploymentDuration": "1m 42s"
+  },
+  "browser": {
+    "page": "https://raise.vgtray.fr/operator",
+    "reloadedAfterDeployment": true,
+    "networkId": 4001,
+    "observedLedger": 89076,
+    "vaultId": "0877D55F308B7F0FA4F0453504E2FB838F232FA32B6B7647087AD11AF9162278",
+    "fullVaultIdVisible": true,
+    "copyButtonLiveAnnouncement": "Vault ID copied to clipboard.",
+    "portfolioHref": "/portfolio?vault=0877D55F308B7F0FA4F0453504E2FB838F232FA32B6B7647087AD11AF9162278",
+    "prefilledSellLinkPresent": true,
+    "observedConsoleWarningsOrErrors": [],
+    "walletTransactionsSubmitted": false
+  },
+  "localEndToEndEvidence": "browser-market-e2e-2026-09-13.json"
+}

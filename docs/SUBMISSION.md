@@ -43,7 +43,7 @@ The separate [two-browser run](../evidence/browser-market-e2e.json) also ends in
 | DevEx form containing team members and GitHub handles | **Not confirmed submitted** | The reviewed Notion does not expose a form link. Obtain the current form/submission route from the organizers and retain the acknowledgement. |
 | DevEx hook for every developer | **Installation confirmed by the team** | Adam confirms all teammates installed it. Current per-developer capture and organizer receipt are not independently verified by this checkout. |
 | Four-minute live demo and two-minute Q&A | Script and rehearsal plan prepared | [Demo playbook](DEMO.md); a completed team rehearsal and live presentation cannot be inferred from source files. |
-| Full demo video requested by the team | **Pending after application validation** | [Capture and motion plan](DEMO.md); separate from the mandatory live demo. |
+| Full demo video requested by the team | **Awaiting the existing team deck for alignment** | Application validation is complete for the recorded scope. Align the promotional video, spoken pitch and supplied slides using the [capture and motion plan](DEMO.md); separate from the mandatory live demo. |
 | Final team approval / submission | **Not confirmed** | Team confirms roster, content, final commit and actual submission acknowledgement. |
 
 Observed repository collaborator handles: **MylittleQueercat, vgtray, DAVIDshenghuei, aminssutt**. This is a GitHub access roster, not a verified mapping to registered participant names. Confirm those mappings and any roster changes before entering the form; do not derive legal names from commit authors.
